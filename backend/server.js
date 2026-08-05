@@ -7,6 +7,7 @@ const { seedProducts } = require('./src/seeders/productSeeder');
 const { seedReservations } = require('./src/seeders/reservationSeeder');
 const { seedOrders } = require('./src/seeders/orderSeeder');
 const { seedAdmin } = require('./src/seeders/adminSeeder');
+const { seedReviews } = require('./src/seeders/reviewSeeder');
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
@@ -14,10 +15,13 @@ const PORT = process.env.PORT || 3000;
 // Connect to Database and sync models
 connectDB();
 
-// Đồng bộ database.
+// Đồng bộ database
 sequelize.sync().then(async () => {
-    console.log('Database synced');
+    console.log('Database synced successfully.');
     await seedAdmin();
+    await seedReviews();
+    await seedOrders();
+    await seedReservations();
     // Khởi động dọn dẹp đặt bàn quá hạn
     startCleanupTask();
 

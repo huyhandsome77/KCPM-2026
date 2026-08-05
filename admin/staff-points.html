@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản Lý Tích Điểm - Staff Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="./staff.css" />
+  </head>
+  <body>
+    <div class="admin-new-shell">
+      <aside class="admin-sidebar-shell">
+        <div class="admin-brand-box">
+          <div class="admin-brand-badge">
+            <span class="admin-brand-icon"><i class="fa-solid fa-user-tie"></i></span>
+            <div>
+              <h1 class="admin-brand-title">AppDatMon Studio</h1>
+              <p class="admin-brand-subtitle">Nhân viên Phục vụ</p>
+            </div>
+          </div>
+          <div class="admin-system-status">
+            <span class="status-pulse-dot"></span>
+            <span>Đang trực ca phục vụ</span>
+          </div>
+        </div>
+
+        <nav class="admin-sidebar-nav" aria-label="Navigation">
+          <section class="admin-sidebar-section">
+            <div class="admin-sidebar-section-title">CHỨC NĂNG PHỤC VỤ</div>
+            <a class="nav-item" href="staff.html">
+              <span class="nav-item-main">
+                <span class="nav-icon-box"><i class="fa-solid fa-receipt"></i></span>
+                <span class="nav-label">Quản lý đơn hàng</span>
+              </span>
+            </a>
+            <a class="nav-item" href="staff-tables.html">
+              <span class="nav-item-main">
+                <span class="nav-icon-box"><i class="fa-solid fa-table-cells"></i></span>
+                <span class="nav-label">Quản lý bàn</span>
+              </span>
+            </a>
+            <a class="nav-item" href="staff-reservations.html">
+              <span class="nav-item-main">
+                <span class="nav-icon-box"><i class="fa-solid fa-calendar-check"></i></span>
+                <span class="nav-label">Quản lý đặt bàn</span>
+              </span>
+            </a>
+            <a class="nav-item active" href="staff-points.html">
+              <span class="nav-item-main">
+                <span class="nav-icon-box"><i class="fa-solid fa-coins"></i></span>
+                <span class="nav-label">Quản lý tích điểm</span>
+              </span>
+              <span class="nav-badge badge-rose">Live</span>
+            </a>
+          </section>
+        </nav>
+
+        <div class="admin-sidebar-profile">
+          <div class="admin-profile-avatar">ST</div>
+          <div class="admin-profile-copy">
+            <div class="admin-profile-name">Nhân Viên Phục Vụ</div>
+            <div class="admin-profile-role">STAFF</div>
+          </div>
+          <button class="admin-logout-button" data-action="logout" title="Đăng xuất">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </aside>
+
+      <main class="admin-content-shell">
+        <header class="admin-topbar-shell">
+          <div class="admin-topbar-left">
+            <div class="admin-breadcrumb">
+              <span>Phục vụ</span>
+              <i class="fa-solid fa-chevron-right"></i>
+              <strong class="current">Quản lý tích điểm</strong>
+            </div>
+          </div>
+
+          <div class="admin-search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="staff-search-input" placeholder="Tìm tên hoặc số điện thoại khách..." />
+            <kbd class="search-kbd">Ctrl K</kbd>
+          </div>
+
+          <div class="admin-topbar-right">
+            <div class="admin-live-clock">
+              <i class="fa-regular fa-clock"></i>
+              <span id="live-clock-text">Live Staff</span>
+            </div>
+            <div class="admin-noti-btn" title="Thông báo">
+              <i class="fa-solid fa-bell"></i>
+              <span class="noti-badge"></span>
+            </div>
+            <div class="admin-topbar-divider"></div>
+            <button class="admin-header-cta" id="btn-refresh-staff">
+              <i class="fa-solid fa-rotate-right"></i>
+              Làm mới
+            </button>
+          </div>
+        </header>
+
+        <section class="admin-main-content" style="display:grid; gap:1.25rem">
+          <!-- Quản lý tích điểm Panel -->
+          <section class="dashboard-panel" id="points-section">
+            <div class="dashboard-panel-header">
+              <div>
+                <h3 class="dashboard-panel-title"><i class="fa-solid fa-coins text-amber" style="margin-right:0.4rem"></i>Quản lý tích điểm</h3>
+                <p class="dashboard-panel-copy">Sau mỗi lần thanh toán, nhân viên có thể cộng hoặc trừ điểm thưởng dựa trên giá trị hóa đơn hoặc các chương trình khuyến mãi của nhà hàng, giúp khách hàng tích lũy điểm để đổi ưu đãi trong những lần sử dụng dịch vụ tiếp theo.</p>
+              </div>
+            </div>
+            <div class="vip-user-search" style="margin:1rem 0">
+              <input type="text" id="user-points-search" class="inline-input" placeholder="Nhập tên hoặc số điện thoại khách hàng để tra cứu..." style="width:100%; font-size:0.95rem; padding:0.75rem 1rem" />
+            </div>
+            <div class="vip-users-list" id="vip-users-list" style="display:grid; gap:0.9rem; margin-top:1rem">
+              <!-- Dynamically rendered users with points -->
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="./staff.js"></script>
+  </body>
+</html>
