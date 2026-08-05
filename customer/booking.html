@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đặt bàn - AppDatMon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div>
+            <span class="brand-label">AppDatMon</span>
+            <p class="brand-subtitle">Đặt bàn nhanh</p>
+          </div>
+        </div>
+        <nav class="site-nav">
+          <a href="index.html" class="nav-link">Trang chủ</a>
+          <a href="order.html" class="nav-link">Order</a>
+          <a href="booking.html" class="nav-link active">Đặt bàn</a>
+          <a href="review.html" class="nav-link">Đánh giá</a>
+          <a href="contact.html" class="nav-link">Liên hệ</a>
+        </nav>
+        <div class="header-actions">
+          <a href="login.html" class="btn btn-primary">Đăng nhập</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="section card booking-hero">
+          <div>
+            <span class="eyebrow">Đặt bàn trực tiếp</span>
+            <h1>Đặt bàn nhanh chóng cho bữa ăn tiếp theo</h1>
+            <p>Chọn ngày, giờ và ghi chú nhu cầu. Hệ thống sẽ tự động hủy nếu khách không check-in sau 30 phút.</p>
+          </div>
+          <div class="booking-panel card-sm">
+            <form id="bookingForm" class="form-grid">
+              <div class="field">
+                <label for="guestName">Họ tên</label>
+                <input id="guestName" type="text" placeholder="Nguyễn Văn A" required />
+              </div>
+              <div class="field">
+                <label for="guestPhone">Số điện thoại</label>
+                <input id="guestPhone" type="tel" placeholder="0901234567" required />
+              </div>
+              <div class="field">
+                <label for="guestCount">Số lượng người</label>
+                <input id="guestCount" type="number" min="1" value="2" required />
+              </div>
+              <div class="field">
+                <label for="bookingDate">Ngày</label>
+                <input id="bookingDate" type="date" required />
+              </div>
+              <div class="field">
+                <label for="bookingTime">Giờ</label>
+                <input id="bookingTime" type="time" required />
+              </div>
+              <div class="field full-width">
+                <label for="bookingNote">Ghi chú</label>
+                <textarea id="bookingNote" rows="3" placeholder="Ghi chú yêu cầu đặc biệt..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Gửi đặt bàn</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="section status-panel card">
+          <div class="section-title-wrap">
+            <span class="eyebrow">Tình trạng bàn</span>
+            <h2>Bàn còn trống & đặt trước</h2>
+          </div>
+          <div class="status-grid">
+            <div class="status-card"><span>Trống</span><strong>12</strong></div>
+            <div class="status-card"><span>Đã đặt</span><strong>8</strong></div>
+            <div class="status-card"><span>Check-in</span><strong>4</strong></div>
+            <div class="status-card"><span>Hủy tự động</span><strong>30 phút</strong></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div>
+          <h3>AppDatMon</h3>
+          <p>Đặt bàn dễ dàng, trạng thái rõ ràng và hỗ trợ khách hàng nhanh chóng.</p>
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Trang chủ</a>
+          <a href="order.html">Order</a>
+          <a href="review.html">Đánh giá</a>
+          <a href="contact.html">Liên hệ</a>
+        </div>
+      </footer>
+    </div>
+    <script src="./script.js"></script>
+  </body>
+</html>

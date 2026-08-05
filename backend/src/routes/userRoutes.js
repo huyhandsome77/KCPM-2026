@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { verifyToken, isAdmin } = require('../middlewares/authMiddleware');
+const { verifyToken, isAdmin, isStaffOrAdmin } = require('../middlewares/authMiddleware');
 
-// 1. Lấy tất cả người dùng (Admin)
-router.get('/', verifyToken, isAdmin, userController.getAllUsers);
+// 1. Lấy tất cả người dùng (Admin & Staff)
+router.get('/', verifyToken, isStaffOrAdmin, userController.getAllUsers);
 
 // 2. Lấy thông tin cá nhân
 router.get('/profile', verifyToken, userController.getUserProfile);
@@ -18,8 +18,8 @@ router.get('/:id', verifyToken, isAdmin, userController.getUserById);
 // 5. Tạo người dùng mới (Admin)
 router.post('/', verifyToken, isAdmin, userController.createUser);
 
-// 6. Cập nhật thông tin người dùng (Admin)
-router.put('/:id', verifyToken, isAdmin, userController.updateUser);
+// 6. Cập nhật thông tin người dùng (Admin & Staff)
+router.put('/:id', verifyToken, isStaffOrAdmin, userController.updateUser);
 
 // 6. Xóa người dùng (Admin)
 router.delete('/:id', verifyToken, isAdmin, userController.deleteUser);

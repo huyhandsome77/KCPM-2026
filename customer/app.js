@@ -7,11 +7,18 @@ const state = {
   user: JSON.parse(localStorage.getItem(USER_KEY) || 'null'),
   token: localStorage.getItem(TOKEN_KEY) || '',
   authMode: 'login',
+  activeView: 'menu',
   loading: false,
   products: [],
   categories: [],
   table: null,
   cart: [],
+  reservations: [],
+  reviews: [],
+  orders: [],
+  contactMessage: '',
+  contactSubject: '',
+  contactEmail: '',
   error: '',
   success: '',
   tableQr: '',
@@ -49,15 +56,17 @@ async function api(path, options = {}) {
 
 async function loadInitialData() {
   try {
-    const [productsRes, categoriesRes] = await Promise.all([
+    const [productsRes, categoriesRes, reviewsRes] = await Promise.all([
       api('/api/products'),
-      api('/api/categories')
+      api('/api/categories'),
+      api('/api/reviews?page=1&limit=100')
     ]);
     state.products = productsRes || [];
     state.categories = categoriesRes || [];
+    state.reviews = Array.isArray(reviewsRes.reviews) ? reviewsRes.reviews : (reviewsRes || []);
   } catch (error) {
     console.error(error);
-    showToast('Không thể tải menu. Vui lòng thử lại.');
+    showToast('Không thể tải dữ liệu ban đầu. Vui lòng thử lại.');
   }
 }
 
@@ -121,6 +130,7 @@ async function handleAuthSubmit(event) {
       localStorage.setItem(TOKEN_KEY, data.token);
       localStorage.setItem(USER_KEY, JSON.stringify(data.user));
       setMessage('success', 'Đăng nhập thành công');
+      state.activeView = 'menu';
       await loadInitialData();
       const qr = getTableFromQr();
       if (qr) await loadTableByQr(qr);
@@ -240,18 +250,40 @@ function renderAuth() {
 }
 
 function renderHome() {
+  if (state.activeView === 'menu') {
+    return renderMenuView();
+  }
+  if (state.activeView === 'reserve') {
+    return renderReservationView();
+  }
+  if (state.activeView === 'review') {
+    return renderReviewView();
+  }
+  if (state.activeView === 'contact') {
+    return renderContactView();
+  }
+  return renderMenuView();
+}
+
+function renderMenuView() {
   const subtotal = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tableLabel = state.table ? `Bàn #${state.table.tableNumber || state.table.id}` : 'Chưa chọn bàn';
   const filteredProducts = getFilteredProducts();
   return `
     <section class="home-screen container">
-      <div class="topbar card">
+      <div class="topbar card topbar-with-tabs">
         <div>
-          <div class="badge"><i class="fa-solid fa-qrcode"></i> Đặt món qua QR</div>
+          <div class="badge"><i class="fa-solid fa-utensils"></i> Đặt món qua QR</div>
           <h1 style="margin: 0.6rem 0 0.2rem; font-size: 1.45rem;">Xin chào, ${state.user?.fullName || 'khách hàng'}</h1>
           <p class="muted" style="margin: 0;">${tableLabel} • ${state.table?.qrCode || 'Quét QR hoặc nhập mã bàn để bắt đầu'}</p>
         </div>
-        <button class="btn btn-secondary" onclick="appHandlers.logout()">Đăng xuất</button>
+        <div class="tab-buttons">
+          <button class="btn btn-ghost ${state.activeView === 'menu' ? 'active' : ''}" onclick="appHandlers.switchView('menu')">Đặt món</button>
+          <button class="btn btn-ghost ${state.activeView === 'reserve' ? 'active' : ''}" onclick="appHandlers.switchView('reserve')">Đặt bàn</button>
+          <button class="btn btn-ghost ${state.activeView === 'review' ? 'active' : ''}" onclick="appHandlers.switchView('review')">Đánh giá</button>
+          <button class="btn btn-ghost ${state.activeView === 'contact' ? 'active' : ''}" onclick="appHandlers.switchView('contact')">Liên hệ</button>
+          <button class="btn btn-secondary" onclick="appHandlers.logout()">Đăng xuất</button>
+        </div>
       </div>
 
       <div class="panel card table-panel">
@@ -318,6 +350,149 @@ function renderHome() {
   `;
 }
 
+function renderReservationView() {
+  return `
+    <section class="home-screen container">
+      <div class="topbar card topbar-with-tabs">
+        <div>
+          <div class="badge"><i class="fa-solid fa-calendar-plus"></i> Đặt bàn</div>
+          <h1 style="margin: 0.6rem 0 0.2rem; font-size: 1.45rem;">Đặt bàn trước</h1>
+          <p class="muted" style="margin: 0;">Chọn ngày giờ, số khách và hệ thống sẽ gợi ý bàn trống phù hợp.</p>
+        </div>
+        <div class="tab-buttons">
+          <button class="btn btn-ghost ${state.activeView === 'menu' ? 'active' : ''}" onclick="appHandlers.switchView('menu')">Đặt món</button>
+          <button class="btn btn-ghost ${state.activeView === 'reserve' ? 'active' : ''}" onclick="appHandlers.switchView('reserve')">Đặt bàn</button>
+          <button class="btn btn-ghost ${state.activeView === 'review' ? 'active' : ''}" onclick="appHandlers.switchView('review')">Đánh giá</button>
+          <button class="btn btn-ghost ${state.activeView === 'contact' ? 'active' : ''}" onclick="appHandlers.switchView('contact')">Liên hệ</button>
+          <button class="btn btn-secondary" onclick="appHandlers.logout()">Đăng xuất</button>
+        </div>
+      </div>
+
+      <form class="panel card reservation-form" onsubmit="appHandlers.submitReservation(event)">
+        <div class="grid grid-2">
+          <div class="field">
+            <label>Họ tên</label>
+            <input name="guestName" type="text" value="${state.user?.fullName || ''}" placeholder="Họ và tên" required />
+          </div>
+          <div class="field">
+            <label>Số điện thoại</label>
+            <input name="guestPhone" type="text" value="${state.user?.phone || ''}" placeholder="Số điện thoại" required />
+          </div>
+          <div class="field">
+            <label>Thời gian đặt</label>
+            <input name="reservationTime" type="datetime-local" required />
+          </div>
+          <div class="field">
+            <label>Số khách</label>
+            <input name="numberOfGuests" type="number" min="1" value="2" required />
+          </div>
+          <div class="field full">
+            <label>Ghi chú</label>
+            <textarea name="note" placeholder="Yêu cầu đặc biệt, nhớ sắp xếp bàn cạnh cửa sổ..."></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Xác nhận đặt bàn</button>
+        <div class="muted small">Đặt bàn sẽ được xác nhận ngay khi backend còn bàn trống phù hợp. Nếu không, bạn sẽ nhận được thông báo lỗi.</div>
+      </form>
+    </section>
+  `;
+}
+
+function renderReviewView() {
+  const reviews = state.reviews || [];
+  return `
+    <section class="home-screen container">
+      <div class="topbar card topbar-with-tabs">
+        <div>
+          <div class="badge"><i class="fa-solid fa-star"></i> Đánh giá</div>
+          <h1 style="margin: 0.6rem 0 0.2rem; font-size: 1.45rem;">Gửi đánh giá món ăn</h1>
+          <p class="muted" style="margin: 0;">Chia sẻ trải nghiệm ăn uống để nhà hàng cải thiện chất lượng.</p>
+        </div>
+        <div class="tab-buttons">
+          <button class="btn btn-ghost ${state.activeView === 'menu' ? 'active' : ''}" onclick="appHandlers.switchView('menu')">Đặt món</button>
+          <button class="btn btn-ghost ${state.activeView === 'reserve' ? 'active' : ''}" onclick="appHandlers.switchView('reserve')">Đặt bàn</button>
+          <button class="btn btn-ghost ${state.activeView === 'review' ? 'active' : ''}" onclick="appHandlers.switchView('review')">Đánh giá</button>
+          <button class="btn btn-ghost ${state.activeView === 'contact' ? 'active' : ''}" onclick="appHandlers.switchView('contact')">Liên hệ</button>
+          <button class="btn btn-secondary" onclick="appHandlers.logout()">Đăng xuất</button>
+        </div>
+      </div>
+
+      <form class="panel card review-form" onsubmit="appHandlers.submitReview(event)">
+        <div class="field">
+          <label>Tên món</label>
+          <input name="dish_name" type="text" placeholder="Tên món bạn muốn đánh giá" required />
+        </div>
+        <div class="grid grid-2">
+          <div class="field">
+            <label>Số sao</label>
+            <select name="rating" required>
+              <option value="">Chọn số sao</option>
+              ${[1,2,3,4,5].map(n => `<option value="${n}">${n} sao</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <label>Số điện thoại</label>
+            <input name="phone" type="text" value="${state.user?.phone || ''}" placeholder="Số điện thoại" />
+          </div>
+        </div>
+        <div class="field full">
+          <label>Nội dung đánh giá</label>
+          <textarea name="content" placeholder="Chia sẻ cảm nhận của bạn" required></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Gửi đánh giá</button>
+      </form>
+
+      <section class="panel card review-list">
+        <h3 style="margin-top:0;">Đánh giá gần đây</h3>
+        ${reviews.length ? reviews.slice(0, 10).map(review => `
+          <article class="review-card">
+            <div class="review-meta"><strong>${escapeHtml(review.dish_name || 'Ẩn danh')}</strong> • ${'★'.repeat(review.rating || 0)}</div>
+            <p>${escapeHtml(review.content || '')}</p>
+            <div class="muted small">${escapeHtml(review.user?.fullName || review.phone || 'Khách vãng lai')}</div>
+          </article>
+        `).join('') : '<div class="empty-state">Chưa có đánh giá nào.</div>'}
+      </section>
+    </section>
+  `;
+}
+
+function renderContactView() {
+  return `
+    <section class="home-screen container">
+      <div class="topbar card topbar-with-tabs">
+        <div>
+          <div class="badge"><i class="fa-solid fa-envelope"></i> Liên hệ</div>
+          <h1 style="margin: 0.6rem 0 0.2rem; font-size: 1.45rem;">Gửi phản hồi đến nhà hàng</h1>
+          <p class="muted" style="margin: 0;">Mọi góp ý về dịch vụ, món ăn hoặc sự cố sẽ được ghi nhận.</p>
+        </div>
+        <div class="tab-buttons">
+          <button class="btn btn-ghost ${state.activeView === 'menu' ? 'active' : ''}" onclick="appHandlers.switchView('menu')">Đặt món</button>
+          <button class="btn btn-ghost ${state.activeView === 'reserve' ? 'active' : ''}" onclick="appHandlers.switchView('reserve')">Đặt bàn</button>
+          <button class="btn btn-ghost ${state.activeView === 'review' ? 'active' : ''}" onclick="appHandlers.switchView('review')">Đánh giá</button>
+          <button class="btn btn-ghost ${state.activeView === 'contact' ? 'active' : ''}" onclick="appHandlers.switchView('contact')">Liên hệ</button>
+          <button class="btn btn-secondary" onclick="appHandlers.logout()">Đăng xuất</button>
+        </div>
+      </div>
+
+      <form class="panel card contact-form" onsubmit="appHandlers.submitContact(event)">
+        <div class="field">
+          <label>Email của bạn</label>
+          <input name="email" type="email" value="${state.contactEmail}" placeholder="Địa chỉ email" required />
+        </div>
+        <div class="field">
+          <label>Chủ đề</label>
+          <input name="subject" type="text" value="${state.contactSubject}" placeholder="Tiêu đề liên hệ" required />
+        </div>
+        <div class="field full">
+          <label>Nội dung phản hồi</label>
+          <textarea name="message" placeholder="Nội dung ..." required>${escapeHtml(state.contactMessage)}</textarea>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Gửi liên hệ</button>
+      </form>
+    </section>
+  `;
+}
+
 function render() {
   app.innerHTML = state.user ? renderHome() : renderAuth();
 }
@@ -354,6 +529,81 @@ const appHandlers = {
   setSearchTerm(value) {
     state.searchTerm = value;
     render();
+  },
+  switchView(view) {
+    state.activeView = view;
+    state.error = '';
+    state.success = '';
+    render();
+  },
+  async submitReservation(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const body = {
+      guestName: String(formData.get('guestName') || ''),
+      guestPhone: String(formData.get('guestPhone') || ''),
+      reservationTime: String(formData.get('reservationTime') || ''),
+      numberOfGuests: Number(formData.get('numberOfGuests') || 1),
+      note: String(formData.get('note') || '')
+    };
+
+    try {
+      const data = await api('/api/reservations', {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      showToast(data.message || 'Đặt bàn thành công', 'success');
+      form.reset();
+      state.activeView = 'menu';
+      render();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  },
+  async submitReview(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const body = {
+      user_id: state.user?.id,
+      phone: String(formData.get('phone') || state.user?.phone || ''),
+      dish_name: String(formData.get('dish_name') || ''),
+      content: String(formData.get('content') || ''),
+      rating: Number(formData.get('rating') || 0)
+    };
+
+    try {
+      const data = await api('/api/reviews', {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      showToast(data.message || 'Gửi đánh giá thành công', 'success');
+      state.reviews.unshift(data.review);
+      form.reset();
+      render();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  },
+  async submitContact(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const message = String(formData.get('message') || '');
+    const email = String(formData.get('email') || '');
+    const subject = String(formData.get('subject') || '');
+
+    if (!email || !subject || !message) {
+      showToast('Vui lòng điền đầy đủ thông tin liên hệ', 'error');
+      return;
+    }
+
+    state.contactEmail = email;
+    state.contactSubject = subject;
+    state.contactMessage = message;
+    showToast('Tin nhắn liên hệ đã được lưu cục bộ và sẽ gửi tới nhà hàng khi backend hỗ trợ.', 'success');
+    form.reset();
   },
   logout() {
     localStorage.removeItem(TOKEN_KEY);

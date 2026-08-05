@@ -62,7 +62,8 @@ exports.login = async (req, res) => {
             where: {
                 [Op.or]: [
                     { username: account },
-                    { phone: account }
+                    { phone: account },
+                    { email: account }
                 ]
             }
         });

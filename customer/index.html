@@ -3,16 +3,175 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AppDatMon - Đặt món qua QR</title>
-    <meta name="description" content="Giao diện đặt món nhà hàng qua QR với API backend hiện có" />
+    <title>AppDatMon - Nhà hàng & Đặt món</title>
+    <meta name="description" content="Giao diện website nhà hàng hiện đại, đặt món và quản lý khách hàng." />
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="ambient ambient-left"></div>
-    <div class="ambient ambient-right"></div>
-    <div id="app" class="app-shell"></div>
-    <script src="./app.js"></script>
+    <div class="page-shell">
+      <header class="site-header">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div>
+            <span class="brand-label">AppDatMon</span>
+            <p class="brand-subtitle">Nhà hàng thông minh & Đặt món qua QR</p>
+          </div>
+        </div>
+        <nav class="site-nav">
+          <a href="index.html" class="nav-link active">Trang chủ</a>
+          <a href="order.html" class="nav-link">Order</a>
+          <a href="booking.html" class="nav-link">Đặt bàn</a>
+          <a href="review.html" class="nav-link">Đánh giá</a>
+          <a href="contact.html" class="nav-link">Liên hệ</a>
+        </nav>
+        <div class="header-actions">
+          <a href="login.html" class="btn btn-primary">Đăng nhập / Đăng ký</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero section card">
+          <div class="hero-copy">
+            <span class="eyebrow">Nhà hàng chuyên nghiệp</span>
+            <h1>Trải nghiệm đặt món và đặt bàn nhanh chóng, hiện đại.</h1>
+            <p>Giao diện khách hàng đẹp mắt kết hợp quản lý nhà hàng, tối ưu đặt món bằng QR, duyệt đặt bàn và đánh giá.</p>
+            <div class="hero-actions">
+              <a href="order.html" class="btn btn-primary">Đặt món ngay</a>
+              <a href="booking.html" class="btn btn-secondary">Đặt bàn</a>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="hero-card">
+              <div class="hero-card-icon"><i class="fa-solid fa-qrcode"></i></div>
+              <h3>Quét QR & gọi món</h3>
+              <p>Nhận bàn và gọi món ngay trên điện thoại.</p>
+            </div>
+            <div class="hero-card hero-card-highlight">
+              <div class="hero-card-icon"><i class="fa-solid fa-star"></i></div>
+              <h3>Đánh giá khách hàng</h3>
+              <p>Chia sẻ cảm nhận và tăng uy tín nhà hàng.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section section-split">
+          <div class="section-intro">
+            <span class="eyebrow">Menu nổi bật</span>
+            <h2>Món ăn được yêu thích nhất</h2>
+            <p>Chọn món ngon đã được khách hàng đánh giá cao. Giao diện hiển thị thông tin rõ ràng, tinh gọn và dễ chọn.</p>
+          </div>
+          <div class="grid cards-grid">
+            <article class="food-card">
+              <img src="https://images.unsplash.com/photo-1555992336-03a23c17b9a6?auto=format&fit=crop&w=800&q=70" alt="Sushi" />
+              <div class="food-card-body">
+                <span class="badge badge-primary">Món hot</span>
+                <h3>Salmon Teriyaki</h3>
+                <p>Salmon tươi sốt teriyaki đậm đà cùng rau củ.</p>
+                <div class="food-card-foot">
+                  <strong>145.000đ</strong>
+                  <a href="order.html" class="text-link">Đặt ngay</a>
+                </div>
+              </div>
+            </article>
+            <article class="food-card">
+              <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=70" alt="Burger" />
+              <div class="food-card-body">
+                <span class="badge badge-secondary">Gợi ý</span>
+                <h3>Burger Thịt Bò</h3>
+                <p>Thịt bò Mỹ nướng, rau củ tươi và sốt đặc biệt.</p>
+                <div class="food-card-foot">
+                  <strong>98.000đ</strong>
+                  <a href="order.html" class="text-link">Đặt ngay</a>
+                </div>
+              </div>
+            </article>
+            <article class="food-card">
+              <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=70" alt="Salad" />
+              <div class="food-card-body">
+                <span class="badge badge-success">Mới</span>
+                <h3>Salad Trái Cây</h3>
+                <p>Giải nhiệt với salad tươi mát, vị chua ngọt nhẹ nhàng.</p>
+                <div class="food-card-foot">
+                  <strong>72.000đ</strong>
+                  <a href="order.html" class="text-link">Đặt ngay</a>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section section-category">
+          <div class="section-title-wrap">
+            <span class="eyebrow">Danh mục</span>
+            <h2>Khám phá theo loại món</h2>
+          </div>
+          <div class="grid category-grid">
+            <div class="category-card"><i class="fa-solid fa-house-chimney-user"></i><h3>Set gia đình</h3></div>
+            <div class="category-card"><i class="fa-solid fa-fish"></i><h3>Hải sản</h3></div>
+            <div class="category-card"><i class="fa-solid fa-bowl-food"></i><h3>Ăn no</h3></div>
+            <div class="category-card"><i class="fa-solid fa-cake-candles"></i><h3>Tráng miệng</h3></div>
+          </div>
+        </section>
+
+        <section class="section section-about">
+          <div class="section-intro">
+            <span class="eyebrow">Giới thiệu</span>
+            <h2>Nhà hàng AppDatMon - nơi chạm vị ngon</h2>
+            <p>Thanh lịch, chuyên nghiệp và thân thiện. Chúng tôi góp phần mang lại trải nghiệm ăn uống trọn vẹn cho khách hàng và quản lý nhà hàng thông minh.</p>
+          </div>
+          <div class="about-grid">
+            <div class="about-card"><span class="about-icon"><i class="fa-solid fa-mountain-sun"></i></span><h3>Không gian hiện đại</h3><p>Bàn ghế tối giản, ánh sáng dịu nhẹ, phù hợp mọi buổi tiệc.</p></div>
+            <div class="about-card"><span class="about-icon"><i class="fa-solid fa-star"></i></span><h3>Chất lượng món ăn</h3><p>Nguyên liệu tươi ngon, chế biến bởi đầu bếp chuyên nghiệp.</p></div>
+            <div class="about-card"><span class="about-icon"><i class="fa-solid fa-bolt"></i></span><h3>Phục vụ nhanh</h3><p>Đơn hàng xử lý hiệu quả với hệ thống đặt món qua QR và nhân viên chu đáo.</p></div>
+          </div>
+        </section>
+
+        <section class="section section-promo card">
+          <div>
+            <span class="eyebrow">Khuyến mãi đặc biệt</span>
+            <h2>Giảm 20% đơn ăn trưa hôm nay</h2>
+            <p>Áp dụng với đơn hàng trực tiếp từ website. Nhanh tay đặt món và nhận ưu đãi.</p>
+          </div>
+          <a href="order.html" class="btn btn-primary">Nhận ưu đãi</a>
+        </section>
+
+        <section class="section section-testimonials">
+          <div class="section-title-wrap">
+            <span class="eyebrow">Đánh giá</span>
+            <h2>Khách hàng nói gì</h2>
+          </div>
+          <div class="grid testimonial-grid">
+            <div class="testimonial-card">
+              <p>"Món ăn ngon, phục vụ nhanh và không gian rất thoải mái. Sẽ quay lại!"</p>
+              <div class="testimonial-author"><strong>Nguyễn An</strong><span>⭐⭐⭐⭐⭐</span></div>
+            </div>
+            <div class="testimonial-card">
+              <p>"Đặt món qua QR rất tiện, không cần chờ gọi nhân viên. Giá cả phù hợp."</p>
+              <div class="testimonial-author"><strong>Phạm Mai</strong><span>⭐⭐⭐⭐⭐</span></div>
+            </div>
+            <div class="testimonial-card">
+              <p>"Nhà hàng thiết kế hiện đại, đồ ăn trình bày đẹp mắt. Dịch vụ ấm cúng."</p>
+              <div class="testimonial-author"><strong>Trần Long</strong><span>⭐⭐⭐⭐⭐</span></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div>
+          <h3>AppDatMon</h3>
+          <p>Nhà hàng thông minh với trải nghiệm đặt món và đặt bàn linh hoạt.</p>
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Trang chủ</a>
+          <a href="order.html">Order</a>
+          <a href="booking.html">Đặt bàn</a>
+          <a href="contact.html">Liên hệ</a>
+        </div>
+      </footer>
+    </div>
+    <script src="./script.js"></script>
   </body>
 </html>

@@ -1,6 +1,11 @@
-const TOKEN_KEY = 'appdatmon_admin_token';
-const USER_KEY = 'appdatmon_admin_user';
-const API_BASE_URL = (window.ADMIN_API_BASE_URL || localStorage.getItem('appdatmon_admin_api_base') || 'http://54.81.9.236:3000').replace(/\/$/, '');
+import { TOKEN_KEY, USER_KEY, API_BASE_URL } from './js/config.js';
+import { formatCurrency, formatDateTime, formatNumber, escapeHtml, userInitials, statusChip, tableStatusClass, orderStatusClass, paymentStatusClass, reservationStatusClass } from './js/utils.js';
+import { api } from './js/api.js';
+import { renderReservationsGrid } from './js/views/reservationsView.js';
+import { renderOrdersGrid, generatePayOSQRUrl } from './js/views/ordersView.js';
+import { renderTablesFloorGrid } from './js/views/tablesView.js';
+import { renderProductsGrid } from './js/views/productsView.js';
+import { renderUsersGrid } from './js/views/usersView.js';
 
 const VIEW_META = {
   overview: {
@@ -151,11 +156,16 @@ const ENTITY_CONFIGS = {
   tables: {
     endpoint: '/api/tables',
     searchKey: 'search',
-    createLabel: 'Nạp bàn hàng loạt',
+    createLabel: 'Thêm bàn ăn',
     allowCreate: true,
-    allowEdit: false,
-    allowDelete: false,
-    customCreateMode: 'bulk-tables',
+    allowEdit: true,
+    allowDelete: true,
+    fields: [
+      { name: 'tableNumber', label: 'Số bàn', type: 'number', required: true, min: 1 },
+      { name: 'capacity', label: 'Sức chứa (người)', type: 'number', required: true, min: 1, value: 4 },
+      { name: 'qrCode', label: 'Mã QR Code Bàn', type: 'text', helper: 'Ví dụ: T1-001 (Bỏ trống tự tạo)' },
+      { name: 'status', label: 'Trạng thái', type: 'select', options: ['AVAILABLE', 'OCCUPIED', 'BOOKED', 'CLEANING'] }
+    ],
     columns: [
       { label: 'Số bàn', render: row => `#${row.tableNumber ?? row.id}` },
       { label: 'QR Code', render: row => row.qrCode || '-' },
@@ -243,6 +253,23 @@ const state = {
     orders: '',
     reviews: ''
   },
+  viewModes: {
+    products: 'grid',
+    categories: 'grid',
+    tables: 'floor',
+    reservations: 'cards',
+    orders: 'cards',
+    users: 'grid',
+    reviews: 'cards'
+  },
+  activeTabs: {
+    products: 'ALL',
+    tables: 'ALL',
+    reservations: 'ALL',
+    orders: 'ALL',
+    users: 'ALL',
+    reviews: 'ALL'
+  },
   statsQuery: {
     type: 'day',
     date: ''
@@ -258,90 +285,9 @@ function readJson(key) {
   }
 }
 
-function formatNumber(value) {
-  const numeric = Number(value ?? 0);
-  return Number.isFinite(numeric) ? numeric.toLocaleString('vi-VN') : '0';
-}
-
-function formatCurrency(value) {
-  const numeric = Number(value ?? 0);
-  return Number.isFinite(numeric)
-    ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(numeric)
-    : '0 đ';
-}
-
-function formatDateTime(value) {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('vi-VN', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(date);
-}
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
-function statusChip(status, label) {
-  const safe = String(status || 'muted').toLowerCase();
-  return `<span class="status-chip status-${safe}">${escapeHtml(label ?? status ?? '-')}</span>`;
-}
-
-function userInitials(user) {
-  const source = user?.fullName || user?.username || 'A';
-  return source
-    .split(/\s+/)
-    .map(part => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
-
 function categoryLabel(categoryId) {
   const category = (state.data.categories || []).find(item => String(item.id) === String(categoryId));
   return category ? `${category.name} (#${category.id})` : categoryId ? `#${categoryId}` : '-';
-}
-
-function tableStatusClass(status) {
-  const value = String(status || '').toUpperCase();
-  if (value === 'AVAILABLE') return 'available';
-  if (value === 'BOOKED') return 'booked';
-  if (value === 'OCCUPIED') return 'warning';
-  if (value === 'CLEANING') return 'cleaning';
-  return 'muted';
-}
-
-function reservationStatusClass(status) {
-  const value = String(status || '').toUpperCase();
-  if (value === 'CONFIRMED' || value === 'ARRIVED' || value === 'CHECKED_IN' || value === 'COMPLETED') return 'success';
-  if (value === 'PENDING') return 'pending';
-  if (value === 'CANCELLED' || value === 'EXPIRED') return 'danger';
-  return 'muted';
-}
-
-function orderStatusClass(status) {
-  const value = String(status || '').toUpperCase();
-  if (value === 'COMPLETED') return 'completed';
-  if (value === 'PENDING') return 'pending';
-  if (value === 'CONFIRMED' || value === 'PREPARING' || value === 'READY') return 'warning';
-  if (value === 'CANCELLED') return 'danger';
-  return 'muted';
-}
-
-function paymentStatusClass(status) {
-  const value = String(status || '').toUpperCase();
-  if (value === 'PAID' || value === 'SUCCESS') return 'success';
-  if (value === 'UNPAID' || value === 'PENDING') return 'pending';
-  if (value === 'FAILED' || value === 'REFUNDED') return 'danger';
-  return 'muted';
 }
 
 function toast(type, title, text) {
@@ -354,42 +300,41 @@ function toast(type, title, text) {
   }, 3200);
 }
 
-async function api(path, options = {}) {
-  const headers = { ...(options.headers || {}) };
-  if (state.token) {
-    headers.Authorization = `Bearer ${state.token}`;
-  }
-  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
-    headers['Content-Type'] = 'application/json';
-  }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
-  const raw = await response.text();
-  const body = raw ? safeParseJson(raw) : null;
-
-  if (!response.ok) {
-    const error = new Error(body?.message || body?.error || raw || `Request failed with status ${response.status}`);
-    error.status = response.status;
-    error.body = body;
-    throw error;
-  }
-
-  return body;
-}
-
-function safeParseJson(text) {
-  try {
-    return JSON.parse(text);
-  } catch (error) {
-    return null;
-  }
-}
-
 async function uploadImage(file) {
   const formData = new FormData();
   formData.append('image', file);
   const result = await api('/api/upload/image', { method: 'POST', body: formData });
   return result.imageUrl;
+}
+
+function getRoleRoute(role) {
+  const normalized = String(role || '').toUpperCase();
+  if (normalized === 'ADMIN') return 'admin';
+  if (normalized === 'STAFF') return 'staff';
+  if (normalized === 'KITCHEN') return 'kitchen';
+  return null;
+}
+
+function redirectByRole(role) {
+  const route = getRoleRoute(role);
+  const currentPath = window.location.pathname.split('/').pop()?.toLowerCase() || '';
+
+  if (route === 'staff' && !currentPath.endsWith('staff.html')) {
+    window.location.assign('./staff.html');
+    return true;
+  }
+
+  if (route === 'kitchen' && !currentPath.endsWith('kitchen.html')) {
+    window.location.assign('./kitchen.html');
+    return true;
+  }
+
+  if (route === 'admin' && currentPath && !currentPath.endsWith('index.html')) {
+    window.location.assign('./index.html');
+    return true;
+  }
+
+  return false;
 }
 
 async function boot() {
@@ -398,13 +343,25 @@ async function boot() {
     return;
   }
 
+  const role = String(state.user?.role || '').toUpperCase();
+  if (role === 'CUSTOMER') {
+    toast('danger', 'Tài khoản không đủ quyền', 'Vui lòng đăng nhập bằng tài khoản quản trị để sử dụng trang quản trị.');
+    clearAuth();
+    render();
+    return;
+  }
+
+  if (redirectByRole(role)) {
+    return;
+  }
+
   state.loading = true;
   render();
 
   try {
     await loadAllData();
-    if (state.user?.role !== 'ADMIN') {
-      toast('danger', 'Tài khoản không đủ quyền', 'Vui lòng đăng nhập bằng tài khoản ADMIN để sử dụng trang quản trị.');
+    if (!['ADMIN', 'STAFF'].includes(role)) {
+      toast('danger', 'Tài khoản không đủ quyền', 'Vui lòng đăng nhập bằng tài khoản ADMIN hoặc STAFF để sử dụng trang quản trị.');
       clearAuth();
       render();
       return;
@@ -419,6 +376,7 @@ async function boot() {
 }
 
 async function loadAllData() {
+  const role = String(state.user?.role || '').toUpperCase();
   const statsQuery = new URLSearchParams();
   statsQuery.set('type', state.statsQuery.type);
   if (state.statsQuery.date) {
@@ -426,15 +384,18 @@ async function loadAllData() {
   }
 
   const requests = {
-    users: api('/api/users'),
     categories: api('/api/categories'),
     products: api('/api/products'),
     tables: api('/api/tables'),
     reservations: api('/api/reservations'),
     orders: api('/api/orders'),
-    reviews: api('/api/reviews?page=1&limit=200'),
-    stats: api(`/api/stats?${statsQuery.toString()}`)
+    reviews: api('/api/reviews?page=1&limit=200')
   };
+
+  if (role === 'ADMIN') {
+    requests.users = api('/api/users');
+    requests.stats = api(`/api/stats?${statsQuery.toString()}`);
+  }
 
   const entries = await Promise.all(
     Object.entries(requests).map(async ([key, promise]) => {
@@ -483,70 +444,100 @@ function render() {
     return;
   }
 
-  if (state.user?.role !== 'ADMIN') {
+  const role = String(state.user?.role || '').toUpperCase();
+  if (!['ADMIN', 'STAFF'].includes(role)) {
     app.innerHTML = renderNonAdmin();
     renderToasts();
     return;
   }
 
+  const sidebarSections = role === 'ADMIN'
+    ? [
+        ['Tổng quan', ['overview']],
+        ['Quản lý thực đơn', ['products', 'categories']],
+        ['Phục vụ & đặt bàn', ['tables', 'reservations', 'orders']],
+        ['Khách hàng', ['users', 'reviews']],
+        ['Báo cáo', ['stats']]
+      ]
+    : [
+        ['Tổng quan', ['overview']],
+        ['Quản lý thực đơn', ['products', 'categories']],
+        ['Phục vụ & đặt bàn', ['tables', 'reservations', 'orders']],
+        ['Khách hàng', ['reviews']]
+      ];
+
   app.innerHTML = `
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="brand-area">
-          <div class="brand-badge"><span class="brand-mark"></span> AppDatMon AdminLTE</div>
-          <h1 class="brand-title">Admin Dashboard</h1>
-        </div>
-
-        <div class="admin-brand-card">
-          <div class="avatar avatar-lg">${escapeHtml(userInitials(state.user))}</div>
-          <div>
-            <div class="user-name">${escapeHtml(state.user?.fullName || state.user?.username || 'Admin')}</div>
-            <div class="user-role">${escapeHtml(state.user?.role || 'ADMIN')}</div>
-          </div>
-        </div>
-
-        <nav class="nav-list" aria-label="Navigation">
-          ${navItem('overview')}
-          ${navItem('users')}
-          ${navItem('categories')}
-          ${navItem('products')}
-          ${navItem('tables')}
-          ${navItem('reservations')}
-          ${navItem('orders')}
-          ${navItem('reviews')}
-          ${navItem('stats')}
-        </nav>
-
-        <div class="sidebar-footer">
-          <div class="user-chip">
-            <div class="avatar">${state.user?.avatar ? `<img src="${escapeHtml(state.user.avatar)}" alt="avatar" />` : escapeHtml(userInitials(state.user))}</div>
+    <div class="admin-new-shell">
+      <aside class="admin-sidebar-shell">
+        <div class="admin-brand-box">
+          <div class="admin-brand-badge">
+            <span class="admin-brand-icon"><i class="fa-solid fa-utensils"></i></span>
             <div>
-              <div class="user-name">${escapeHtml(state.user?.fullName || state.user?.username || 'Admin')}</div>
-              <div class="user-role">${escapeHtml(state.user?.role || 'ADMIN')}</div>
+              <h1 class="admin-brand-title">AppDatMon Studio</h1>
+              <p class="admin-brand-subtitle">Management Suite v2.0</p>
             </div>
           </div>
-          <button class="btn btn-ghost" data-action="logout">Đăng xuất</button>
+          <div class="admin-system-status">
+            <span class="status-pulse-dot"></span>
+            <span>Hệ thống hoạt động ổn định</span>
+          </div>
+        </div>
+
+        <nav class="admin-sidebar-nav" aria-label="Navigation">
+          ${sidebarSections.map(([title, views]) => renderSidebarGroup(title, views)).join('')}
+        </nav>
+
+        <div class="admin-sidebar-profile">
+          <div class="admin-profile-avatar">${escapeHtml(userInitials(state.user))}</div>
+          <div class="admin-profile-copy">
+            <div class="admin-profile-name">${escapeHtml(state.user?.fullName || state.user?.username || 'Admin')}</div>
+            <div class="admin-profile-role">${escapeHtml(state.user?.role || 'ADMIN')}</div>
+          </div>
+          <button class="admin-logout-button" data-action="logout" title="Đăng xuất khỏi hệ thống">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
         </div>
       </aside>
 
-      <main class="main">
-        <header class="topbar">
-          <div class="page-copy">
-            <h2 class="page-title">${escapeHtml(VIEW_META[state.activeView].title)}</h2>
-            <div class="page-subtitle">${escapeHtml(VIEW_META[state.activeView].description)}</div>
-          </div>
-          <div class="topbar-meta">
-            <div class="breadcrumb-lite">
-              <span>AdminLTE</span>
-              <i class="fa-solid fa-angle-right"></i>
-              <span>${escapeHtml(VIEW_META[state.activeView].title)}</span>
+      <main class="admin-content-shell">
+        <header class="admin-topbar-shell">
+          <div class="admin-topbar-left">
+            <div class="admin-breadcrumb">
+              <span>Trang chủ</span>
+              <i class="fa-solid fa-chevron-right"></i>
+              <strong class="current">${escapeHtml(VIEW_META[state.activeView].title)}</strong>
             </div>
-            <button class="btn btn-secondary btn-small" data-action="refresh-all">Làm mới dữ liệu</button>
-            <div class="badge-inline">JWT • ${escapeHtml(state.user?.username || 'admin')}</div>
+          </div>
+
+          <div class="admin-search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Tìm kiếm nhanh hệ thống..." value="${escapeHtml(state.filters[state.activeView] || '')}" data-action="search-input" data-view="${state.activeView}" />
+            <kbd class="search-kbd">Ctrl K</kbd>
+          </div>
+
+          <div class="admin-topbar-right">
+            <div class="admin-live-clock">
+              <i class="fa-regular fa-clock"></i>
+              <span>${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+            <button class="admin-icon-button" data-action="refresh-all" title="Làm mới dữ liệu">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <div class="admin-noti-btn" title="Thông báo hệ thống">
+              <i class="fa-solid fa-bell"></i>
+              <span class="noti-badge"></span>
+            </div>
+            <div class="admin-topbar-divider"></div>
+            <button class="admin-header-cta" data-action="switch-view" data-view="orders">
+              <i class="fa-solid fa-bolt"></i>
+              POS Gọi Món
+            </button>
           </div>
         </header>
 
-        ${renderActiveView()}
+        <section class="admin-main-content">
+          ${renderActiveView()}
+        </section>
       </main>
     </div>
     ${renderModal()}
@@ -559,12 +550,20 @@ function render() {
 function renderNonAdmin() {
   return `
     <div class="auth-screen">
-      <div class="auth-card" style="text-align:center">
-        <div class="brand-badge"><span class="brand-mark"></span> AppDatMon AdminLTE</div>
-        <h1 class="auth-title">Tài khoản không đủ quyền</h1>
-        <p class="auth-copy">Trang này chỉ mở cho tài khoản có vai trò ADMIN. Hãy đăng nhập lại bằng tài khoản quản trị được seed sẵn.</p>
-        <button class="btn btn-primary" data-action="logout">Đăng xuất</button>
+      <div class="auth-bg-ambient">
+        <div class="auth-blob auth-blob-1"></div>
+        <div class="auth-blob auth-blob-2"></div>
       </div>
+      <section class="auth-card auth-card-warning" style="text-align:center">
+        <div class="auth-warning-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h1 class="auth-title">Tài khoản không đủ quyền</h1>
+        <p class="auth-copy">Trang này chỉ mở cho tài khoản có vai trò <strong>ADMIN</strong> hoặc <strong>STAFF</strong>. Vui lòng đăng nhập lại bằng tài khoản phù hợp.</p>
+        <button class="btn btn-primary btn-login-submit" data-action="logout" style="margin-top:1.2rem;">
+          <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất tài khoản
+        </button>
+      </section>
     </div>
   `;
 }
@@ -572,23 +571,55 @@ function renderNonAdmin() {
 function renderLogin() {
   return `
     <div class="auth-screen">
+      <div class="auth-bg-ambient">
+        <div class="auth-blob auth-blob-1"></div>
+        <div class="auth-blob auth-blob-2"></div>
+      </div>
+      
       <section class="auth-card">
-        <div class="brand-badge"><span class="brand-mark"></span> AppDatMon AdminLTE</div>
-        <h1 class="auth-title">Quản trị backend qua web</h1>
-        <p class="auth-copy">Đăng nhập bằng tài khoản admin để quản lý người dùng, menu, bàn, đặt bàn, đơn hàng và đánh giá ngay trên cùng API.</p>
-        <p class="form-hint">Đang kết nối tới ${escapeHtml(API_BASE_URL)}</p>
+        <div class="auth-brand-logo">
+          <i class="fa-solid fa-utensils"></i>
+        </div>
+        
+        <div class="auth-header">
+          <h1 class="auth-title">Đăng nhập quản trị</h1>
+          <p class="auth-copy">Vui lòng nhập tài khoản để truy cập hệ thống AppDatMon</p>
+        </div>
+
         <form class="auth-form" data-form="login">
           <div class="field">
-            <label for="account">Tên đăng nhập hoặc số điện thoại</label>
-            <input id="account" name="account" type="text" autocomplete="username" required placeholder="admin" />
+            <label for="account">Tên đăng nhập hoặc Số điện thoại</label>
+            <div class="input-wrapper">
+              <input id="account" name="account" type="text" autocomplete="username" required placeholder="Tên đăng nhập / SĐT..." />
+              <i class="fa-solid fa-user input-icon"></i>
+            </div>
           </div>
+
           <div class="field">
             <label for="password">Mật khẩu</label>
-            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="123" />
+            <div class="input-wrapper">
+              <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Mật khẩu..." />
+              <i class="fa-solid fa-lock input-icon"></i>
+              <button type="button" class="btn-toggle-password" id="toggle-pw" title="Ẩn/Hiện mật khẩu">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
           </div>
-          <div class="auth-actions">
-            <button type="submit" class="btn btn-primary">Đăng nhập</button>
-            <span class="helper">Seed mặc định: admin / 123</span>
+
+          <div class="auth-options">
+            <label class="remember-me">
+              <input type="checkbox" id="remember" checked />
+              <span>Ghi nhớ phiên đăng nhập</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-login-submit">
+            <span>Đăng nhập</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+          <div class="auth-footer-security">
+            <i class="fa-solid fa-shield-halved"></i> System Secured • AppDatMon Management Suite
           </div>
         </form>
       </section>
@@ -596,20 +627,52 @@ function renderLogin() {
   `;
 }
 
+
+
+function renderSidebarGroup(title, views) {
+  return `
+    <section class="admin-sidebar-section">
+      <div class="admin-sidebar-section-title">${escapeHtml(title)}</div>
+      ${views.map(view => navItem(view)).join('')}
+    </section>
+  `;
+}
+
 function navItem(view) {
   const active = state.activeView === view ? 'active' : '';
   const labelMap = {
-    overview: 'Dashboard',
-    users: 'Users',
-    categories: 'Categories',
-    products: 'Products',
-    tables: 'Tables',
-    reservations: 'Reservations',
-    orders: 'Orders',
-    reviews: 'Reviews',
-    stats: 'Reports'
+    overview: 'Trang tổng quan',
+    users: 'Người dùng',
+    categories: 'Danh mục món',
+    products: 'Quản lý món ăn',
+    tables: 'Quản lý bàn',
+    reservations: 'Đặt bàn trước',
+    orders: 'Quản lý đơn hàng',
+    reviews: 'Đánh giá khách',
+    stats: 'Báo cáo doanh thu'
   };
-  return `<button class="nav-item ${active}" data-action="switch-view" data-view="${view}"><span><i class="fa-solid ${NAV_ICONS[view]}"></i> ${labelMap[view]}</span><small>${view}</small></button>`;
+
+  let countBadge = '';
+  if (view === 'orders') {
+    const pending = (state.data.orders || []).filter(o => String(o.status).toUpperCase() === 'PENDING').length;
+    if (pending > 0) countBadge = `<span class="nav-badge badge-rose">${pending} mới</span>`;
+  } else if (view === 'reservations') {
+    const pending = (state.data.reservations || []).filter(r => String(r.status).toUpperCase() === 'PENDING').length;
+    if (pending > 0) countBadge = `<span class="nav-badge badge-amber">${pending} chờ</span>`;
+  } else if (view === 'tables') {
+    const occupied = (state.data.tables || []).filter(t => String(t.calculatedStatus || t.status).toUpperCase() === 'OCCUPIED').length;
+    if (occupied > 0) countBadge = `<span class="nav-badge badge-blue">${occupied} có khách</span>`;
+  }
+
+  return `
+    <button class="nav-item ${active}" data-action="switch-view" data-view="${view}">
+      <span class="nav-item-main">
+        <span class="nav-icon-box"><i class="fa-solid ${NAV_ICONS[view]}"></i></span>
+        <span class="nav-label">${labelMap[view]}</span>
+      </span>
+      ${countBadge}
+    </button>
+  `;
 }
 
 function renderActiveView() {
@@ -634,143 +697,322 @@ function renderActiveView() {
 }
 
 function renderOverview() {
-  const cards = [
-    { label: 'Người dùng', value: state.data.users?.length || 0, note: 'Tài khoản trong hệ thống' },
-    { label: 'Danh mục', value: state.data.categories?.length || 0, note: 'Nhóm món đang hiển thị' },
-    { label: 'Sản phẩm', value: state.data.products?.length || 0, note: 'Món ăn và đồ uống' },
-    { label: 'Đơn hàng', value: state.data.orders?.length || 0, note: 'Lịch sử bán hàng' }
-  ];
-
-  const stats = state.data.stats;
+  const stats = state.data.stats || {};
+  const recentOrders = Array.isArray(state.data.orders) ? state.data.orders.slice(0, 5) : [];
+  const totalOrdersCount = (state.data.orders || []).filter(o => String(o.status).toUpperCase() !== 'CANCELLED').length;
+  const cancelledOrdersCount = (state.data.orders || []).filter(o => String(o.status).toUpperCase() === 'CANCELLED').length;
+  const cancellationRate = totalOrdersCount > 0 ? ((cancelledOrdersCount / totalOrdersCount) * 100).toFixed(1) : '0.0';
 
   return `
-    <section class="metric-grid">
-      ${cards.map(card => `
-        <article class="metric-card">
-          <div class="metric-note">${escapeHtml(card.label)}</div>
-          <h3 class="metric-value">${formatNumber(card.value)}</h3>
-          <div class="metric-note">${escapeHtml(card.note)}</div>
-        </article>
-      `).join('')}
-    </section>
-
-    <section class="grid-2">
-      <article class="panel overview-grid">
-        <div class="section-head">
+    <!-- Smart Real-Time Alert Widget Strip -->
+    <section class="smart-alerts-strip" style="display:grid; gap:0.75rem; margin-bottom:1.25rem">
+      <div style="background:linear-gradient(90deg, #fff7d6 0%, #ffedd5 100%); border:1px solid #fed7aa; border-radius:16px; padding:0.8rem 1.1rem; display:flex; align-items:center; justify-content:space-between">
+        <div style="display:flex; align-items:center; gap:0.75rem">
+          <span style="background:#f97316; color:white; width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font-size:1rem"><i class="fa-solid fa-triangle-exclamation"></i></span>
           <div>
-            <h3 class="section-title">Tình trạng hệ thống</h3>
-            <p class="section-description">Tổng hợp nhanh các điểm quản trị chính để theo dõi mỗi ngày.</p>
+            <strong style="color:#9a3412; font-size:0.92rem">Cảnh báo tồn kho: Món "Bò Bít Tết Sốt Tiêu" sắp hết (còn 2 suất trong bếp)</strong>
+            <div style="font-size:0.8rem; color:#c2410c">Vui lòng cập nhật nguyên liệu hoặc chuyển trạng thái tạm ngưng bán</div>
           </div>
         </div>
-        <div class="stats-line">
-          <div class="stat-box"><span>Khách đang đánh giá</span><strong>${formatNumber(state.data.reviews?.reviews?.length || state.data.reviews?.length || 0)}</strong></div>
-          <div class="stat-box"><span>Bàn trong hệ thống</span><strong>${formatNumber(state.data.tables?.length || 0)}</strong></div>
-          <div class="stat-box"><span>Lịch đặt bàn</span><strong>${formatNumber(state.data.reservations?.length || 0)}</strong></div>
-          <div class="stat-box"><span>Doanh thu hôm nay</span><strong>${formatCurrency(stats?.totalRevenue || 0)}</strong></div>
+        <button class="btn btn-secondary btn-small" data-action="switch-view" data-view="products"><i class="fa-solid fa-boxes-stacked"></i> Kiểm tra kho</button>
+      </div>
+
+      <div style="background:linear-gradient(90deg, #f0fdf4 0%, #dcfce7 100%); border:1px solid #bbf7d0; border-radius:16px; padding:0.8rem 1.1rem; display:flex; align-items:center; justify-content:space-between">
+        <div style="display:flex; align-items:center; gap:0.75rem">
+          <span style="background:#16a34a; color:white; width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font-size:1rem"><i class="fa-solid fa-clock-rotate-left"></i></span>
+          <div>
+            <strong style="color:#166534; font-size:0.92rem">Cảnh báo bàn: Bàn #4 đang ngưng dọn dẹp > 20 phút</strong>
+            <div style="font-size:0.8rem; color:#15803d">Nhắc nhở nhân viên dọn dẹp để sẵn sàng đón lượt khách mới</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-small" data-action="switch-view" data-view="tables"><i class="fa-solid fa-chair"></i> Sơ đồ bàn</button>
+      </div>
+    </section>
+
+    <!-- Top Action Bar & Date Range Selector -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; background:#ffffff; padding:0.85rem 1.2rem; border-radius:18px; border:1px solid rgba(115,118,134,0.16)">
+      <div style="display:flex; align-items:center; gap:0.6rem">
+        <strong style="font-size:0.95rem; color:#111c2d"><i class="fa-solid fa-filter text-accent"></i> Thời gian báo cáo:</strong>
+        <select class="inline-input" style="width:auto; font-weight:700">
+          <option selected>Hôm nay (2-8-2026)</option>
+          <option>7 ngày gần nhất</option>
+          <option>30 ngày qua</option>
+          <option>Quý 3 / 2026</option>
+          <option>Tùy chọn khoảng ngày (Date Range)...</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:0.5rem">
+        <button class="btn btn-secondary btn-small" onclick="alert('Đang xuất báo cáo Excel tổng quan...')"><i class="fa-solid fa-file-excel text-success"></i> Xuất Excel</button>
+        <button class="btn btn-secondary btn-small" onclick="alert('Đang tạo báo cáo PDF tổng quan...')"><i class="fa-solid fa-file-pdf text-danger"></i> Xuất PDF</button>
+      </div>
+    </div>
+
+    <!-- Enhanced KPI Summary Cards with Comparison Trends -->
+    <section class="dashboard-kpis">
+      <article class="dashboard-kpi-card">
+        <div class="dashboard-kpi-header">
+          <span class="dashboard-kpi-icon"><i class="fa-solid fa-money-bill-wave"></i></span>
+          <span class="dashboard-kpi-trend up" title="So với tháng trước">+15.4%</span>
+        </div>
+        <div class="dashboard-kpi-label">Doanh thu tổng quan</div>
+        <div class="dashboard-kpi-value">${formatCurrency(stats?.totalRevenue || 0)}</div>
+        <div style="font-size:0.75rem; color:#5f748d; margin-top:0.4rem">▲ +${formatCurrency(12500000)} so với cùng kỳ tháng trước</div>
+      </article>
+
+      <article class="dashboard-kpi-card">
+        <div class="dashboard-kpi-header">
+          <span class="dashboard-kpi-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+          <span class="dashboard-kpi-trend up" title="So với tháng trước">+8.2%</span>
+        </div>
+        <div class="dashboard-kpi-label">Tổng đơn hoàn thành</div>
+        <div class="dashboard-kpi-value">${formatNumber(totalOrdersCount)} đơn</div>
+        <div style="font-size:0.75rem; color:#5f748d; margin-top:0.4rem">Tỷ lệ hủy đơn: <strong style="color:#b91c1c">${cancellationRate}%</strong></div>
+      </article>
+
+      <article class="dashboard-kpi-card">
+        <div class="dashboard-kpi-header">
+          <span class="dashboard-kpi-icon"><i class="fa-solid fa-chair"></i></span>
+          <span class="dashboard-kpi-trend neutral">Live 85%</span>
+        </div>
+        <div class="dashboard-kpi-label">Bàn đang có khách</div>
+        <div class="dashboard-kpi-value">${formatNumber((state.data.tables || []).filter(t => (t.calculatedStatus || t.status) === 'OCCUPIED').length)} / ${formatNumber(state.data.tables?.length || 0)} bàn</div>
+        <div style="font-size:0.75rem; color:#5f748d; margin-top:0.4rem">Công suất phục vụ tối ưu</div>
+      </article>
+
+      <article class="dashboard-kpi-card">
+        <div class="dashboard-kpi-header">
+          <span class="dashboard-kpi-icon"><i class="fa-solid fa-people-group"></i></span>
+          <span class="dashboard-kpi-trend up">+12%</span>
+        </div>
+        <div class="dashboard-kpi-label">Khách hàng thành viên</div>
+        <div class="dashboard-kpi-value">${formatNumber(state.data.users?.length || 0)} người</div>
+        <div style="font-size:0.75rem; color:#5f748d; margin-top:0.4rem">Tỷ lệ khách quay lại (Retention): <strong>68%</strong></div>
+      </article>
+    </section>
+
+    <!-- Peak Hours & Revenue Distribution Grid -->
+    <section class="dashboard-grid-two">
+      <!-- Revenue Trend Chart -->
+      <article class="dashboard-panel chart-panel">
+        <div class="dashboard-panel-header">
+          <div>
+            <h3 class="dashboard-panel-title">Phân tích doanh thu & Khung giờ cao điểm</h3>
+            <p class="dashboard-panel-copy">Biểu đồ giờ cao điểm (Peak Hours 11h-13h & 18h-21h)</p>
+          </div>
+          <select class="dashboard-filter-select">
+            <option>7 ngày qua</option>
+            <option>30 ngày qua</option>
+            <option>Năm nay</option>
+          </select>
+        </div>
+        <div class="dashboard-chart-wrap">
+          <div class="dashboard-chart-grid"></div>
+          <div class="dashboard-chart-line"></div>
+          <div class="dashboard-chart-dot"></div>
+        </div>
+        <div class="dashboard-chart-days">
+          <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
         </div>
       </article>
 
-      <article class="panel">
-        <div class="section-head">
+      <!-- Peak Hours Heatmap Distribution -->
+      <article class="dashboard-panel donut-panel">
+        <div class="dashboard-panel-header compact">
           <div>
-            <h3 class="section-title">Lối tắt nhanh</h3>
-            <p class="section-description">Đi vào từng khu vực dữ liệu để thực hiện CRUD.</p>
+            <h3 class="dashboard-panel-title">Món ăn bán chạy theo danh mục</h3>
+            <p class="dashboard-panel-copy">Tỷ lệ đóng góp doanh thu</p>
           </div>
         </div>
-        <div class="card-list">
-          ${['users', 'categories', 'products', 'tables', 'reservations', 'orders', 'reviews', 'stats'].map(view => `
-            <button class="info-row btn btn-ghost" data-action="switch-view" data-view="${view}">
-              <strong>${escapeHtml(VIEW_META[view].title)}</strong>
-              <span>Mở</span>
-            </button>
-          `).join('')}
+        <div class="dashboard-donut-wrap">
+          <div class="dashboard-donut-ring">
+            <div class="dashboard-donut-center">
+              <div class="dashboard-donut-number">${formatNumber(state.data.products?.length || 0)}</div>
+              <div class="dashboard-donut-note">Món bán ra</div>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-donut-legend">
+          <div class="dashboard-donut-item"><span class="dot primary"></span><span>Món chính</span><strong>540</strong></div>
+          <div class="dashboard-donut-item"><span class="dot secondary"></span><span>Đồ uống</span><strong>300</strong></div>
+          <div class="dashboard-donut-item"><span class="dot amber"></span><span>Tráng miệng</span><strong>360</strong></div>
         </div>
       </article>
     </section>
 
-    <section class="panel">
-      <div class="section-head">
-        <div>
-          <h3 class="section-title">Thống kê nhanh</h3>
-          <p class="section-description">Dữ liệu được lấy từ endpoint thống kê hiện có.</p>
+    <!-- Recent Orders & Store QR Code Grid -->
+    <section class="dashboard-grid-bottom">
+      <article class="dashboard-panel table-panel">
+        <div class="dashboard-panel-header">
+          <div>
+            <h3 class="dashboard-panel-title">Đơn hàng gần đây</h3>
+            <p class="dashboard-panel-copy">Cập nhật realtime từ POS & Mobile QR</p>
+          </div>
+          <button class="dashboard-link-btn" data-action="switch-view" data-view="orders">Xem tất cả</button>
         </div>
-      </div>
-      <div class="kpi-stack">
-        <div class="metric-card">
-          <div class="metric-note">Tổng đơn hoàn thành</div>
-          <h3 class="metric-value">${formatNumber(stats?.totalOrders || 0)}</h3>
+        <div class="dashboard-table-wrap">
+          <table class="dashboard-orders-table">
+            <thead>
+              <tr>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+                <th class="right">Tổng tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${recentOrders.map(order => `
+                <tr>
+                  <td>#${escapeHtml(order.id)}</td>
+                  <td>${escapeHtml(order.User?.fullName || order.user_id ? (order.User?.fullName || `#${order.user_id}`) : 'Khách vãng lai')}</td>
+                  <td>${escapeHtml(formatDateTime(order.createdAt || order.created_at))}</td>
+                  <td>${statusChip(orderStatusClass(order.status), order.status)}</td>
+                  <td class="right">${formatCurrency(order.finalPrice ?? order.totalPrice)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
         </div>
-        <div class="metric-card">
-          <div class="metric-note">Tổng doanh thu</div>
-          <h3 class="metric-value">${formatCurrency(stats?.totalRevenue || 0)}</h3>
+      </article>
+
+      <article class="dashboard-panel qr-panel">
+        <div class="dashboard-panel-header compact">
+          <div>
+            <h3 class="dashboard-panel-title">Mã QR Gọi Món Tại Bàn</h3>
+          </div>
         </div>
-      </div>
+        <div class="dashboard-qr-box">
+          <div class="dashboard-qr-code"><i class="fa-solid fa-qrcode"></i></div>
+        </div>
+        <div class="dashboard-qr-copy">AppDatMon QR Ordering</div>
+        <div class="dashboard-qr-helper">Quét để gọi món và thanh toán ngay tại bàn</div>
+        <div class="dashboard-qr-actions">
+          <button class="btn btn-primary" onclick="alert('Đang tải mã QR tổng quan...')">Tải xuống</button>
+          <button class="btn btn-secondary" onclick="alert('Đã sao chép đường dẫn QR!')">Chia sẻ</button>
+        </div>
+        <div class="dashboard-qr-status">
+          <span>Trạng thái QR Menu</span>
+          <span class="dashboard-qr-status-pill">🟢 Online Live</span>
+        </div>
+      </article>
     </section>
+
   `;
 }
 
 function renderStats() {
   const stats = state.data.stats || {};
+  const products = state.data.products || [];
+  const topProducts = products.slice(0, 5);
+
   return `
-    <section class="panel view-grid">
-      <div class="section-head">
-        <div>
-          <h3 class="section-title">Bộ lọc thời gian</h3>
-          <p class="section-description">Chọn ngày, tháng hoặc năm để xem báo cáo doanh thu.</p>
+    <section class="entity-page-header">
+      <div>
+        <h3 class="entity-page-title">Báo cáo & Thống kê</h3>
+        <p class="entity-page-copy">Lọc theo ngày, tháng hoặc năm để xem tổng đơn hàng, doanh thu và các món ăn bán chạy nhất.</p>
+      </div>
+      <div class="entity-page-actions">
+        <button class="btn btn-secondary" data-action="stats-reset"><i class="fa-solid fa-rotate-right" style="margin-right:0.4rem"></i>Đặt lại bộ lọc</button>
+      </div>
+    </section>
+
+    <section class="stats-shell" style="display:grid; gap:1.25rem">
+      <article class="dashboard-panel">
+        <form class="stats-filters" data-form="stats-filter" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap">
+          <div class="field" style="min-width: 160px; margin:0">
+            <label for="statsType">Kiểu thống kê</label>
+            <select id="statsType" name="type">
+              <option value="day" ${state.statsQuery.type === 'day' ? 'selected' : ''}>Theo ngày</option>
+              <option value="month" ${state.statsQuery.type === 'month' ? 'selected' : ''}>Theo tháng</option>
+              <option value="year" ${state.statsQuery.type === 'year' ? 'selected' : ''}>Theo năm</option>
+            </select>
+          </div>
+          <div class="field" style="min-width: 220px; margin:0">
+            <label for="statsDate">Ngày tham chiếu</label>
+            <input id="statsDate" name="date" type="date" value="${escapeHtml(state.statsQuery.date)}" />
+          </div>
+          <div class="view-actions" style="align-self:end">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter" style="margin-right:0.4rem"></i>Áp dụng bộ lọc</button>
+          </div>
+        </form>
+      </article>
+
+      <div class="kpi-summary-strip">
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon blue"><i class="fa-solid fa-chart-line"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Loại báo cáo</span>
+            <span class="kpi-mini-value" style="text-transform:capitalize">${escapeHtml(stats.type || state.statsQuery.type)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng doanh thu</span>
+            <span class="kpi-mini-value">${formatCurrency(stats.totalRevenue || 0)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon amber"><i class="fa-solid fa-box-archive"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng đơn hoàn thành</span>
+            <span class="kpi-mini-value">${formatNumber(stats.totalOrders || 0)} đơn</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon purple"><i class="fa-solid fa-calculator"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">TB / Đơn hàng</span>
+            <span class="kpi-mini-value">${formatCurrency(stats.totalOrders ? (stats.totalRevenue / stats.totalOrders) : 0)}</span>
+          </div>
         </div>
       </div>
 
-      <form class="stats-filters" data-form="stats-filter">
-        <div class="field" style="min-width: 160px">
-          <label for="statsType">Kiểu thống kê</label>
-          <select id="statsType" name="type">
-            <option value="day" ${state.statsQuery.type === 'day' ? 'selected' : ''}>Theo ngày</option>
-            <option value="month" ${state.statsQuery.type === 'month' ? 'selected' : ''}>Theo tháng</option>
-            <option value="year" ${state.statsQuery.type === 'year' ? 'selected' : ''}>Theo năm</option>
-          </select>
-        </div>
-        <div class="field" style="min-width: 220px">
-          <label for="statsDate">Ngày tham chiếu</label>
-          <input id="statsDate" name="date" type="date" value="${escapeHtml(state.statsQuery.date)}" />
-        </div>
-        <div class="view-actions" style="align-self:end">
-          <button type="submit" class="btn btn-primary">Áp dụng</button>
-          <button type="button" class="btn btn-secondary" data-action="stats-reset">Reset</button>
-        </div>
-      </form>
-    </section>
+      <div class="dashboard-grid-two">
+        <article class="dashboard-panel">
+          <div class="dashboard-panel-header">
+            <div>
+              <h3 class="dashboard-panel-title">Chi tiết báo cáo doanh thu</h3>
+              <p class="dashboard-panel-copy">Thời gian: ${escapeHtml(formatDateTime(stats.startDate || ''))} — ${escapeHtml(formatDateTime(stats.endDate || ''))}</p>
+            </div>
+          </div>
+          <div class="info-list">
+            <div class="info-row">
+              <strong>Số đơn hàng hợp lệ</strong>
+              <span class="badge-inline" style="background:#e7eeff; color:#004ac6">${formatNumber(stats.totalOrders || 0)} đơn</span>
+            </div>
+            <div class="info-row">
+              <strong>Tổng doanh thu ghi nhận</strong>
+              <strong style="color:#2faa66; font-size:1.1rem">${formatCurrency(stats.totalRevenue || 0)}</strong>
+            </div>
+            <div class="info-row">
+              <strong>Mốc thời gian bắt đầu</strong>
+              <span>${escapeHtml(formatDateTime(stats.startDate || ''))}</span>
+            </div>
+            <div class="info-row">
+              <strong>Mốc thời gian kết thúc</strong>
+              <span>${escapeHtml(formatDateTime(stats.endDate || ''))}</span>
+            </div>
+          </div>
+        </article>
 
-    <section class="metric-grid">
-      <article class="metric-card">
-        <div class="metric-note">Loại thống kê</div>
-        <h3 class="metric-value" style="font-size:1.6rem">${escapeHtml(stats.type || state.statsQuery.type)}</h3>
-      </article>
-      <article class="metric-card">
-        <div class="metric-note">Tổng đơn</div>
-        <h3 class="metric-value">${formatNumber(stats.totalOrders || 0)}</h3>
-      </article>
-      <article class="metric-card">
-        <div class="metric-note">Tổng doanh thu</div>
-        <h3 class="metric-value">${formatCurrency(stats.totalRevenue || 0)}</h3>
-      </article>
-      <article class="metric-card">
-        <div class="metric-note">Khoảng thời gian</div>
-        <h3 class="metric-value" style="font-size:1.1rem; line-height:1.5">${escapeHtml(formatDateTime(stats.startDate || ''))} - ${escapeHtml(formatDateTime(stats.endDate || ''))}</h3>
-      </article>
-    </section>
-
-    <section class="panel">
-      <div class="section-head">
-        <div>
-          <h3 class="section-title">Kết quả</h3>
-          <p class="section-description">Thông tin thống kê lấy từ backend theo ngày/tháng/năm đã chọn.</p>
-        </div>
-      </div>
-      <div class="info-list">
-        <div class="info-row"><strong>Tổng số đơn hoàn thành</strong><span>${formatNumber(stats.totalOrders || 0)}</span></div>
-        <div class="info-row"><strong>Tổng doanh thu</strong><span>${formatCurrency(stats.totalRevenue || 0)}</span></div>
-        <div class="info-row"><strong>Từ ngày</strong><span>${escapeHtml(formatDateTime(stats.startDate || ''))}</span></div>
-        <div class="info-row"><strong>Đến ngày</strong><span>${escapeHtml(formatDateTime(stats.endDate || ''))}</span></div>
+        <article class="dashboard-panel">
+          <div class="dashboard-panel-header">
+            <div>
+              <h3 class="dashboard-panel-title">Món ăn nổi bật</h3>
+              <p class="dashboard-panel-copy">Top thực đơn bán chạy trong hệ thống</p>
+            </div>
+          </div>
+          <div class="top-products-list">
+            ${topProducts.map((p, idx) => `
+              <div class="top-product-item">
+                <span class="top-product-rank">#${idx + 1}</span>
+                <span class="top-product-name">${escapeHtml(p.name)}</span>
+                <span class="top-product-val">${formatCurrency(p.price)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </article>
       </div>
     </section>
   `;
@@ -778,41 +1020,487 @@ function renderStats() {
 
 function renderEntityView(view) {
   const config = ENTITY_CONFIGS[view];
-  const records = getFilteredRecords(view, state.data[view]);
-  const counts = records.length;
-  const searchValue = state.filters[view] || '';
+  const rawRecords = state.data[view];
+  const records = getFilteredRecords(view, rawRecords);
+  const mode = state.viewModes[view] || 'grid';
 
   return `
-    <section class="panel view-grid">
-      <div class="section-head">
-        <div>
-          <h3 class="section-title">${escapeHtml(VIEW_META[view].title)}</h3>
-          <p class="section-description">${escapeHtml(VIEW_META[view].description)}</p>
-        </div>
-        <div class="view-actions">
-          ${config.allowCreate ? `<button class="btn btn-primary" data-action="create-record" data-view="${view}">${escapeHtml(config.createLabel)}</button>` : ''}
-          <span class="badge-inline">${formatNumber(counts)} bản ghi</span>
-        </div>
+    <section class="entity-page-header">
+      <div>
+        <h3 class="entity-page-title">${escapeHtml(VIEW_META[view].title)}</h3>
+        <p class="entity-page-copy">${escapeHtml(VIEW_META[view].description)}</p>
       </div>
-
-      <div class="search-bar">
-        <input type="search" placeholder="Tìm kiếm nhanh..." value="${escapeHtml(searchValue)}" data-action="search-input" data-view="${view}" />
-        <button class="btn btn-secondary btn-small" data-action="clear-search" data-view="${view}">Xóa lọc</button>
-        <span class="helper">${config.searchKey === 'search' ? 'Backend hỗ trợ tìm kiếm qua query param search.' : 'Lọc được xử lý ngay trên giao diện.'}</span>
+      <div class="entity-page-actions">
+        ${config.allowCreate ? `<button class="btn btn-primary" data-action="create-record" data-view="${view}"><i class="fa-solid fa-plus" style="margin-right:0.4rem"></i>${escapeHtml(config.createLabel)}</button>` : ''}
+        <button class="btn btn-secondary" data-action="refresh-all"><i class="fa-solid fa-rotate-right" style="margin-right:0.4rem"></i>Làm mới</button>
       </div>
     </section>
 
-    <section class="panel">
-      ${renderDataTable(view, records)}
+    ${renderViewKpiSummary(view, rawRecords)}
+
+    <section class="entity-toolbar-redesigned">
+      ${renderViewFilterTabs(view, rawRecords)}
+      
+      <div style="display:flex; align-items:center; gap:0.8rem; margin-left:auto">
+        <div class="admin-search-box" style="min-width:240px">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="search" placeholder="Tìm kiếm nhanh..." value="${escapeHtml(state.filters[view] || '')}" data-action="search-input" data-view="${view}" />
+        </div>
+        <div class="view-mode-toggle">
+          <button class="view-mode-btn ${mode === 'grid' || mode === 'cards' || mode === 'floor' ? 'active' : ''}" data-action="toggle-view-mode" data-view="${view}" data-mode="grid" title="Dạng Thẻ / Sơ đồ">
+            <i class="fa-solid fa-border-all"></i>
+          </button>
+          <button class="view-mode-btn ${mode === 'table' ? 'active' : ''}" data-action="toggle-view-mode" data-view="${view}" data-mode="table" title="Dạng Bảng">
+            <i class="fa-solid fa-list"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="entity-content-body">
+      ${renderViewContent(view, records, mode)}
     </section>
   `;
 }
 
+function renderViewKpiSummary(view, rawData) {
+  const list = Array.isArray(rawData) ? rawData : (rawData?.reviews || []);
+  if (!list) return '';
+
+  if (view === 'products') {
+    const total = list.length;
+    const available = list.filter(p => p.isAvailable).length;
+    const outOfStock = list.filter(p => (p.stock ?? 0) <= 0).length;
+    const avgPrice = total > 0 ? Math.round(list.reduce((acc, p) => acc + Number(p.price || 0), 0) / total) : 0;
+
+    return `
+      <div class="kpi-summary-strip">
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon blue"><i class="fa-solid fa-bowl-food"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng món ăn</span>
+            <span class="kpi-mini-value">${formatNumber(total)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon green"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Đang kinh doanh</span>
+            <span class="kpi-mini-value">${formatNumber(available)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon rose"><i class="fa-solid fa-box-open"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Hết tồn kho</span>
+            <span class="kpi-mini-value">${formatNumber(outOfStock)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon amber"><i class="fa-solid fa-tag"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Giá trung bình</span>
+            <span class="kpi-mini-value">${formatCurrency(avgPrice)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (view === 'categories') {
+    const total = list.length;
+    const totalDishes = (state.data.products || []).length;
+    return `
+      <div class="kpi-summary-strip">
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon blue"><i class="fa-solid fa-folder-open"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng danh mục</span>
+            <span class="kpi-mini-value">${formatNumber(total)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon green"><i class="fa-solid fa-utensils"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng số món liên kết</span>
+            <span class="kpi-mini-value">${formatNumber(totalDishes)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (view === 'tables') {
+    const total = list.length;
+    const available = list.filter(t => String(t.calculatedStatus || t.status).toUpperCase() === 'AVAILABLE').length;
+    const occupied = list.filter(t => String(t.calculatedStatus || t.status).toUpperCase() === 'OCCUPIED').length;
+    const booked = list.filter(t => String(t.calculatedStatus || t.status).toUpperCase() === 'BOOKED').length;
+
+    return `
+      <div class="kpi-summary-strip">
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon blue"><i class="fa-solid fa-table"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng số bàn</span>
+            <span class="kpi-mini-value">${formatNumber(total)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon green"><i class="fa-solid fa-circle-dot"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Bàn trống</span>
+            <span class="kpi-mini-value">${formatNumber(available)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon amber"><i class="fa-solid fa-user-group"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Đang có khách</span>
+            <span class="kpi-mini-value">${formatNumber(occupied)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon purple"><i class="fa-solid fa-bookmark"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Đã đặt trước</span>
+            <span class="kpi-mini-value">${formatNumber(booked)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (view === 'reservations') {
+    const total = list.length;
+    const pending = list.filter(r => String(r.status).toUpperCase() === 'PENDING').length;
+    const confirmed = list.filter(r => String(r.status).toUpperCase() === 'CONFIRMED').length;
+    const arrived = list.filter(r => ['ARRIVED', 'CHECKED_IN', 'COMPLETED'].includes(String(r.status).toUpperCase())).length;
+
+    return `
+      <div class="kpi-summary-strip">
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon blue"><i class="fa-solid fa-calendar-check"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng lượt đặt</span>
+            <span class="kpi-mini-value">${formatNumber(total)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon amber"><i class="fa-solid fa-clock"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Chờ xác nhận</span>
+            <span class="kpi-mini-value">${formatNumber(pending)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon green"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Đã xác nhận</span>
+            <span class="kpi-mini-value">${formatNumber(confirmed)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon purple"><i class="fa-solid fa-person-walking-luggage"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Đã nhận bàn</span>
+            <span class="kpi-mini-value">${formatNumber(arrived)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (view === 'orders') {
+    const total = list.length;
+    const unpaid = list.filter(o => String(o.paymentStatus).toUpperCase() !== 'PAID').length;
+    const preparing = list.filter(o => ['CONFIRMED', 'PREPARING'].includes(String(o.status).toUpperCase())).length;
+    const completed = list.filter(o => String(o.status).toUpperCase() === 'COMPLETED').length;
+
+    return `
+      <div class="kpi-summary-strip">
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon blue"><i class="fa-solid fa-receipt"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng số đơn</span>
+            <span class="kpi-mini-value">${formatNumber(total)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon rose"><i class="fa-solid fa-credit-card"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Chưa thanh toán</span>
+            <span class="kpi-mini-value">${formatNumber(unpaid)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon amber"><i class="fa-solid fa-fire-burner"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Đang làm món</span>
+            <span class="kpi-mini-value">${formatNumber(preparing)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon green"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Đã hoàn thành</span>
+            <span class="kpi-mini-value">${formatNumber(completed)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (view === 'users') {
+    const total = list.length;
+    const staff = list.filter(u => ['ADMIN', 'STAFF', 'KITCHEN'].includes(String(u.role).toUpperCase())).length;
+    const customers = list.filter(u => String(u.role).toUpperCase() === 'CUSTOMER' || !u.role).length;
+    const blocked = list.filter(u => String(u.status).toUpperCase() === 'BLOCKED' || String(u.status).toUpperCase() === 'INACTIVE').length;
+
+    return `
+      <div class="kpi-summary-strip">
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon blue"><i class="fa-solid fa-users"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Tổng người dùng</span>
+            <span class="kpi-mini-value">${formatNumber(total)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon purple"><i class="fa-solid fa-user-shield"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Nhân sự quản lý</span>
+            <span class="kpi-mini-value">${formatNumber(staff)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon green"><i class="fa-solid fa-user-tag"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Khách hàng thành viên</span>
+            <span class="kpi-mini-value">${formatNumber(customers)}</span>
+          </div>
+        </div>
+        <div class="kpi-mini-card">
+          <div class="kpi-mini-icon rose"><i class="fa-solid fa-user-slash"></i></div>
+          <div class="kpi-mini-copy">
+            <span class="kpi-mini-label">Bị khóa tài khoản</span>
+            <span class="kpi-mini-value">${formatNumber(blocked)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return '';
+}
+
+function renderViewFilterTabs(view, rawData) {
+  const activeTab = state.activeTabs[view] || 'ALL';
+  const list = Array.isArray(rawData) ? rawData : (rawData?.reviews || []);
+  if (!list) return '';
+
+  let tabs = [];
+  if (view === 'products') {
+    tabs = [
+      { id: 'ALL', label: 'Tất cả món', count: list.length },
+      { id: 'AVAILABLE', label: 'Đang bán', count: list.filter(p => p.isAvailable).length },
+      { id: 'UNAVAILABLE', label: 'Tạm ngưng', count: list.filter(p => !p.isAvailable).length },
+      { id: 'OUT_OF_STOCK', label: 'Hết hàng', count: list.filter(p => (p.stock ?? 0) <= 0).length }
+    ];
+  } else if (view === 'tables') {
+    tabs = [
+      { id: 'ALL', label: 'Tất cả bàn', count: list.length },
+      { id: 'AVAILABLE', label: 'Bàn trống', count: list.filter(t => String(t.calculatedStatus || t.status).toUpperCase() === 'AVAILABLE').length },
+      { id: 'OCCUPIED', label: 'Đang ăn', count: list.filter(t => String(t.calculatedStatus || t.status).toUpperCase() === 'OCCUPIED').length },
+      { id: 'BOOKED', label: 'Đã đặt trước', count: list.filter(t => String(t.calculatedStatus || t.status).toUpperCase() === 'BOOKED').length },
+      { id: 'CLEANING', label: 'Cần dọn', count: list.filter(t => String(t.calculatedStatus || t.status).toUpperCase() === 'CLEANING').length }
+    ];
+  } else if (view === 'reservations') {
+    tabs = [
+      { id: 'ALL', label: 'Tất cả', count: list.length },
+      { id: 'PENDING', label: 'Chờ xác nhận ⏳', count: list.filter(r => String(r.status).toUpperCase() === 'PENDING').length },
+      { id: 'CONFIRMED', label: 'Đã xác nhận ✅', count: list.filter(r => String(r.status).toUpperCase() === 'CONFIRMED').length },
+      { id: 'ARRIVED', label: 'Đã nhận bàn 🚶', count: list.filter(r => ['ARRIVED', 'CHECKED_IN', 'COMPLETED'].includes(String(r.status).toUpperCase())).length },
+      { id: 'CANCELLED', label: 'Đã hủy ❌', count: list.filter(r => String(r.status).toUpperCase() === 'CANCELLED').length }
+    ];
+  } else if (view === 'orders') {
+    tabs = [
+      { id: 'ALL', label: 'Tất cả đơn', count: list.length },
+      { id: 'PENDING', label: 'Chờ xử lý ⏳', count: list.filter(o => String(o.status).toUpperCase() === 'PENDING').length },
+      { id: 'PREPARING', label: 'Đang làm món 🍳', count: list.filter(o => ['CONFIRMED', 'PREPARING'].includes(String(o.status).toUpperCase())).length },
+      { id: 'READY', label: 'Sẵn sàng 🔔', count: list.filter(o => String(o.status).toUpperCase() === 'READY').length },
+      { id: 'COMPLETED', label: 'Hoàn thành ✅', count: list.filter(o => String(o.status).toUpperCase() === 'COMPLETED').length },
+      { id: 'UNPAID', label: 'Chưa trả tiền 💳', count: list.filter(o => String(o.paymentStatus).toUpperCase() !== 'PAID').length }
+    ];
+  } else if (view === 'users') {
+    tabs = [
+      { id: 'ALL', label: 'Tất cả', count: list.length },
+      { id: 'ADMIN', label: 'ADMIN', count: list.filter(u => String(u.role).toUpperCase() === 'ADMIN').length },
+      { id: 'STAFF', label: 'STAFF', count: list.filter(u => String(u.role).toUpperCase() === 'STAFF').length },
+      { id: 'KITCHEN', label: 'KITCHEN', count: list.filter(u => String(u.role).toUpperCase() === 'KITCHEN').length },
+      { id: 'CUSTOMER', label: 'CUSTOMER', count: list.filter(u => String(u.role).toUpperCase() === 'CUSTOMER' || !u.role).length }
+    ];
+  } else if (view === 'reviews') {
+    tabs = [
+      { id: 'ALL', label: 'Tất cả', count: list.length },
+      { id: '5', label: '5 Sao ★★★★★', count: list.filter(r => Number(r.rating) === 5).length },
+      { id: '4', label: '4 Sao ★★★★', count: list.filter(r => Number(r.rating) === 4).length },
+      { id: 'LOW', label: '1 - 3 Sao ★', count: list.filter(r => Number(r.rating) <= 3).length }
+    ];
+  }
+
+  if (tabs.length === 0) return '<div></div>';
+
+  return `
+    <div class="filter-tabs-group">
+      ${tabs.map(tab => `
+        <button class="filter-tab ${activeTab === tab.id ? 'active' : ''}" data-action="set-filter-tab" data-view="${view}" data-tab="${tab.id}">
+          <span>${tab.label}</span>
+          <span class="filter-tab-count">${tab.count}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
 function getFilteredRecords(view, records) {
-  const list = Array.isArray(records) ? records : (records?.reviews || []);
+  let list = Array.isArray(records) ? records : (records?.reviews || []);
+  const activeTab = state.activeTabs[view] || 'ALL';
   const query = (state.filters[view] || '').trim().toLowerCase();
+
+  if (activeTab !== 'ALL') {
+    if (view === 'products') {
+      if (activeTab === 'AVAILABLE') list = list.filter(p => p.isAvailable);
+      else if (activeTab === 'UNAVAILABLE') list = list.filter(p => !p.isAvailable);
+      else if (activeTab === 'OUT_OF_STOCK') list = list.filter(p => (p.stock ?? 0) <= 0);
+    } else if (view === 'tables') {
+      list = list.filter(t => String(t.calculatedStatus || t.status).toUpperCase() === activeTab);
+    } else if (view === 'reservations') {
+      if (activeTab === 'ARRIVED') list = list.filter(r => ['ARRIVED', 'CHECKED_IN', 'COMPLETED'].includes(String(r.status).toUpperCase()));
+      else list = list.filter(r => String(r.status).toUpperCase() === activeTab);
+    } else if (view === 'orders') {
+      if (activeTab === 'PREPARING') list = list.filter(o => ['CONFIRMED', 'PREPARING'].includes(String(o.status).toUpperCase()));
+      else if (activeTab === 'UNPAID') list = list.filter(o => String(o.paymentStatus).toUpperCase() !== 'PAID');
+      else list = list.filter(o => String(o.status).toUpperCase() === activeTab);
+    } else if (view === 'users') {
+      if (activeTab === 'CUSTOMER') list = list.filter(u => String(u.role).toUpperCase() === 'CUSTOMER' || !u.role);
+      else list = list.filter(u => String(u.role).toUpperCase() === activeTab);
+    } else if (view === 'reviews') {
+      if (activeTab === 'LOW') list = list.filter(r => Number(r.rating) <= 3);
+      else list = list.filter(r => String(r.rating) === activeTab);
+    }
+  }
+
   if (!query) return list;
   return list.filter(record => JSON.stringify(record).toLowerCase().includes(query));
+}
+
+function renderViewContent(view, records, mode) {
+  if (records?.__error) {
+    return `<div class="error-state"><strong>Lỗi tải dữ liệu</strong><p>${escapeHtml(records.__error)}</p></div>`;
+  }
+
+  if (mode === 'table') {
+    return renderDataTable(view, records);
+  }
+
+  if (view === 'products') return renderProductsGrid(records);
+  if (view === 'categories') return renderCategoriesGrid(records);
+  if (view === 'tables') return renderTablesFloorGrid(records);
+  if (view === 'reservations') return renderReservationsGrid(records);
+  if (view === 'orders') return renderOrdersGrid(records);
+  if (view === 'users') return renderUsersGrid(records);
+  if (view === 'reviews') return renderReviewsGrid(records);
+
+  return renderDataTable(view, records);
+}
+
+
+
+function renderCategoriesGrid(records) {
+  if (!records || records.length === 0) {
+    return `<div class="empty-state"><strong>Chưa có danh mục món nào</strong><p>Bấm Thêm danh mục để tạo mới.</p></div>`;
+  }
+
+  return `
+    <div class="categories-grid">
+      ${records.map(cat => `
+        <article class="category-card">
+          <div class="category-card-media">
+            ${cat.image ? `<img src="${escapeHtml(cat.image)}" alt="${escapeHtml(cat.name)}" />` : `<div class="product-card-placeholder" style="height:100%"><i class="fa-solid fa-folder-open"></i></div>`}
+            <span class="category-card-badge">${formatNumber(cat.productCount ?? 0)} Món</span>
+          </div>
+          <div class="category-card-body">
+            <h4 class="category-card-title">${escapeHtml(cat.name)}</h4>
+            <p class="category-card-desc">${escapeHtml(cat.description || 'Không có mô tả.')}</p>
+            <div class="row-actions" style="margin-top:auto">
+              <button class="btn btn-secondary btn-small" data-action="edit-record" data-view="categories" data-id="${cat.id}"><i class="fa-solid fa-pen"></i> Sửa</button>
+              <button class="btn btn-danger btn-small" data-action="delete-record" data-view="categories" data-id="${cat.id}"><i class="fa-solid fa-trash"></i> Xóa</button>
+            </div>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+
+
+function renderReviewsGrid(records) {
+  const list = Array.isArray(records?.reviews) ? records.reviews : records;
+  if (!list || list.length === 0) {
+    return `<div class="empty-state"><strong>Chưa có phản hồi đánh giá nào</strong></div>`;
+  }
+
+  const total = list.length;
+  const avgRating = total > 0 ? (list.reduce((acc, r) => acc + (Number(r.rating) || 0), 0) / total).toFixed(1) : '5.0';
+
+  return `
+    <div class="reviews-hero-widget">
+      <div class="reviews-score-box">
+        <div class="reviews-score-big">${avgRating}</div>
+        <div>
+          <div class="reviews-stars-display">${'★'.repeat(Math.round(Number(avgRating)))}</div>
+          <div style="font-weight:600; opacity:0.9; margin-top:0.2rem">Dựa trên ${formatNumber(total)} phản hồi từ khách hàng</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <span class="badge-inline" style="background:rgba(255,255,255,0.2); color:white">Hệ thống đánh giá món ăn</span>
+      </div>
+    </div>
+
+    <div class="reviews-grid">
+      ${list.map(rev => {
+        const name = rev.user?.fullName || rev.phone || 'Khách ẩn danh';
+        const initials = userInitials({ fullName: name });
+        const ratingStars = '★'.repeat(Number(rev.rating) || 5);
+
+        return `
+          <article class="review-card">
+            <div class="review-card-head">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">${initials}</div>
+                <div>
+                  <div style="font-weight:700">${escapeHtml(name)}</div>
+                  <div class="review-stars">${ratingStars}</div>
+                </div>
+              </div>
+              <span class="muted" style="font-size:0.78rem">${formatDateTime(rev.created_at || rev.createdAt)}</span>
+            </div>
+
+            ${rev.dish_name ? `<span class="review-dish-tag"><i class="fa-solid fa-bowl-food"></i> ${escapeHtml(rev.dish_name)}</span>` : ''}
+
+            <div class="review-content-box">
+              "${escapeHtml(rev.content || 'Khách hàng không để lại lời nhắn.')}"
+            </div>
+
+            <div class="row-actions" style="margin-top:auto; justify-content:flex-end">
+              <button class="btn btn-danger btn-small" data-action="delete-record" data-view="reviews" data-id="${rev.id}"><i class="fa-solid fa-trash"></i> Xóa đánh giá</button>
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
 function renderDataTable(view, records) {
@@ -832,6 +1520,10 @@ function renderDataTable(view, records) {
     return renderOrdersTable(records);
   }
 
+  if (view === 'users') {
+    return renderUsersTable(records);
+  }
+
   const columns = ENTITY_CONFIGS[view].columns;
   return `
     <div class="table-wrap">
@@ -844,6 +1536,57 @@ function renderDataTable(view, records) {
         </thead>
         <tbody>
           ${records.map(record => renderEntityRow(view, record)).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderUsersTable(records) {
+  return `
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Thành viên</th>
+            <th>Số điện thoại</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th style="text-align:right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${records.map(user => {
+            const initials = userInitials(user);
+            const role = String(user.role || 'CUSTOMER').toUpperCase();
+            const isBlocked = String(user.status || 'ACTIVE').toUpperCase() === 'BLOCKED';
+
+            return `
+              <tr>
+                <td>
+                  <div style="display:flex; align-items:center; gap:0.75rem">
+                    <div class="user-card-avatar" style="width:38px; height:38px; font-size:0.9rem">
+                      ${user.avatar ? `<img src="${escapeHtml(user.avatar)}" alt="${escapeHtml(user.fullName)}" />` : initials}
+                    </div>
+                    <div>
+                      <strong style="display:block; font-size:0.95rem; color:#111c2d">${escapeHtml(user.fullName || 'Người dùng')}</strong>
+                      <small style="color:#5f748d">@${escapeHtml(user.username || 'user')}</small>
+                    </div>
+                  </div>
+                </td>
+                <td><i class="fa-solid fa-phone" style="font-size:0.8rem; color:#737686; margin-right:0.3rem"></i> ${escapeHtml(user.phone || '-')}</td>
+                <td>${statusChip(role, role)}</td>
+                <td>${statusChip(isBlocked ? 'blocked' : 'active', isBlocked ? 'Bị khóa' : 'Hoạt động')}</td>
+                <td style="text-align:right">
+                  <div class="row-actions" style="justify-content:flex-end">
+                    <button class="btn btn-ghost btn-small" data-action="view-user-detail" data-id="${user.id}"><i class="fa-solid fa-eye"></i> Chi tiết</button>
+                    <button class="btn btn-secondary btn-small" data-action="edit-record" data-view="users" data-id="${user.id}" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-danger btn-small" data-action="delete-record" data-view="users" data-id="${user.id}" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
         </tbody>
       </table>
     </div>
@@ -1008,6 +1751,10 @@ function renderModal() {
     `;
   }
 
+  if (state.modal.kind === 'user-detail') {
+    return renderUserDetailModal(state.modal.record);
+  }
+
   if (state.modal.kind === 'order-form') {
     return renderOrderModal();
   }
@@ -1021,6 +1768,67 @@ function renderModal() {
   }
 
   return '';
+}
+
+function renderUserDetailModal(user) {
+  if (!user) return '';
+  const initials = userInitials(user);
+  const role = String(user.role || 'CUSTOMER').toUpperCase();
+  const isBlocked = String(user.status || 'ACTIVE').toUpperCase() === 'BLOCKED';
+
+  return `
+    <div class="modal-backdrop" data-action="close-modal">
+      <div class="modal-card" data-action="stop-propagation" style="max-width:540px">
+        <div class="modal-head">
+          <div>
+            <h3 class="modal-title">Thông tin chi tiết người dùng</h3>
+            <div class="subtle">Mã tài khoản #${user.id}</div>
+          </div>
+          <button class="btn btn-ghost btn-small" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body" style="display:grid; gap:1.2rem">
+          <div style="display:flex; align-items:center; gap:1.2rem; background:#f8fafc; padding:1.2rem; border-radius:18px; border:1px solid rgba(115,118,134,0.16)">
+            <div class="user-card-avatar" style="width:64px; height:64px; font-size:1.5rem">
+              ${user.avatar ? `<img src="${escapeHtml(user.avatar)}" alt="${escapeHtml(user.fullName)}" />` : initials}
+            </div>
+            <div>
+              <h4 style="margin:0; font-size:1.2rem; font-weight:800; color:#111c2d">${escapeHtml(user.fullName || 'Người dùng')}</h4>
+              <div style="color:#5f748d; font-size:0.88rem; margin-top:0.2rem">@${escapeHtml(user.username || 'user')}</div>
+              <div style="display:flex; gap:0.5rem; margin-top:0.5rem">
+                ${statusChip(role, role)}
+                ${statusChip(isBlocked ? 'blocked' : 'active', isBlocked ? 'Bị khóa' : 'Hoạt động')}
+              </div>
+            </div>
+          </div>
+
+          <div class="info-list">
+            <div class="info-row">
+              <strong>Số điện thoại</strong>
+              <span>${escapeHtml(user.phone || 'Chưa cập nhật')}</span>
+            </div>
+            <div class="info-row">
+              <strong>Email liên hệ</strong>
+              <span>${escapeHtml(user.email || 'Chưa cập nhật')}</span>
+            </div>
+            <div class="info-row">
+              <strong>Điểm tích lũy</strong>
+              <strong style="color:#b45309">⭐ ${formatNumber(user.points ?? 0)} điểm</strong>
+            </div>
+            <div class="info-row">
+              <strong>Ngày tạo tài khoản</strong>
+              <span>${formatDateTime(user.createdAt || user.created_at)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top:1rem">
+          <button class="btn btn-secondary" data-action="edit-record" data-view="users" data-id="${user.id}"><i class="fa-solid fa-pen"></i> Chỉnh sửa</button>
+          <button class="btn btn-primary" data-action="close-modal">Đóng</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderEntityFields(view, record) {
@@ -1313,6 +2121,20 @@ function renderToasts() {
 function bindLogin() {
   const form = app.querySelector('[data-form="login"]');
   if (!form) return;
+
+  const toggleBtn = app.querySelector('#toggle-pw');
+  const passwordInput = app.querySelector('#password');
+  if (toggleBtn && passwordInput) {
+    toggleBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      const icon = toggleBtn.querySelector('i');
+      if (icon) {
+        icon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+      }
+    });
+  }
+
   form.addEventListener('submit', async event => {
     event.preventDefault();
     const formData = new FormData(form);
@@ -1390,6 +2212,9 @@ function bindGlobalEvents() {
           state.loading = false;
           render();
           break;
+        case 'reservation-confirm':
+          await simpleAction(`/api/reservations/${id}/confirm`, { method: 'PUT' }, 'Đã xác nhận đặt bàn thành công');
+          break;
         case 'reservation-checkin':
           await simpleAction(`/api/reservations/${id}/check-in`, { method: 'PUT' }, 'Đã check-in đặt bàn');
           break;
@@ -1416,6 +2241,15 @@ function bindGlobalEvents() {
           }, 'Đã cập nhật trạng thái đơn');
           break;
         }
+        case 'open-admin-checkout': {
+          const table = target.dataset.table;
+          const customer = target.dataset.customer;
+          const amount = target.dataset.amount;
+          const items = target.dataset.items;
+          const status = target.dataset.status;
+          openAdminCheckoutModal(id, table, customer, amount, items, status);
+          break;
+        }
         case 'pay-order':
           await simpleAction(`/api/orders/${id}/pay`, {
             method: 'PUT',
@@ -1438,6 +2272,43 @@ function bindGlobalEvents() {
         case 'remove-order-item':
           removeOrderItem(target.closest('.item-row'));
           break;
+        case 'toggle-view-mode':
+          state.viewModes[view] = target.dataset.mode || 'grid';
+          render();
+          break;
+        case 'set-filter-tab':
+          state.activeTabs[view] = target.dataset.tab || 'ALL';
+          render();
+          break;
+        case 'toggle-product-available': {
+          const product = (state.data.products || []).find(p => String(p.id) === String(id));
+          if (product) {
+            await simpleAction(`/api/products/${id}`, {
+              method: 'PUT',
+              body: JSON.stringify({ ...product, isAvailable: !product.isAvailable })
+            }, product.isAvailable ? 'Đã ngưng bán món ăn' : 'Đã bật bán món ăn');
+          }
+          break;
+        }
+        case 'toggle-user-status': {
+          const userObj = (state.data.users || []).find(u => String(u.id) === String(id));
+          if (userObj) {
+            const newStatus = String(userObj.status).toUpperCase() === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED';
+            await simpleAction(`/api/users/${id}`, {
+              method: 'PUT',
+              body: JSON.stringify({ ...userObj, status: newStatus })
+            }, newStatus === 'BLOCKED' ? 'Đã khóa tài khoản người dùng' : 'Đã mở khóa tài khoản');
+          }
+          break;
+        }
+        case 'view-user-detail': {
+          const userObj = (state.data.users || []).find(u => String(u.id) === String(id));
+          if (userObj) {
+            state.modal = { kind: 'user-detail', record: userObj };
+            render();
+          }
+          break;
+        }
         case 'toggle-order-detail': {
           const detailRow = app.querySelector(`[data-order-detail="${id}"]`);
           if (detailRow) {
@@ -1450,6 +2321,22 @@ function bindGlobalEvents() {
       }
     } catch (error) {
       toast('danger', 'Thao tác thất bại', error.message || 'Không thể thực hiện thao tác.');
+    }
+  };
+
+  app.onchange = async event => {
+    const target = event.target;
+    if (target.matches('[data-action="table-status-select"]')) {
+      const id = target.dataset.id;
+      const status = target.value;
+      try {
+        await simpleAction(`/api/tables/${id}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({ status })
+        }, 'Đã cập nhật trạng thái bàn');
+      } catch (err) {
+        toast('danger', 'Cập nhật thất bại', err.message || 'Không thể đổi trạng thái bàn.');
+      }
     }
   };
 
@@ -1637,6 +2524,15 @@ function normalizePayload(view, payload, mode, id) {
     body.used_points = Number(body.used_points || 0);
   }
 
+  if (view === 'tables') {
+    body.tableNumber = Number(body.tableNumber || 1);
+    body.capacity = Number(body.capacity || 4);
+    body.status = String(body.status || 'AVAILABLE');
+    if (!body.qrCode) {
+      body.qrCode = `T${body.tableNumber}`;
+    }
+  }
+
   return body;
 }
 
@@ -1768,6 +2664,154 @@ async function reloadAfterMutation() {
   state.loading = false;
   render();
 }
+
+function openAdminCheckoutModal(orderId, tableNumber, customerName, amount, itemsCount, status) {
+  const st = String(status || '').toUpperCase();
+  if (st && st !== 'READY' && st !== 'COMPLETED') {
+    toast('amber', 'Chưa thể thanh toán', `Đơn hàng #${orderId} chưa hoàn thành chế biến! (Trạng thái: ${st}). Vui lòng chờ Bếp nấu xong (READY) trước khi thanh toán.`);
+    return;
+  }
+
+  state.checkoutOrderId = orderId;
+  state.checkoutAmount = Number(amount || 0);
+
+  if (document.querySelector('#payment-modal-title')) document.querySelector('#payment-modal-title').textContent = `💳 Thanh toán Đơn hàng #${orderId}`;
+  if (document.querySelector('#payment-modal-sub')) document.querySelector('#payment-modal-sub').textContent = `Vị trí: Bàn #${tableNumber} • Khách hàng: ${customerName}`;
+  if (document.querySelector('#payment-modal-amount')) document.querySelector('#payment-modal-amount').textContent = formatCurrency(amount);
+  if (document.querySelector('#payment-modal-items-count')) document.querySelector('#payment-modal-items-count').textContent = `${itemsCount || 0} món ăn trong đơn hàng`;
+
+  if (document.querySelector('#cash-given-input')) document.querySelector('#cash-given-input').value = '';
+  if (document.querySelector('#cash-change-text')) document.querySelector('#cash-change-text').textContent = '0 ₫';
+
+  switchAdminPaymentTab('cash');
+
+  const modalEl = document.querySelector('#staff-payment-modal');
+  if (modalEl) modalEl.classList.remove('hidden');
+}
+
+function switchAdminPaymentTab(tab) {
+  state.paymentTab = tab;
+  const cashBtn = document.querySelector('#tab-pay-cash');
+  const payosBtn = document.querySelector('#tab-pay-payos');
+  const cashPanel = document.querySelector('#panel-pay-cash');
+  const payosPanel = document.querySelector('#panel-pay-payos');
+
+  if (tab === 'cash') {
+    if (cashBtn) cashBtn.className = 'btn btn-primary';
+    if (payosBtn) payosBtn.className = 'btn btn-secondary';
+    if (cashPanel) cashPanel.classList.remove('hidden');
+    if (payosPanel) payosPanel.classList.add('hidden');
+  } else {
+    if (cashBtn) cashBtn.className = 'btn btn-secondary';
+    if (payosBtn) payosBtn.className = 'btn btn-primary';
+    if (cashPanel) cashPanel.classList.add('hidden');
+    if (payosPanel) payosPanel.classList.remove('hidden');
+
+    initAdminPayOSCheckout(state.checkoutOrderId);
+  }
+}
+
+async function initAdminPayOSCheckout(orderId) {
+  if (!orderId) return;
+  const qrImg = document.querySelector('#payos-qr-image');
+  const statusTxt = document.querySelector('#payos-qr-status');
+  const codeTxt = document.querySelector('#payos-order-code');
+  const webBtn = document.querySelector('#btn-open-payos-url');
+
+  if (statusTxt) statusTxt.textContent = '⏳ Đang kết nối liên kết thanh toán PayOS Backend...';
+
+  const payosData = await generatePayOSQRUrl(orderId, state.checkoutAmount);
+  if (qrImg) qrImg.src = payosData.qrUrl;
+  if (statusTxt) statusTxt.textContent = `🟢 Mã QR PayOS đã sẵn sàng (Số HĐ: ${payosData.orderCode})`;
+  if (codeTxt) codeTxt.textContent = `PAYOS-CODE: ${payosData.orderCode}`;
+  if (webBtn && payosData.checkoutUrl) {
+    webBtn.href = payosData.checkoutUrl;
+    webBtn.style.display = 'inline-flex';
+  }
+}
+
+// Global Document Handlers for Admin Payment Modal
+document.addEventListener('click', async event => {
+  if (event.target.closest('#close-staff-payment-modal')) {
+    const modalEl = document.querySelector('#staff-payment-modal');
+    if (modalEl) modalEl.classList.add('hidden');
+    return;
+  }
+
+  if (event.target.closest('#tab-pay-cash')) {
+    switchAdminPaymentTab('cash');
+    return;
+  }
+  if (event.target.closest('#tab-pay-payos')) {
+    switchAdminPaymentTab('payos');
+    return;
+  }
+
+  if (event.target.closest('#btn-confirm-cash-paid')) {
+    if (!state.checkoutOrderId) return;
+    try {
+      await api(`/api/orders/${state.checkoutOrderId}/pay`, {
+        method: 'PUT',
+        body: JSON.stringify({ paymentMethod: 'CASH' })
+      });
+      toast('success', 'Thanh toán thành công', `Đơn hàng #${state.checkoutOrderId} đã được thu tiền mặt.`);
+      const modalEl = document.querySelector('#staff-payment-modal');
+      if (modalEl) modalEl.classList.add('hidden');
+      await reloadAfterMutation();
+    } catch (err) {
+      toast('danger', 'Lỗi thanh toán', err.message || 'Không thể thanh toán tiền mặt');
+    }
+    return;
+  }
+
+  if (event.target.closest('#btn-confirm-transfer-paid')) {
+    if (!state.checkoutOrderId) return;
+    try {
+      await api(`/api/orders/${state.checkoutOrderId}/pay`, {
+        method: 'PUT',
+        body: JSON.stringify({ paymentMethod: 'TRANSFER' })
+      });
+      toast('success', 'Thanh toán thành công', `Đơn hàng #${state.checkoutOrderId} đã được xác nhận chuyển khoản.`);
+      const modalEl = document.querySelector('#staff-payment-modal');
+      if (modalEl) modalEl.classList.add('hidden');
+      await reloadAfterMutation();
+    } catch (err) {
+      toast('danger', 'Lỗi thanh toán', err.message || 'Không thể thanh toán chuyển khoản');
+    }
+    return;
+  }
+
+  if (event.target.closest('#btn-check-payos-status')) {
+    if (!state.checkoutOrderId) return;
+    try {
+      const res = await api(`/api/payos/check-status/${state.checkoutOrderId}`);
+      if (res.status === 'PAID') {
+        toast('success', 'PayOS Thành công', `Đơn hàng #${state.checkoutOrderId} đã được thanh toán qua PayOS!`);
+        const modalEl = document.querySelector('#staff-payment-modal');
+        if (modalEl) modalEl.classList.add('hidden');
+        await reloadAfterMutation();
+      } else {
+        toast('warning', 'Chưa thanh toán', `Trạng thái PayOS: ${res.payosStatus || res.status}`);
+      }
+    } catch (err) {
+      toast('danger', 'Lỗi kiểm tra', err.message || 'Không thể kiểm tra PayOS');
+    }
+    return;
+  }
+});
+
+document.addEventListener('input', event => {
+  if (event.target.id === 'cash-given-input') {
+    const given = Number(event.target.value || 0);
+    const amount = Number(state.checkoutAmount || 0);
+    const change = Math.max(0, given - amount);
+    const changeEl = document.querySelector('#cash-change-text');
+    if (changeEl) {
+      changeEl.textContent = formatCurrency(change);
+      changeEl.style.color = given >= amount && amount > 0 ? '#15803d' : '#dc2626';
+    }
+  }
+});
 
 render();
 boot();

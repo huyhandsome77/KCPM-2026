@@ -56,7 +56,7 @@ exports.createReservation = async (req, res, next) => {
             reservationTime: startTime,
             numberOfGuests,
             note,
-            status: 'CONFIRMED'
+            status: 'PENDING'
         }, { transaction: t });
 
         await t.commit();
@@ -81,11 +81,26 @@ exports.checkIn = async (req, res, next) => {
         const reservation = await Reservation.findByPk(id);
 
         if (!reservation) {
+            await t.rollback();
             return res.status(404).json({ message: "Không tìm thấy thông tin đặt bàn" });
         }
 
-        if (reservation.status !== 'CONFIRMED') {
-            return res.status(400).json({ message: "Trạng thái đặt bàn không hợp lệ để check-in" });
+        const status = String(reservation.status || '').toUpperCase();
+        if (status !== 'CONFIRMED' && status !== 'PENDING') {
+            await t.rollback();
+            return res.status(400).json({ message: "Trạng thái đặt bàn không hợp lệ để nhận bàn" });
+        }
+
+        // Logic check: Only allow check-in within 30 mins before or 30 mins after reservationTime
+        const now = new Date();
+        const resTime = new Date(reservation.reservationTime);
+        const diffMins = (now - resTime) / 60000;
+
+        if (diffMins < -30 || diffMins > 30) {
+            await t.rollback();
+            return res.status(400).json({
+                message: "Chỉ có thể nhấn nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn!"
+            });
         }
 
         reservation.status = 'CHECKED_IN';
@@ -113,10 +128,61 @@ exports.cancelReservation = async (req, res, next) => {
             return res.status(404).json({ message: "Không tìm thấy thông tin đặt bàn" });
         }
 
+        const status = String(reservation.status || '').toUpperCase();
+        if (status !== 'PENDING' && status !== 'CONFIRMED') {
+            return res.status(400).json({
+                message: "Chỉ có thể hủy lịch đặt bàn ở trạng thái 'Chờ duyệt' (PENDING) hoặc 'Đã xác nhận' (CONFIRMED)!"
+            });
+        }
+
         reservation.status = 'CANCELLED';
         await reservation.save();
 
-        res.json({ message: "Đã hủy đặt bàn" });
+        res.json({ message: "Đã hủy đặt bàn thành công" });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.confirmReservation = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const reservation = await Reservation.findByPk(id);
+
+        if (!reservation) {
+            return res.status(404).json({ message: "Không tìm thấy thông tin đặt bàn" });
+        }
+
+        const status = String(reservation.status || '').toUpperCase();
+        if (status !== 'PENDING') {
+            return res.status(400).json({
+                message: "Chỉ có thể xác nhận lịch đặt bàn ở trạng thái 'Chờ duyệt' (PENDING)!"
+            });
+        }
+
+        reservation.status = 'CONFIRMED';
+        await reservation.save();
+
+        res.json({ message: "Xác nhận đặt bàn thành công", data: reservation });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateReservationStatus = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const reservation = await Reservation.findByPk(id);
+
+        if (!reservation) {
+            return res.status(404).json({ message: "Không tìm thấy thông tin đặt bàn" });
+        }
+
+        reservation.status = String(status).toUpperCase();
+        await reservation.save();
+
+        res.json({ message: "Cập nhật trạng thái đặt bàn thành công", data: reservation });
     } catch (error) {
         next(error);
     }

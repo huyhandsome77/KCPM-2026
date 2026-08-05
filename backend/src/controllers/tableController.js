@@ -1,17 +1,37 @@
-const { RestaurantTable, Reservation } = require('../models');
+const { RestaurantTable, Reservation, Order } = require('../models');
 const { Op } = require('sequelize');
 
 exports.getAllTables = async (req, res, next) => {
     try {
-        const tables = await RestaurantTable.findAll();
+        const tables = await RestaurantTable.findAll({
+            order: [['tableNumber', 'ASC'], ['id', 'ASC']]
+        });
         const now = new Date();
-        const bookingThreshold = new Date(now.getTime() + 30 * 60000);
         const expiryThreshold = new Date(now.getTime() - 30 * 60000);
 
         const updatedTables = await Promise.all(tables.map(async (table) => {
             const tableData = table.toJSON();
 
-            if (table.status === 'OCCUPIED') {
+            // Find active order or check-in time for live timer calculations
+            const activeOrder = await Order.findOne({
+                where: {
+                    table_id: table.id,
+                    status: { [Op.notIn]: ['COMPLETED', 'CANCELLED'] }
+                },
+                order: [['created_at', 'DESC']]
+            });
+
+            if (activeOrder) {
+                tableData.occupiedSince = activeOrder.createdAt || activeOrder.created_at;
+                const diffMs = now - new Date(tableData.occupiedSince);
+                const diffMins = Math.max(0, Math.floor(diffMs / 60000));
+                tableData.timeUsedMins = diffMins;
+                tableData.timeUsed = diffMins >= 60
+                    ? `${Math.floor(diffMins / 60)}h ${diffMins % 60}p`
+                    : `${diffMins}p`;
+            }
+
+            if (table.status === 'OCCUPIED' && !tableData.timeUsed) {
                 const checkInRes = await Reservation.findOne({
                     where: {
                         table_id: table.id,
@@ -21,9 +41,11 @@ exports.getAllTables = async (req, res, next) => {
                 });
 
                 if (checkInRes) {
-                    const diffMs = now - new Date(checkInRes.updated_at || checkInRes.updatedAt);
-                    const diffMins = Math.floor(diffMs / 60000);
-                    tableData.timeUsed = diffMins > 60
+                    tableData.occupiedSince = checkInRes.updated_at || checkInRes.updatedAt;
+                    const diffMs = now - new Date(tableData.occupiedSince);
+                    const diffMins = Math.max(0, Math.floor(diffMs / 60000));
+                    tableData.timeUsedMins = diffMins;
+                    tableData.timeUsed = diffMins >= 60
                         ? `${Math.floor(diffMins / 60)}h ${diffMins % 60}p`
                         : `${diffMins}p`;
                     tableData.guestCount = checkInRes.numberOfGuests;
@@ -69,13 +91,147 @@ exports.getAllTables = async (req, res, next) => {
     }
 };
 
+exports.createTable = async (req, res, next) => {
+    try {
+        const { tableNumber, capacity, qrCode, status } = req.body;
+        const num = Number(tableNumber || 1);
+
+        // Check if tableNumber exists
+        const existing = await RestaurantTable.findOne({ where: { tableNumber: num } });
+        if (existing) {
+            return res.status(400).json({ message: `Bàn #${num} đã tồn tại trong hệ thống!` });
+        }
+
+        const newTable = await RestaurantTable.create({
+            tableNumber: num,
+            capacity: Number(capacity || 4),
+            qrCode: qrCode || `T${num}`,
+            status: status || 'AVAILABLE'
+        });
+        res.status(201).json({ message: 'Tạo bàn mới thành công', table: newTable });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateTable = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { tableNumber, capacity, qrCode, status } = req.body;
+
+        let table = await RestaurantTable.findByPk(id);
+        if (!table) {
+            table = await RestaurantTable.findOne({
+                where: {
+                    [Op.or]: [{ id: id }, { tableNumber: id }]
+                }
+            });
+        }
+
+        if (!table) {
+            return res.status(404).json({ message: 'Không tìm thấy bàn ăn' });
+        }
+
+        if (status === 'AVAILABLE') {
+            const activeUnpaidOrder = await Order.findOne({
+                where: {
+                    table_id: table.id,
+                    paymentStatus: { [Op.ne]: 'PAID' },
+                    status: { [Op.notIn]: ['COMPLETED', 'CANCELLED'] }
+                }
+            });
+
+            if (activeUnpaidOrder) {
+                return res.status(400).json({
+                    message: `Không thể chuyển Bàn #${table.tableNumber} về trạng thái 'Bàn trống' vì bàn này còn Đơn hàng #${activeUnpaidOrder.id} chưa thanh toán!`
+                });
+            }
+        }
+
+        await table.update({
+            tableNumber: tableNumber !== undefined ? Number(tableNumber) : table.tableNumber,
+            capacity: capacity !== undefined ? Number(capacity) : table.capacity,
+            qrCode: qrCode || table.qrCode,
+            status: status || table.status
+        });
+
+        res.json({ message: 'Cập nhật bàn thành công', table });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.updateTableStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
 
-        await RestaurantTable.update({ status }, { where: { id } });
-        res.json({ message: "Cập nhật trạng thái bàn thành công" });
+        let table = await RestaurantTable.findByPk(id);
+        if (!table) {
+            table = await RestaurantTable.findOne({
+                where: {
+                    [Op.or]: [{ id: id }, { tableNumber: id }]
+                }
+            });
+        }
+
+        if (!table) {
+            return res.status(404).json({ message: 'Không tìm thấy bàn ăn' });
+        }
+
+        if (status === 'AVAILABLE') {
+            const activeUnpaidOrder = await Order.findOne({
+                where: {
+                    table_id: table.id,
+                    paymentStatus: { [Op.ne]: 'PAID' },
+                    status: { [Op.notIn]: ['COMPLETED', 'CANCELLED'] }
+                }
+            });
+
+            if (activeUnpaidOrder) {
+                return res.status(400).json({
+                    message: `Không thể chuyển Bàn #${table.tableNumber} về trạng thái 'Bàn trống' vì bàn này còn Đơn hàng #${activeUnpaidOrder.id} chưa thanh toán!`
+                });
+            }
+        }
+
+        await table.update({ status });
+        res.json({ message: "Cập nhật trạng thái bàn thành công", id: table.id, status });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteTable = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        let table = await RestaurantTable.findByPk(id);
+
+        if (!table) {
+            table = await RestaurantTable.findOne({
+                where: {
+                    [Op.or]: [{ id: id }, { tableNumber: id }]
+                }
+            });
+        }
+
+        if (!table) {
+            return res.status(404).json({ message: 'Không tìm thấy bàn ăn với mã này trong hệ thống' });
+        }
+
+        const activeOrder = await Order.findOne({
+            where: {
+                table_id: table.id,
+                status: { [Op.notIn]: ['COMPLETED', 'CANCELLED'] }
+            }
+        });
+
+        if (activeOrder) {
+            return res.status(400).json({ message: `Không thể xóa Bàn #${table.tableNumber} đang có đơn hàng #${activeOrder.id} chưa hoàn tất!` });
+        }
+
+        await table.destroy();
+        res.json({ message: `Xóa bàn ăn #${table.tableNumber} thành công`, id: table.id });
     } catch (error) {
         next(error);
     }

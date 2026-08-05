@@ -23,22 +23,12 @@ app.get('/api-docs.json', (req, res) => {
 });
 
 const adminDir = path.join(__dirname, '..', '..', 'admin');
-const customerDir = path.join(__dirname, '..', '..', 'customer');
-
-app.use('/admin', express.static(adminDir));
+app.use('/admin', express.static(adminDir, { etag: false, maxAge: 0, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); } }));
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(adminDir, 'index.html'));
 });
 app.get('/admin/*', (req, res) => {
     res.sendFile(path.join(adminDir, 'index.html'));
-});
-
-app.use('/customer', express.static(customerDir));
-app.get('/customer', (req, res) => {
-    res.sendFile(path.join(customerDir, 'index.html'));
-});
-app.get('/customer/*', (req, res) => {
-    res.sendFile(path.join(customerDir, 'index.html'));
 });
 
 // Middlewares

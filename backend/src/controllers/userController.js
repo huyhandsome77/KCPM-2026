@@ -4,7 +4,7 @@ const { Op } = require('sequelize');
 
 const getAllUsers = async (req, res) => {
     try {
-        const { search } = req.query;
+        const { search, role, status } = req.query;
         let where = {};
 
         if (search) {
@@ -18,9 +18,13 @@ const getAllUsers = async (req, res) => {
             };
         }
 
+        if (role) where.role = role;
+        if (status) where.status = status;
+
         const users = await User.findAll({
             where,
-            attributes: { exclude: ['password'] }
+            attributes: { exclude: ['password'] },
+            order: [['id', 'DESC']]
         });
         res.json(users);
     } catch (error) {
@@ -125,25 +129,48 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
     try {
-        const { fullName, email, phone, username, avatar, points, role, status } = req.body;
-        const user = await User.findByPk(req.params.id);
+        const targetUserId = Number(req.params.id);
+        const currentUserId = req.user ? req.user.id : null;
+        const currentUserRole = req.user ? String(req.user.role).toUpperCase() : 'STAFF';
+
+        const user = await User.findByPk(targetUserId);
 
         if (!user) {
             return res.status(404).json({ message: "Không tìm thấy người dùng" });
         }
 
-        await user.update({
-            fullName: fullName || user.fullName,
-            email: email || user.email,
-            phone: phone || user.phone,
-            username: username || user.username,
-            avatar: avatar || user.avatar,
-            points: points !== undefined ? points : user.points,
-            role: role || user.role,
-            status: status || user.status
+        // BUG-USR-02 Defense: Prevent admin from blocking self
+        if (currentUserId && currentUserId === targetUserId && req.body.status === 'INACTIVE') {
+            return res.status(400).json({ message: "Bạn không thể tự khóa tài khoản của chính mình" });
+        }
+
+        // BUG-USR-01 Defense: DTO Sanitization & Mass Assignment Prevention
+        const updateData = {};
+
+        if (currentUserRole === 'ADMIN') {
+            if (req.body.fullName !== undefined) updateData.fullName = req.body.fullName;
+            if (req.body.email !== undefined) updateData.email = req.body.email;
+            if (req.body.phone !== undefined) updateData.phone = req.body.phone;
+            if (req.body.username !== undefined) updateData.username = req.body.username;
+            if (req.body.avatar !== undefined) updateData.avatar = req.body.avatar;
+            if (req.body.points !== undefined) updateData.points = Number(req.body.points);
+            if (req.body.role !== undefined) updateData.role = req.body.role;
+            if (req.body.status !== undefined) updateData.status = req.body.status;
+        } else {
+            // Non-admin roles (e.g. STAFF) can ONLY update points, fullName, phone, avatar
+            if (req.body.points !== undefined) updateData.points = Number(req.body.points);
+            if (req.body.fullName !== undefined) updateData.fullName = req.body.fullName;
+            if (req.body.phone !== undefined) updateData.phone = req.body.phone;
+            if (req.body.avatar !== undefined) updateData.avatar = req.body.avatar;
+        }
+
+        await user.update(updateData);
+
+        const updatedUser = await User.findByPk(targetUserId, {
+            attributes: { exclude: ['password'] }
         });
 
-        res.json({ message: "Cập nhật thành công", user });
+        res.json({ message: "Cập nhật thành công", user: updatedUser });
     } catch (error) {
         res.status(500).json({ message: "Lỗi server", error: error.message });
     }
@@ -151,7 +178,15 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
-        const user = await User.findByPk(req.params.id);
+        const targetUserId = Number(req.params.id);
+        const currentUserId = req.user ? req.user.id : null;
+
+        // BUG-USR-02 Defense: Prevent self deletion
+        if (currentUserId && currentUserId === targetUserId) {
+            return res.status(400).json({ message: "Bạn không thể tự xóa tài khoản của chính mình" });
+        }
+
+        const user = await User.findByPk(targetUserId);
 
         if (!user) {
             return res.status(404).json({ message: "Không tìm thấy người dùng" });

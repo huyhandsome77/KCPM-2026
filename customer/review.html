@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đánh giá - AppDatMon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div>
+            <span class="brand-label">AppDatMon</span>
+            <p class="brand-subtitle">Đánh giá khách hàng</p>
+          </div>
+        </div>
+        <nav class="site-nav">
+          <a href="index.html" class="nav-link">Trang chủ</a>
+          <a href="order.html" class="nav-link">Order</a>
+          <a href="booking.html" class="nav-link">Đặt bàn</a>
+          <a href="review.html" class="nav-link active">Đánh giá</a>
+          <a href="contact.html" class="nav-link">Liên hệ</a>
+        </nav>
+        <div class="header-actions">
+          <a href="login.html" class="btn btn-primary">Đăng nhập</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="section card review-hero">
+          <div>
+            <span class="eyebrow">Ý kiến khách</span>
+            <h1>Đánh giá từ khách hàng thực tế</h1>
+            <p>Xem nhận xét, đánh giá 5 sao và chia sẻ cảm nhận về trải nghiệm ăn uống.</p>
+          </div>
+          <a href="#reviewForm" class="btn btn-primary">Gửi đánh giá</a>
+        </section>
+
+        <section class="section reviews-grid">
+          <div class="review-card">
+            <div class="review-header">
+              <strong>Nguyễn Văn B</strong>
+              <span>⭐⭐⭐⭐⭐</span>
+            </div>
+            <p>Không gian ấm cúng, món ăn đậm vị và phục vụ nhanh. Rất đáng trải nghiệm.</p>
+          </div>
+          <div class="review-card">
+            <div class="review-header">
+              <strong>Trần Hà</strong>
+              <span>⭐⭐⭐⭐⭐</span>
+            </div>
+            <p>Thức ăn ngon, trang trí đẹp mắt. Đặt bàn nhanh qua website rất tiện.</p>
+          </div>
+          <div class="review-card">
+            <div class="review-header">
+              <strong>Phạm Long</strong>
+              <span>⭐⭐⭐⭐⭐</span>
+            </div>
+            <p>AppDatMon trình bày đẹp, dễ dùng. Thức ăn tới đúng lúc và còn nóng.</p>
+          </div>
+        </section>
+
+        <section id="reviewForm" class="section card form-section">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">Gửi đánh giá</span>
+              <h2>Chia sẻ trải nghiệm của bạn</h2>
+            </div>
+          </div>
+          <form class="form-grid">
+            <div class="field">
+              <label for="reviewName">Họ tên</label>
+              <input id="reviewName" type="text" placeholder="Tên của bạn" />
+            </div>
+            <div class="field">
+              <label for="reviewEmail">Email</label>
+              <input id="reviewEmail" type="email" placeholder="email@example.com" />
+            </div>
+            <div class="field">
+              <label for="reviewRating">Đánh giá</label>
+              <select id="reviewRating">
+                <option value="5">⭐⭐⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option>
+                <option value="3">⭐⭐⭐</option>
+                <option value="2">⭐⭐</option>
+                <option value="1">⭐</option>
+              </select>
+            </div>
+            <div class="field full-width">
+              <label for="reviewComment">Bình luận</label>
+              <textarea id="reviewComment" rows="4" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Gửi đánh giá</button>
+          </form>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div>
+          <h3>AppDatMon</h3>
+          <p>Khách hàng luôn được lắng nghe và phản hồi nhanh chóng.</p>
+        </div>
+        <div class="footer-links">
+          <a href="index.html">Trang chủ</a>
+          <a href="order.html">Order</a>
+          <a href="booking.html">Đặt bàn</a>
+          <a href="contact.html">Liên hệ</a>
+        </div>
+      </footer>
+    </div>
+    <script src="./script.js"></script>
+  </body>
+</html>
