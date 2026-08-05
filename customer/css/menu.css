@@ -1,0 +1,247 @@
+/*====================================================
+                    MENU
+====================================================*/
+
+.menu-section{
+
+    background:#fff;
+
+    border-radius:22px;
+
+    padding:30px;
+
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+
+}
+
+/*================ GRID ================*/
+
+.products-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+
+    gap:25px;
+
+    margin-top:25px;
+
+}
+
+/*================ CARD ================*/
+
+.product-card{
+
+    background:white;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+
+    transition:.3s;
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.product-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 20px 40px rgba(0,0,0,.15);
+
+}
+
+/*================ IMAGE ================*/
+
+.product-image{
+
+    width:100%;
+
+    height:180px;
+
+    overflow:hidden;
+
+}
+
+.product-image img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+    transition:.35s;
+
+}
+
+.product-card:hover .product-image img{
+
+    transform:scale(1.08);
+
+}
+
+/*================ CONTENT ================*/
+
+.product-content{
+
+    padding:20px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    flex:1;
+
+}
+
+.product-content h3{
+
+    font-size:20px;
+
+    margin-bottom:10px;
+
+    color:#222;
+
+}
+
+.product-content p{
+
+    color:#777;
+
+    font-size:14px;
+
+    line-height:1.6;
+
+    min-height:48px;
+
+}
+
+/*================ PRICE ================*/
+
+.product-footer{
+
+    margin-top:auto;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding-top:18px;
+
+}
+
+.price{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:var(--accent);
+
+}
+
+/*================ BUTTON ================*/
+
+.add-btn{
+
+    background:var(--accent);
+
+    color:white;
+
+    width:45px;
+
+    height:45px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:18px;
+
+    transition:.3s;
+
+}
+
+.add-btn:hover{
+
+    transform:rotate(90deg);
+
+    background:#b71c1c;
+
+}
+
+/*================ BADGE ================*/
+
+.food-tag{
+
+    position:absolute;
+
+    top:15px;
+
+    left:15px;
+
+    background:#d62828;
+
+    color:white;
+
+    padding:6px 12px;
+
+    border-radius:30px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+}
+
+/*================ EMPTY ================*/
+
+.empty-menu{
+
+    text-align:center;
+
+    padding:60px;
+
+    color:#888;
+
+}
+
+/*================ RESPONSIVE ================*/
+
+@media(max-width:992px){
+
+.products-grid{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+@media(max-width:650px){
+
+.products-grid{
+
+grid-template-columns:1fr;
+
+}
+
+.product-image{
+
+height:220px;
+
+}
+
+}
