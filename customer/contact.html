@@ -1,102 +1,368 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Liên hệ - AppDatMon</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div class="page-shell">
-      <header class="site-header">
-        <div class="brand">
-          <div class="brand-mark"></div>
-          <div>
-            <span class="brand-label">AppDatMon</span>
-            <p class="brand-subtitle">Liên hệ nhà hàng</p>
-          </div>
-        </div>
-        <nav class="site-nav">
-          <a href="index.html" class="nav-link">Trang chủ</a>
-          <a href="order.html" class="nav-link">Order</a>
-          <a href="booking.html" class="nav-link">Đặt bàn</a>
-          <a href="review.html" class="nav-link">Đánh giá</a>
-          <a href="contact.html" class="nav-link active">Liên hệ</a>
-        </nav>
-        <div class="header-actions">
-          <a href="login.html" class="btn btn-primary">Đăng nhập</a>
-        </div>
-      </header>
 
-      <main>
-        <section class="section card contact-hero">
-          <div>
-            <span class="eyebrow">Liên hệ</span>
-            <h1>Gửi phản hồi hoặc hỏi về đặt bàn</h1>
-            <p>Đội ngũ AppDatMon luôn sẵn sàng hỗ trợ bạn 24/7.</p>
-          </div>
-          <div class="contact-summary">
-            <div class="contact-card"><strong>Hotline</strong><p>1900 1234</p></div>
-            <div class="contact-card"><strong>Email</strong><p>support@appdatmon.vn</p></div>
-            <div class="contact-card"><strong>Địa chỉ</strong><p>123 Đường Ẩm Thực, Quận 1, TP.HCM</p></div>
-          </div>
-        </section>
+<head>
 
-        <section class="section split-grid">
-          <article class="card contact-form-panel">
-            <div class="section-heading">
-              <div>
-                <span class="eyebrow">Gửi tin nhắn</span>
-                <h2>Chúng tôi luôn lắng nghe</h2>
-              </div>
-            </div>
-            <form class="form-grid">
-              <div class="field">
-                <label for="contactName">Họ tên</label>
-                <input id="contactName" type="text" placeholder="Nguyễn Văn B" />
-              </div>
-              <div class="field">
-                <label for="contactEmail">Email</label>
-                <input id="contactEmail" type="email" placeholder="email@example.com" />
-              </div>
-              <div class="field">
-                <label for="contactPhone">Số điện thoại</label>
-                <input id="contactPhone" type="tel" placeholder="0901234567" />
-              </div>
-              <div class="field full-width">
-                <label for="contactMessage">Nội dung</label>
-                <textarea id="contactMessage" rows="5" placeholder="Mô tả vấn đề hoặc yêu cầu của bạn..."></textarea>
-              </div>
-              <button class="btn btn-primary btn-block" type="submit">Gửi liên hệ</button>
-            </form>
-          </article>
+<meta charset="UTF-8">
 
-          <article class="card map-panel">
-            <div class="section-heading">
-              <div>
-                <span class="eyebrow">Bản đồ</span>
-                <h2>Đến nhà hàng chúng tôi</h2>
-              </div>
-            </div>
-            <div class="map-placeholder">Google Maps</div>
-          </article>
-        </section>
-      </main>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-      <footer class="site-footer">
-        <div>
-          <h3>AppDatMon</h3>
-          <p>Luôn bên bạn khi cần hỗ trợ đặt món và đặt bàn.</p>
-        </div>
-        <div class="footer-links">
-          <a href="index.html">Trang chủ</a>
-          <a href="order.html">Order</a>
-          <a href="booking.html">Đặt bàn</a>
-          <a href="review.html">Đánh giá</a>
-        </div>
-      </footer>
-    </div>
-    <script src="./script.js"></script>
-  </body>
+<title>FutureSuShi | Liên hệ</title>
+
+<link rel="preconnect"
+      href="https://fonts.googleapis.com">
+
+<link rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+<link rel="stylesheet" href="./css/styles.css">
+<link rel="stylesheet" href="./css/layout.css">
+<link rel="stylesheet" href="./css/contact.css">
+<link rel="stylesheet" href="./css/responsive.css">
+
+</head>
+
+<body>
+
+<div class="ambient ambient-left"></div>
+
+<div class="ambient ambient-right"></div>
+
+<header class="header">
+
+<div class="logo">
+
+<img src="./assets/logo.png">
+
+<span>
+
+FutureSuShi
+
+</span>
+
+</div>
+
+<nav>
+
+<a href="index.html">Trang chủ</a>
+
+<a href="menu.html">Thực đơn</a>
+
+<a href="booking.html">Đặt bàn</a>
+
+<a href="review.html">Đánh giá</a>
+
+<a href="about.html">Giới thiệu</a>
+
+<a href="contact.html" class="active">
+
+Liên hệ
+
+</a>
+
+</nav>
+
+<div class="user-box">
+
+<i class="fa-solid fa-user"></i>
+
+<span id="username">
+
+Khách
+
+</span>
+
+<a href="login.html"
+
+class="logout-btn">
+
+Đăng nhập
+
+</a>
+
+</div>
+
+</header>
+
+
+<section class="hero">
+
+<div class="hero-left">
+
+<div class="hero-tag">
+
+CONTACT
+
+</div>
+
+<h1 class="hero-title">
+
+Liên hệ
+
+<span>
+
+FutureSuShi
+
+</span>
+
+</h1>
+
+<p class="hero-desc">
+
+Mọi góp ý của bạn đều giúp FutureSuShi hoàn thiện hơn mỗi ngày.
+
+</p>
+
+</div>
+
+<div class="hero-right">
+
+<img src="./assets/images/contact.png">
+
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="contact-layout">
+
+<div class="contact-info card">
+
+<h2>
+
+Thông tin liên hệ
+
+</h2>
+
+<div class="info-item">
+
+<i class="fa-solid fa-location-dot"></i>
+
+<div>
+
+<h4>Địa chỉ</h4>
+
+<p>
+
+70 Tô Ký, Quận 12, TP.HCM
+
+</p>
+
+</div>
+
+</div>
+
+<div class="info-item">
+
+<i class="fa-solid fa-phone"></i>
+
+<div>
+
+<h4>Hotline</h4>
+
+<p>
+
+0909 999 999
+
+</p>
+
+</div>
+
+</div>
+
+<div class="info-item">
+
+<i class="fa-solid fa-envelope"></i>
+
+<div>
+
+<h4>Email</h4>
+
+<p>
+
+support@futuresushi.vn
+
+</p>
+
+</div>
+
+</div>
+
+<div class="info-item">
+
+<i class="fa-solid fa-clock"></i>
+
+<div>
+
+<h4>Giờ mở cửa</h4>
+
+<p>
+
+09:00 - 22:00
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="contact-form card">
+
+<form id="contactForm">
+
+<div class="field">
+
+<label>
+
+Họ và tên
+
+</label>
+
+<input
+
+id="fullName"
+
+type="text"
+
+placeholder="Nhập họ tên"
+
+required>
+
+</div>
+
+<div class="field">
+
+<label>
+
+Email
+
+</label>
+
+<input
+
+id="email"
+
+type="email"
+
+placeholder="Nhập Email"
+
+required>
+
+</div>
+
+<div class="field">
+
+<label>
+
+Tiêu đề
+
+</label>
+
+<input
+
+id="subject"
+
+type="text"
+
+placeholder="Tiêu đề">
+
+</div>
+
+<div class="field">
+
+<label>
+
+Nội dung
+
+</label>
+
+<textarea
+
+id="message"
+
+rows="7"
+
+placeholder="Nhập nội dung..."></textarea>
+
+</div>
+
+<button
+
+class="btn btn-primary btn-block">
+
+Gửi liên hệ
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section class="section">
+
+<div class="section-title">
+
+<span>
+
+LOCATION
+
+</span>
+
+<h2>
+
+Vị trí nhà hàng
+
+</h2>
+
+</div>
+
+<div class="map-box">
+
+<iframe
+
+src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4660.58643231135!2d106.71440668605382!3d10.805918278567068!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317529a19b53882d%3A0xc022a5ad76055df!2sYori%20sushi!5e0!3m2!1svi!2s!4v1786050577891!5m2!1svi!2s" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin">
+
+loading="lazy">
+
+</iframe>
+
+</div>
+
+</section>
+
+
+<footer class="footer">
+
+<div class="footer-bottom">
+
+© 2026 FutureSuShi
+
+</div>
+
+</footer>
+
+<script src="./js/app.js"></script>
+
+<script src="./js/contact.js"></script>
+
+</body>
+
 </html>
