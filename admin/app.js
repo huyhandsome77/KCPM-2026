@@ -1,4 +1,4 @@
-import { TOKEN_KEY, USER_KEY, API_BASE_URL } from './js/config.js';
+import { TOKEN_KEY, USER_KEY, API_BASE_URL, RESERVATION_STATUS_MAP } from './js/config.js';
 import { formatCurrency, formatDateTime, formatNumber, escapeHtml, userInitials, statusChip, tableStatusClass, orderStatusClass, paymentStatusClass, reservationStatusClass } from './js/utils.js';
 import { api } from './js/api.js';
 import { renderReservationsGrid } from './js/views/reservationsView.js';
@@ -189,7 +189,7 @@ const ENTITY_CONFIGS = {
       { label: 'Thời gian', render: row => formatDateTime(row.reservationTime) },
       { label: 'Số khách', render: row => formatNumber(row.numberOfGuests ?? 0) },
       { label: 'Bàn', render: row => row.table?.tableNumber ? `#${row.table.tableNumber}` : row.table_id ? `#${row.table_id}` : '-' },
-      { label: 'Trạng thái', render: row => statusChip(reservationStatusClass(row.status), row.status) }
+      { label: 'Trạng thái', render: row => RESERVATION_STATUS_MAP[String(row.status || 'PENDING').toUpperCase()] || statusChip(reservationStatusClass(row.status), row.status) }
     ]
   },
   orders: {
@@ -473,13 +473,13 @@ function render() {
           <div class="admin-brand-badge">
             <span class="admin-brand-icon"><i class="fa-solid fa-utensils"></i></span>
             <div>
-              <h1 class="admin-brand-title">AppDatMon Studio</h1>
-              <p class="admin-brand-subtitle">Management Suite v2.0</p>
+              <h1 class="admin-brand-title">AppDatMon POS</h1>
+              <p class="admin-brand-subtitle">Hệ Thống Quản Lý</p>
             </div>
           </div>
           <div class="admin-system-status">
             <span class="status-pulse-dot"></span>
-            <span>Hệ thống hoạt động ổn định</span>
+            <span>Hệ thống trực tuyến</span>
           </div>
         </div>
 
@@ -520,9 +520,6 @@ function render() {
               <i class="fa-regular fa-clock"></i>
               <span>${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-            <button class="admin-icon-button" data-action="refresh-all" title="Làm mới dữ liệu">
-              <i class="fa-solid fa-rotate-right"></i>
-            </button>
             <div class="admin-noti-btn" title="Thông báo hệ thống">
               <i class="fa-solid fa-bell"></i>
               <span class="noti-badge"></span>
@@ -1032,7 +1029,6 @@ function renderEntityView(view) {
       </div>
       <div class="entity-page-actions">
         ${config.allowCreate ? `<button class="btn btn-primary" data-action="create-record" data-view="${view}"><i class="fa-solid fa-plus" style="margin-right:0.4rem"></i>${escapeHtml(config.createLabel)}</button>` : ''}
-        <button class="btn btn-secondary" data-action="refresh-all"><i class="fa-solid fa-rotate-right" style="margin-right:0.4rem"></i>Làm mới</button>
       </div>
     </section>
 

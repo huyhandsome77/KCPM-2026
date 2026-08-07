@@ -4,10 +4,11 @@ export const TOKEN_KEY = 'appdatmon_admin_token';
 export const USER_KEY = 'appdatmon_admin_user';
 
 export const RESERVATION_STATUS_MAP = {
-  CONFIRMED: '<span class="badge-inline" style="background:#eff6ff; color:#1e40af; font-weight:700">⚡ Đã xác nhận</span>',
-  CHECKED_IN: '<span class="badge-inline" style="background:#f0fdf4; color:#166534; font-weight:700">📌 Đã nhận bàn</span>',
-  CANCELLED: '<span class="badge-inline" style="background:#fef2f2; color:#991b1b; font-weight:700">❌ Đã hủy</span>',
-  PENDING: '<span class="badge-inline" style="background:#fffbeb; color:#9a3412; font-weight:700">⏳ Chờ duyệt</span>'
+  CONFIRMED: '<span class="res-status-badge st-confirmed"><i class="fa-solid fa-bolt"></i> Đã xác nhận</span>',
+  CHECKED_IN: '<span class="res-status-badge st-checked-in"><i class="fa-solid fa-user-check"></i> Đã nhận bàn</span>',
+  ARRIVED: '<span class="res-status-badge st-checked-in"><i class="fa-solid fa-user-check"></i> Đã nhận bàn</span>',
+  CANCELLED: '<span class="res-status-badge st-cancelled"><i class="fa-solid fa-xmark"></i> Đã hủy</span>',
+  PENDING: '<span class="res-status-badge st-pending"><i class="fa-solid fa-clock"></i> Chờ duyệt</span>'
 };
 
 export const TABLE_STATUS_MAP = {

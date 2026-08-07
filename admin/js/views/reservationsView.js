@@ -64,24 +64,24 @@ export function renderReservationsGrid(records, activeFilter = 'ALL') {
         let cancelBtnHtml = '';
 
         if (rawStatus === 'PENDING') {
-          confirmBtnHtml = `<button class="btn btn-primary btn-small" data-action="reservation-confirm" data-id="${res.id}" style="font-weight:700" title="Xác nhận đơn đặt bàn"><i class="fa-solid fa-check"></i> Xác nhận</button>`;
+          confirmBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="reservation-confirm" data-id="${res.id}" title="Xác nhận đơn đặt bàn"><i class="fa-solid fa-check"></i> Xác nhận</button>`;
           if (diffMins !== null && diffMins >= -30 && diffMins <= 30) {
-            checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="reservation-checkin" data-id="${res.id}" style="font-weight:700" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+            checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="reservation-checkin" data-id="${res.id}" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
           }
-          cancelBtnHtml = `<button class="btn btn-danger btn-small" data-action="reservation-cancel" data-id="${res.id}" style="font-weight:700" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
+          cancelBtnHtml = `<button class="btn btn-danger btn-small res-action-btn" data-action="reservation-cancel" data-id="${res.id}" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
         } else if (rawStatus === 'CONFIRMED') {
           if (diffMins !== null) {
             if (diffMins >= -30 && diffMins <= 30) {
-              checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="reservation-checkin" data-id="${res.id}" style="font-weight:700" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+              checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="reservation-checkin" data-id="${res.id}" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
             } else if (diffMins < -30) {
-              checkinBtnHtml = `<button class="btn btn-secondary btn-small" disabled style="opacity:0.5; cursor:not-allowed; background:#f1f5f9; color:#64748b" title="Chỉ mở nút Nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn"><i class="fa-solid fa-clock"></i> Chưa tới giờ</button>`;
+              checkinBtnHtml = `<span class="res-disabled-pill" title="Chỉ mở nút Nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn"><i class="fa-solid fa-clock"></i> Chưa tới giờ</span>`;
             } else {
-              checkinBtnHtml = `<button class="btn btn-secondary btn-small" disabled style="opacity:0.5; cursor:not-allowed; background:#f1f5f9; color:#64748b" title="Đã quá 30 phút so với giờ đặt bàn"><i class="fa-solid fa-triangle-exclamation"></i> Quá 30p</button>`;
+              checkinBtnHtml = `<span class="res-disabled-pill" title="Đã quá 30 phút so với giờ đặt bàn"><i class="fa-solid fa-triangle-exclamation"></i> Quá 30p</span>`;
             }
           } else {
-            checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="reservation-checkin" data-id="${res.id}" style="font-weight:700"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+            checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="reservation-checkin" data-id="${res.id}"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
           }
-          cancelBtnHtml = `<button class="btn btn-danger btn-small" data-action="reservation-cancel" data-id="${res.id}" style="font-weight:700" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
+          cancelBtnHtml = `<button class="btn btn-danger btn-small res-action-btn" data-action="reservation-cancel" data-id="${res.id}" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
         }
 
         return `
@@ -90,7 +90,7 @@ export function renderReservationsGrid(records, activeFilter = 'ALL') {
               <div class="guest-info">
                 <div class="guest-avatar">${initials}</div>
                 <div>
-                  <div class="guest-name">${escapeHtml(res.guestName || 'Khách')}</div>
+                  <div class="guest-name">#${res.id} • ${escapeHtml(res.guestName || 'Khách')}</div>
                   <div class="guest-phone"><i class="fa-solid fa-phone"></i> ${escapeHtml(res.guestPhone || '-')}</div>
                 </div>
               </div>
@@ -99,22 +99,21 @@ export function renderReservationsGrid(records, activeFilter = 'ALL') {
 
             <div class="reservation-meta">
               <div class="res-meta-item">
-                <span class="res-meta-label">Thời gian</span>
-                <span class="res-meta-value">${formatDateTime(res.reservationTime)}</span>
+                <span class="res-meta-label">Thời gian hẹn</span>
+                <span class="res-meta-value"><i class="fa-regular fa-clock text-primary"></i> ${formatDateTime(res.reservationTime)}</span>
               </div>
               <div class="res-meta-item">
-                <span class="res-meta-label">Số khách / Bàn</span>
-                <span class="res-meta-value">👥 ${formatNumber(res.numberOfGuests ?? 1)} • ${tableStr}</span>
+                <span class="res-meta-label">Vị trí & Khách</span>
+                <span class="res-meta-value"><i class="fa-solid fa-chair text-amber"></i> Bàn ${tableStr} • 👥 ${formatNumber(res.numberOfGuests ?? 1)}</span>
               </div>
             </div>
 
-            ${res.note ? `<div class="form-hint" style="font-style:italic">"${escapeHtml(res.note)}"</div>` : ''}
+            ${res.note ? `<div class="res-note-box"><i class="fa-solid fa-quote-left"></i><span>"${escapeHtml(res.note)}"</span></div>` : ''}
 
-            <div class="row-actions" style="margin-top:auto; display:flex; gap:0.4rem; justify-content:flex-end; align-items:center">
+            <div class="row-actions" style="margin-top:auto; display:flex; gap:0.5rem; justify-content:flex-end; align-items:center">
               ${confirmBtnHtml}
               ${checkinBtnHtml}
               ${cancelBtnHtml}
-              <button class="btn btn-danger btn-small" data-action="delete-record" data-view="reservations" data-id="${res.id}"><i class="fa-solid fa-trash"></i></button>
             </div>
           </article>
         `;
