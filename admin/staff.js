@@ -310,10 +310,11 @@ function renderReservationsTable(records) {
         const status = String(res.status || 'PENDING').toUpperCase();
 
         const statusBadgeMap = {
-          CONFIRMED: '<span class="badge-inline" style="background:#eff6ff; color:#1e40af; font-weight:700">⚡ Đã xác nhận</span>',
-          CHECKED_IN: '<span class="badge-inline" style="background:#f0fdf4; color:#166534; font-weight:700">📌 Đã nhận bàn</span>',
-          CANCELLED: '<span class="badge-inline" style="background:#fef2f2; color:#991b1b; font-weight:700">❌ Đã hủy</span>',
-          PENDING: '<span class="badge-inline" style="background:#fffbeb; color:#9a3412; font-weight:700">⏳ Chờ duyệt</span>'
+          CONFIRMED: '<span class="res-status-badge st-confirmed"><i class="fa-solid fa-bolt"></i> Đã xác nhận</span>',
+          CHECKED_IN: '<span class="res-status-badge st-checked-in"><i class="fa-solid fa-user-check"></i> Đã nhận bàn</span>',
+          ARRIVED: '<span class="res-status-badge st-checked-in"><i class="fa-solid fa-user-check"></i> Đã nhận bàn</span>',
+          CANCELLED: '<span class="res-status-badge st-cancelled"><i class="fa-solid fa-xmark"></i> Đã hủy</span>',
+          PENDING: '<span class="res-status-badge st-pending"><i class="fa-solid fa-clock"></i> Chờ duyệt</span>'
         };
 
         const resDate = new Date(res.reservationTime);
@@ -324,55 +325,55 @@ function renderReservationsTable(records) {
         let cancelBtnHtml = '';
 
         if (status === 'PENDING') {
-          confirmBtnHtml = `<button class="btn btn-primary btn-small" data-action="confirm-reservation" data-id="${res.id}" style="font-weight:700" title="Xác nhận đơn đặt bàn"><i class="fa-solid fa-check"></i> Duyệt</button>`;
+          confirmBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="confirm-reservation" data-id="${res.id}" title="Xác nhận đơn đặt bàn"><i class="fa-solid fa-check"></i> Duyệt</button>`;
           if (diffMins !== null && diffMins >= -30 && diffMins <= 30) {
-            checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="checkin-reservation" data-id="${res.id}" style="font-weight:700" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+            checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="checkin-reservation" data-id="${res.id}" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
           }
-          cancelBtnHtml = `<button class="btn btn-danger btn-small" data-action="cancel-reservation" data-id="${res.id}" style="font-weight:700" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
+          cancelBtnHtml = `<button class="btn btn-danger btn-small res-action-btn" data-action="cancel-reservation" data-id="${res.id}" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
         } else if (status === 'CONFIRMED') {
           if (diffMins !== null) {
             if (diffMins >= -30 && diffMins <= 30) {
-              checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="checkin-reservation" data-id="${res.id}" style="font-weight:700" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+              checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="checkin-reservation" data-id="${res.id}" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
             } else if (diffMins < -30) {
-              checkinBtnHtml = `<button class="btn btn-secondary btn-small" disabled style="opacity:0.5; cursor:not-allowed; background:#f1f5f9; color:#64748b" title="Chỉ mở nút Nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn (${formatDateTime(res.reservationTime)})"><i class="fa-solid fa-clock"></i> Chưa tới giờ</button>`;
+              checkinBtnHtml = `<span class="res-disabled-pill" title="Chỉ mở nút Nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn (${formatDateTime(res.reservationTime)})"><i class="fa-solid fa-clock"></i> Chưa tới giờ</span>`;
             } else {
-              checkinBtnHtml = `<button class="btn btn-secondary btn-small" disabled style="opacity:0.5; cursor:not-allowed; background:#f1f5f9; color:#64748b" title="Đã trễ quá 30 phút so với giờ đặt bàn (${formatDateTime(res.reservationTime)})"><i class="fa-solid fa-triangle-exclamation"></i> Quá 30p</button>`;
+              checkinBtnHtml = `<span class="res-disabled-pill" title="Đã trễ quá 30 phút so với giờ đặt bàn (${formatDateTime(res.reservationTime)})"><i class="fa-solid fa-triangle-exclamation"></i> Quá 30p</span>`;
             }
           } else {
-            checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="checkin-reservation" data-id="${res.id}" style="font-weight:700"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+            checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="checkin-reservation" data-id="${res.id}"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
           }
-          cancelBtnHtml = `<button class="btn btn-danger btn-small" data-action="cancel-reservation" data-id="${res.id}" style="font-weight:700" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
+          cancelBtnHtml = `<button class="btn btn-danger btn-small res-action-btn" data-action="cancel-reservation" data-id="${res.id}" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
         }
 
         return `
-          <article class="reservation-card" style="background:#ffffff; padding:1.2rem; border-radius:18px; border:1px solid #e2e8f0; box-shadow:0 4px 14px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:0.6rem">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start">
-              <div style="display:flex; gap:0.75rem; align-items:center">
-                <div style="width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg, #3b82f6, #1d4ed8); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem">
+          <article class="reservation-card">
+            <div class="reservation-header">
+              <div class="guest-info">
+                <div class="guest-avatar">
                   ${customerName.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <div style="font-weight:800; font-size:1rem; color:#0f172a">#${res.id} • ${escapeHtml(customerName)}</div>
-                  <div style="font-size:0.8rem; color:#64748b"><i class="fa-solid fa-phone"></i> ${escapeHtml(phone)}</div>
+                  <div class="guest-name">#${res.id} • ${escapeHtml(customerName)}</div>
+                  <div class="guest-phone"><i class="fa-solid fa-phone"></i> ${escapeHtml(phone)}</div>
                 </div>
               </div>
               ${statusBadgeMap[status] || status}
             </div>
 
-            <div style="padding:0.75rem; background:#f8fafc; border-radius:12px; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem; border:1px solid #e2e8f0">
-              <div>
-                <span style="color:#64748b; font-size:0.75rem; display:block">Vị trí & Số khách</span>
-                <strong style="color:#1e293b"><i class="fa-solid fa-chair text-amber"></i> Bàn #${tableNumber} • 👥 ${res.numberOfGuests || 1} người</strong>
+            <div class="reservation-meta">
+              <div class="res-meta-item">
+                <span class="res-meta-label">Thời gian hẹn</span>
+                <span class="res-meta-value"><i class="fa-regular fa-clock text-primary"></i> ${formatDateTime(res.reservationTime)}</span>
               </div>
-              <div>
-                <span style="color:#64748b; font-size:0.75rem; display:block">Thời gian hẹn</span>
-                <strong style="color:#1e293b"><i class="fa-solid fa-clock text-primary"></i> ${formatDateTime(res.reservationTime)}</strong>
+              <div class="res-meta-item">
+                <span class="res-meta-label">Vị trí & Khách</span>
+                <span class="res-meta-value"><i class="fa-solid fa-chair text-amber"></i> Bàn #${tableNumber} • 👥 ${res.numberOfGuests || 1} người</span>
               </div>
             </div>
 
-            ${res.note ? `<div style="font-size:0.8rem; font-style:italic; color:#475569; background:#fffbe6; padding:0.4rem 0.6rem; border-radius:8px; border-left:3px solid #f59e0b">"${escapeHtml(res.note)}"</div>` : ''}
+            ${res.note ? `<div class="res-note-box"><i class="fa-solid fa-quote-left"></i><span>"${escapeHtml(res.note)}"</span></div>` : ''}
 
-            <div style="display:flex; gap:0.4rem; justify-content:flex-end; align-items:center; margin-top:auto; padding-top:0.4rem">
+            <div class="row-actions" style="margin-top:auto; display:flex; gap:0.5rem; justify-content:flex-end; align-items:center">
               ${confirmBtnHtml}
               ${checkinBtnHtml}
               ${cancelBtnHtml}
@@ -397,10 +398,11 @@ function renderReservationsTable(records) {
       const status = String(res.status || 'PENDING').toUpperCase();
 
       const statusBadgeMap = {
-        CONFIRMED: '<span class="badge-inline" style="background:#eff6ff; color:#1e40af; font-weight:700">⚡ Đã xác nhận</span>',
-        CHECKED_IN: '<span class="badge-inline" style="background:#f0fdf4; color:#166534; font-weight:700">📌 Đã nhận bàn</span>',
-        CANCELLED: '<span class="badge-inline" style="background:#fef2f2; color:#991b1b; font-weight:700">❌ Đã hủy</span>',
-        PENDING: '<span class="badge-inline" style="background:#fffbeb; color:#9a3412; font-weight:700">⏳ Chờ duyệt</span>'
+        CONFIRMED: '<span class="res-status-badge st-confirmed"><i class="fa-solid fa-bolt"></i> Đã xác nhận</span>',
+        CHECKED_IN: '<span class="res-status-badge st-checked-in"><i class="fa-solid fa-user-check"></i> Đã nhận bàn</span>',
+        ARRIVED: '<span class="res-status-badge st-checked-in"><i class="fa-solid fa-user-check"></i> Đã nhận bàn</span>',
+        CANCELLED: '<span class="res-status-badge st-cancelled"><i class="fa-solid fa-xmark"></i> Đã hủy</span>',
+        PENDING: '<span class="res-status-badge st-pending"><i class="fa-solid fa-clock"></i> Chờ duyệt</span>'
       };
 
       const resDate = new Date(res.reservationTime);
@@ -411,24 +413,24 @@ function renderReservationsTable(records) {
       let cancelBtnHtml = '';
 
       if (status === 'PENDING') {
-        confirmBtnHtml = `<button class="btn btn-primary btn-small" data-action="confirm-reservation" data-id="${res.id}" style="font-weight:700" title="Xác nhận đơn đặt bàn"><i class="fa-solid fa-check"></i> Duyệt</button>`;
+        confirmBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="confirm-reservation" data-id="${res.id}" title="Xác nhận đơn đặt bàn"><i class="fa-solid fa-check"></i> Duyệt</button>`;
         if (diffMins !== null && diffMins >= -30 && diffMins <= 30) {
-          checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="checkin-reservation" data-id="${res.id}" style="font-weight:700" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+          checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="checkin-reservation" data-id="${res.id}" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
         }
-        cancelBtnHtml = `<button class="btn btn-danger btn-small" data-action="cancel-reservation" data-id="${res.id}" style="font-weight:700" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
+        cancelBtnHtml = `<button class="btn btn-danger btn-small res-action-btn" data-action="cancel-reservation" data-id="${res.id}" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
       } else if (status === 'CONFIRMED') {
         if (diffMins !== null) {
           if (diffMins >= -30 && diffMins <= 30) {
-            checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="checkin-reservation" data-id="${res.id}" style="font-weight:700" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+            checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="checkin-reservation" data-id="${res.id}" title="Nhận bàn cho khách"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
           } else if (diffMins < -30) {
-            checkinBtnHtml = `<button class="btn btn-secondary btn-small" disabled style="opacity:0.5; cursor:not-allowed; background:#f1f5f9; color:#64748b" title="Chỉ mở nút Nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn (${res.reservationTime})"><i class="fa-solid fa-clock"></i> Chưa tới giờ</button>`;
+            checkinBtnHtml = `<span class="res-disabled-pill" title="Chỉ mở nút Nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn (${res.reservationTime})"><i class="fa-solid fa-clock"></i> Chưa tới giờ</span>`;
           } else {
-            checkinBtnHtml = `<button class="btn btn-secondary btn-small" disabled style="opacity:0.5; cursor:not-allowed; background:#f1f5f9; color:#64748b" title="Đã trễ quá 30 phút so với giờ đặt bàn (${res.reservationTime})"><i class="fa-solid fa-triangle-exclamation"></i> Quá 30p</button>`;
+            checkinBtnHtml = `<span class="res-disabled-pill" title="Đã trễ quá 30 phút so với giờ đặt bàn (${res.reservationTime})"><i class="fa-solid fa-triangle-exclamation"></i> Quá 30p</span>`;
           }
         } else {
-          checkinBtnHtml = `<button class="btn btn-primary btn-small" data-action="checkin-reservation" data-id="${res.id}" style="font-weight:700"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
+          checkinBtnHtml = `<button class="btn btn-primary btn-small res-action-btn" data-action="checkin-reservation" data-id="${res.id}"><i class="fa-solid fa-user-check"></i> Nhận bàn</button>`;
         }
-        cancelBtnHtml = `<button class="btn btn-danger btn-small" data-action="cancel-reservation" data-id="${res.id}" style="font-weight:700" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
+        cancelBtnHtml = `<button class="btn btn-danger btn-small res-action-btn" data-action="cancel-reservation" data-id="${res.id}" title="Hủy lịch đặt bàn"><i class="fa-solid fa-xmark"></i> Hủy</button>`;
       }
 
       return `
