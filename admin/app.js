@@ -471,9 +471,11 @@ function render() {
       <aside class="admin-sidebar-shell">
         <div class="admin-brand-box">
           <div class="admin-brand-badge">
-            <span class="admin-brand-icon"><i class="fa-solid fa-utensils"></i></span>
+            <div class="admin-brand-logo-wrap">
+              <img src="/uploads/logo.png" alt="FutureSushi Logo" class="admin-brand-logo" onerror="this.onerror=null; this.src='uploads/logo.png';" />
+            </div>
             <div>
-              <h1 class="admin-brand-title">AppDatMon POS</h1>
+              <h1 class="admin-brand-title">FutureSushi</h1>
               <p class="admin-brand-subtitle">Hệ Thống Quản Lý</p>
             </div>
           </div>
@@ -512,7 +514,6 @@ function render() {
           <div class="admin-search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" placeholder="Tìm kiếm nhanh hệ thống..." value="${escapeHtml(state.filters[state.activeView] || '')}" data-action="search-input" data-view="${state.activeView}" />
-            <kbd class="search-kbd">Ctrl K</kbd>
           </div>
 
           <div class="admin-topbar-right">
@@ -575,12 +576,12 @@ function renderLogin() {
       
       <section class="auth-card">
         <div class="auth-brand-logo">
-          <i class="fa-solid fa-utensils"></i>
+          <img src="/uploads/logo.png" alt="FutureSushi Logo" onerror="this.onerror=null; this.src='uploads/logo.png';" />
         </div>
         
         <div class="auth-header">
           <h1 class="auth-title">Đăng nhập quản trị</h1>
-          <p class="auth-copy">Vui lòng nhập tài khoản để truy cập hệ thống AppDatMon</p>
+          <p class="auth-copy">Vui lòng nhập tài khoản để truy cập hệ thống FutureSushi</p>
         </div>
 
         <form class="auth-form" data-form="login">
@@ -616,7 +617,7 @@ function renderLogin() {
           </button>
 
           <div class="auth-footer-security">
-            <i class="fa-solid fa-shield-halved"></i> System Secured • AppDatMon Management Suite
+            <i class="fa-solid fa-shield-halved"></i> System Secured • FutureSushi Management Suite
           </div>
         </form>
       </section>

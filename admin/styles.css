@@ -702,6 +702,14 @@ textarea {
   font-size: 1.5rem;
   margin-bottom: 1.25rem;
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+  overflow: hidden;
+}
+
+.auth-brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .auth-header {
@@ -1066,6 +1074,29 @@ textarea {
   color: #ffffff;
   font-size: 1.25rem;
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.admin-brand-icon img,
+.admin-brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-brand-logo-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
   flex-shrink: 0;
 }
 

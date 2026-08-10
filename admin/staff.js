@@ -8,6 +8,7 @@ let state = {
   reservations: [],
   orderFilter: 'ALL',
   reservationFilter: 'ALL',
+  userSearchQuery: '',
   checkoutOrderId: null,
   checkoutAmount: 0,
   paymentTab: 'cash'
@@ -455,43 +456,138 @@ function renderReservationsTable(records) {
   }
 }
 
-// 4. Tích điểm & Khách VIP
+// 4. Tích điểm & Quản lý điểm khách hàng
 function renderVipUsers(users) {
-  const container = document.querySelector('#staff-vip-users-list');
+  const container = document.querySelector('#vip-users-list') || document.querySelector('#staff-vip-users-list');
   if (!container) return;
 
   const list = Array.isArray(users) ? users : [];
-  if (list.length === 0) {
-    container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#64748b; padding:1.5rem">Không tìm thấy khách hàng nào</div>`;
+  const query = (state.userSearchQuery || '').trim().toLowerCase();
+
+  let filtered = list;
+  if (query) {
+    filtered = filtered.filter(u =>
+      (u.fullName || '').toLowerCase().includes(query) ||
+      (u.phone || '').includes(query) ||
+      (u.username || '').toLowerCase().includes(query) ||
+      (u.email || '').toLowerCase().includes(query) ||
+      String(u.id).includes(query)
+    );
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center; padding:2.5rem 1rem; color:#64748b; background:#ffffff">
+          <i class="fa-solid fa-coins" style="font-size:2rem; color:#cbd5e1; margin-bottom:0.5rem; display:block"></i>
+          <span style="font-weight:700; color:#334155; font-size:0.95rem">Không tìm thấy khách hàng nào phù hợp</span>
+        </td>
+      </tr>
+    `;
     return;
   }
 
-  container.innerHTML = list.map(user => {
+  container.innerHTML = filtered.map(user => {
     const points = Number(user.points || 0);
     const initials = (user.fullName || user.username || 'U').slice(0, 2).toUpperCase();
 
     return `
-      <div style="background:#ffffff; border:1px solid rgba(0,0,0,0.08); border-radius:16px; padding:1rem; display:flex; justify-content:space-between; align-items:center">
-        <div style="display:flex; align-items:center; gap:0.8rem">
-          <div style="width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#004ac6,#3b82f6); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center">
-            ${initials}
+      <tr style="border-bottom:1px solid #f1f5f9; transition:background 0.15s ease">
+        <td style="padding:1rem; font-weight:700; color:#64748b">#${user.id}</td>
+        <td style="padding:1rem">
+          <div style="display:flex; align-items:center; gap:0.75rem">
+            <div style="width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#004ac6,#3b82f6); color:#fff; font-weight:800; font-size:0.9rem; display:flex; align-items:center; justify-content:center; flex-shrink:0">
+              ${initials}
+            </div>
+            <div>
+              <strong style="display:block; color:#0f172a; font-size:0.95rem">${escapeHtml(user.fullName || user.username)}</strong>
+              ${user.fullName && user.username ? `<span style="font-size:0.75rem; color:#94a3b8">@${escapeHtml(user.username)}</span>` : ''}
+            </div>
           </div>
-          <div>
-            <strong style="display:block; color:#111c2d; font-size:0.95rem">${escapeHtml(user.fullName || user.username)}</strong>
-            <span style="font-size:0.78rem; color:#64748b"><i class="fa-solid fa-phone"></i> ${escapeHtml(user.phone || '-')}</span>
+        </td>
+        <td style="padding:1rem; color:#334155; font-size:0.9rem">
+          <i class="fa-solid fa-phone" style="color:#94a3b8; font-size:0.8rem; margin-right:0.3rem"></i>
+          <strong>${escapeHtml(user.phone || '-')}</strong>
+        </td>
+        <td style="padding:1rem; color:#64748b; font-size:0.88rem">
+          ${escapeHtml(user.email || '-')}
+        </td>
+        <td style="padding:0.75rem 1rem">
+          <div style="display:inline-flex; align-items:center; gap:0.4rem">
+            <button class="btn btn-secondary btn-small" data-action="open-point-modal" data-type="add" data-id="${user.id}" data-name="${escapeHtml(user.fullName || user.username)}" data-phone="${escapeHtml(user.phone || '')}" data-current="${points}" title="Mở hộp thoại cộng điểm" style="font-weight:700; padding:0.35rem 0.65rem; font-size:0.82rem; color:#15803d; background:#dcfce7; border-color:#bbf7d0">
+              <i class="fa-solid fa-plus"></i> Cộng điểm
+            </button>
+            <button class="btn btn-secondary btn-small" data-action="open-point-modal" data-type="deduct" data-id="${user.id}" data-name="${escapeHtml(user.fullName || user.username)}" data-phone="${escapeHtml(user.phone || '')}" data-current="${points}" title="Mở hộp thoại trừ điểm" style="font-weight:700; padding:0.35rem 0.65rem; font-size:0.82rem; color:#b91c1c; background:#fee2e2; border-color:#fecaca" ${points <= 0 ? 'disabled style="opacity:0.4; cursor:not-allowed"' : ''}>
+              <i class="fa-solid fa-minus"></i> Trừ điểm
+            </button>
           </div>
-        </div>
-
-        <div style="text-align:right">
-          <div style="font-weight:900; font-size:1.1rem; color:#004ac6"><i class="fa-solid fa-coins text-amber" style="color:#d97706; margin-right:0.2rem"></i> ${formatNumber(points)} p</div>
-          <div style="display:flex; gap:0.3rem; margin-top:0.4rem">
-            <button class="btn btn-secondary btn-small" data-action="adjust-user-points" data-id="${user.id}" data-current="${points}" data-delta="50" title="+50 điểm">+50p</button>
-            <button class="btn btn-secondary btn-small" data-action="adjust-user-points" data-id="${user.id}" data-current="${points}" data-delta="100" title="+100 điểm">+100p</button>
-          </div>
-        </div>
-      </div>
+        </td>
+        <td style="padding:1rem; text-align:right">
+          <span style="display:inline-flex; align-items:center; gap:0.35rem; background:#eff6ff; border:1px solid #bfdbfe; color:#004ac6; padding:0.35rem 0.85rem; border-radius:999px; font-weight:800; font-size:0.95rem">
+            <i class="fa-solid fa-coins text-amber" style="color:#d97706"></i>
+            ${formatNumber(points)} <span style="font-size:0.8rem; font-weight:700">p</span>
+          </span>
+        </td>
+      </tr>
     `;
   }).join('');
+}
+
+function setModalPointType(type) {
+  const typeInput = document.querySelector('#modal-point-type');
+  const btnAdd = document.querySelector('#toggle-type-add');
+  const btnDeduct = document.querySelector('#toggle-type-deduct');
+  if (typeInput) typeInput.value = type;
+
+  if (type === 'add') {
+    if (btnAdd) {
+      btnAdd.style.background = '#ffffff';
+      btnAdd.style.color = '#15803d';
+      btnAdd.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+    }
+    if (btnDeduct) {
+      btnDeduct.style.background = 'transparent';
+      btnDeduct.style.color = '#64748b';
+      btnDeduct.style.boxShadow = 'none';
+    }
+  } else {
+    if (btnAdd) {
+      btnAdd.style.background = 'transparent';
+      btnAdd.style.color = '#64748b';
+      btnAdd.style.boxShadow = 'none';
+    }
+    if (btnDeduct) {
+      btnDeduct.style.background = '#ffffff';
+      btnDeduct.style.color = '#b91c1c';
+      btnDeduct.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+    }
+  }
+  updateModalPointPreview();
+}
+
+function updateModalPointPreview() {
+  const userId = document.querySelector('#modal-point-user-id')?.value;
+  const type = document.querySelector('#modal-point-type')?.value || 'add';
+  const val = parseInt(document.querySelector('#modal-point-input')?.value || '0', 10);
+  const previewEl = document.querySelector('#modal-point-preview');
+  if (!previewEl) return;
+
+  const user = state.users.find(u => String(u.id) === String(userId));
+  const current = user ? Number(user.points || 0) : 0;
+
+  if (isNaN(val) || val <= 0) {
+    previewEl.innerHTML = `${formatNumber(current)} p`;
+    previewEl.style.color = '#004ac6';
+    return;
+  }
+
+  if (type === 'add') {
+    const after = current + val;
+    previewEl.innerHTML = `<span style="color:#64748b">${formatNumber(current)}</span> <i class="fa-solid fa-arrow-right" style="font-size:0.75rem; color:#94a3b8"></i> <span style="color:#15803d; font-weight:900">${formatNumber(after)} p (+${formatNumber(val)})</span>`;
+  } else {
+    const after = Math.max(0, current - val);
+    previewEl.innerHTML = `<span style="color:#64748b">${formatNumber(current)}</span> <i class="fa-solid fa-arrow-right" style="font-size:0.75rem; color:#94a3b8"></i> <span style="color:#b91c1c; font-weight:900">${formatNumber(after)} p (-${formatNumber(val)})</span>`;
+  }
 }
 
 // 5. Render Metric Strip Summary
@@ -786,27 +882,132 @@ function bindGlobalActions() {
       return;
     }
 
-    // Add User Points API Call
-    const pointsBtn = event.target.closest('[data-action="adjust-user-points"]');
-    if (pointsBtn) {
-      const userId = pointsBtn.dataset.id;
-      const currentPoints = Number(pointsBtn.dataset.current || 0);
-      const delta = Number(pointsBtn.dataset.delta || 50);
-      const newPoints = currentPoints + delta;
+    // Open Adjust Points Dialog Modal
+    const openPointBtn = event.target.closest('[data-action="open-point-modal"]');
+    if (openPointBtn) {
+      const userId = openPointBtn.dataset.id;
+      const userName = openPointBtn.dataset.name || 'Khách hàng';
+      const userPhone = openPointBtn.dataset.phone ? `(${openPointBtn.dataset.phone})` : '';
+      const currentPoints = Number(openPointBtn.dataset.current || 0);
+      const type = openPointBtn.dataset.type || 'add';
+
+      const modal = document.querySelector('#staff-adjust-points-modal');
+      if (modal) {
+        document.querySelector('#modal-point-user-id').value = userId;
+        document.querySelector('#modal-point-user-name').textContent = `${userName} ${userPhone} • ID: #${userId}`;
+        document.querySelector('#modal-point-current').textContent = `${formatNumber(currentPoints)} p`;
+        
+        setModalPointType(type);
+        const pointInput = document.querySelector('#modal-point-input');
+        pointInput.value = '';
+        updateModalPointPreview();
+
+        modal.classList.remove('hidden');
+        setTimeout(() => pointInput.focus(), 100);
+      }
+      return;
+    }
+
+    // Toggle Modal Point Type (Add / Deduct)
+    const pointTypeBtn = event.target.closest('.point-type-btn');
+    if (pointTypeBtn) {
+      setModalPointType(pointTypeBtn.dataset.type);
+      return;
+    }
+
+    // Close Adjust Points Modal
+    if (event.target.closest('[data-action="close-point-modal"]')) {
+      const modal = document.querySelector('#staff-adjust-points-modal');
+      if (modal) modal.classList.add('hidden');
+      return;
+    }
+  });
+
+  // Handle Form Adjust User Points Submit
+  const adjustPointForm = document.querySelector('#form-adjust-user-points');
+  if (adjustPointForm) {
+    // Live update preview on input
+    const pointInput = document.querySelector('#modal-point-input');
+    if (pointInput) {
+      pointInput.addEventListener('input', () => updateModalPointPreview());
+    }
+
+    adjustPointForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const userId = document.querySelector('#modal-point-user-id').value;
+      const type = document.querySelector('#modal-point-type').value;
+      const value = parseInt(document.querySelector('#modal-point-input').value || '0', 10);
+      const userInState = state.users.find(u => String(u.id) === String(userId));
+      const currentPoints = userInState ? Number(userInState.points || 0) : 0;
+
+      if (isNaN(value) || value <= 0) {
+        alert('Vui lòng nhập số điểm hợp lệ lớn hơn 0');
+        return;
+      }
+
+      let newPoints = currentPoints;
+      if (type === 'add') {
+        newPoints = currentPoints + value;
+      } else if (type === 'deduct') {
+        newPoints = Math.max(0, currentPoints - value);
+      }
 
       try {
         await api(`/api/users/${userId}`, {
           method: 'PUT',
           body: JSON.stringify({ points: newPoints })
         });
-        alert(`Đã cộng +${delta} điểm cho khách hàng #${userId}! Tổng điểm mới: ${newPoints} p`);
+        if (userInState) userInState.points = newPoints;
+        renderVipUsers(state.users);
+        const modal = document.querySelector('#staff-adjust-points-modal');
+        if (modal) modal.classList.add('hidden');
+        alert(`Đã ${type === 'add' ? `cộng +${formatNumber(value)}` : `trừ ${formatNumber(value)}`} điểm thành công! Tổng điểm mới: ${formatNumber(newPoints)} p`);
         await bootstrap();
       } catch (err) {
-        alert(err.message || 'Không thể cộng điểm cho khách hàng');
+        alert(err.message || 'Không thể điều chỉnh điểm');
       }
-      return;
-    }
-  });
+    });
+  }
+
+  // Handle Add Order Points Form Submit (/api/points/add-points)
+  const orderPointsForm = document.querySelector('#form-add-order-points');
+  if (orderPointsForm) {
+    orderPointsForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const phoneInput = document.querySelector('#order-points-phone');
+      const orderIdInput = document.querySelector('#order-points-order-id');
+      const alertEl = document.querySelector('#order-points-alert');
+
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      const orderId = orderIdInput ? orderIdInput.value.trim() : '';
+
+      try {
+        const res = await api('/api/points/add-points', {
+          method: 'POST',
+          body: JSON.stringify({ phone, orderId: Number(orderId) })
+        });
+        if (alertEl) {
+          alertEl.className = '';
+          alertEl.style.display = 'flex';
+          alertEl.style.background = '#dcfce7';
+          alertEl.style.color = '#15803d';
+          alertEl.style.border = '1px solid #bbf7d0';
+          alertEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${escapeHtml(res.message || 'Tích điểm thành công!')} (Cộng +${formatNumber(res.earnedPoints || 0)} điểm • Tổng điểm mới: ${formatNumber(res.totalPoints || 0)} p)</span>`;
+        }
+        orderPointsForm.reset();
+        await bootstrap();
+      } catch (err) {
+        if (alertEl) {
+          alertEl.className = '';
+          alertEl.style.display = 'flex';
+          alertEl.style.background = '#fee2e2';
+          alertEl.style.color = '#b91c1c';
+          alertEl.style.border = '1px solid #fecaca';
+          alertEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <span>${escapeHtml(err.message || 'Không thể tích điểm từ đơn hàng này')}</span>`;
+        }
+      }
+    });
+  }
 
   // Calculate Cash Change live
   document.addEventListener('input', event => {
@@ -861,10 +1062,12 @@ function bindGlobalActions() {
   if (staffSearchInput) {
     staffSearchInput.addEventListener('input', e => {
       const q = (e.target.value || '').trim().toLowerCase();
+      state.userSearchQuery = q;
       if (!q) {
         renderOrdersGrid(state.orders);
         renderTablesGrid(state.tables);
         renderReservationsTable(state.reservations);
+        renderVipUsers(state.users);
         return;
       }
       const filteredOrders = state.orders.filter(o =>
@@ -886,23 +1089,16 @@ function bindGlobalActions() {
         String(r.RestaurantTable?.tableNumber || r.table_id || '').includes(q)
       );
       renderReservationsTable(filteredRes);
+
+      renderVipUsers(state.users);
     });
   }
 
   const userPointsSearch = document.querySelector('#user-points-search');
   if (userPointsSearch) {
     userPointsSearch.addEventListener('input', e => {
-      const q = (e.target.value || '').trim().toLowerCase();
-      if (!q) {
-        renderVipUsers(state.users);
-        return;
-      }
-      const filteredUsers = state.users.filter(u =>
-        (u.fullName || '').toLowerCase().includes(q) ||
-        (u.phone || '').includes(q) ||
-        (u.username || '').toLowerCase().includes(q)
-      );
-      renderVipUsers(filteredUsers);
+      state.userSearchQuery = (e.target.value || '').trim().toLowerCase();
+      renderVipUsers(state.users);
     });
   }
 
