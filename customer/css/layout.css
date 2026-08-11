@@ -34,7 +34,9 @@
 
 }
 
-/*==================== LOGO ====================*/
+/*==================================================
+                    LOGO
+==================================================*/
 
 .logo{
 
@@ -42,9 +44,35 @@
 
     align-items:center;
 
+    flex-direction:row;
+
     gap:15px;
 
+    flex-shrink:0;
+
 }
+
+
+/* LINK CHỨA LOGO + TÊN */
+
+.logo a{
+
+    display:flex;
+
+    align-items:center;
+
+    flex-direction:row;
+
+    gap:15px;
+
+    text-decoration:none;
+
+    white-space:nowrap;
+
+}
+
+
+/* LOGO IMAGE */
 
 .logo img{
 
@@ -58,9 +86,16 @@
 
     border:2px solid rgba(255,255,255,.2);
 
+    flex-shrink:0;
+
 }
 
+
+/* FUTURESUSHI */
+
 .logo span{
+
+    display:block;
 
     color:white;
 
@@ -70,7 +105,14 @@
 
     letter-spacing:.5px;
 
+    line-height:1;
+
+    white-space:nowrap;
+
 }
+
+
+/* GẠCH ĐỎ/XUỐNG DƯỚI */
 
 .logo span::after{
 
@@ -86,7 +128,7 @@
 
     border-radius:20px;
 
-    margin-top:4px;
+    margin-top:8px;
 
 }
 
