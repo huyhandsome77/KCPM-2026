@@ -1,116 +1,378 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Đánh giá - AppDatMon</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div class="page-shell">
-      <header class="site-header">
-        <div class="brand">
-          <div class="brand-mark"></div>
-          <div>
-            <span class="brand-label">AppDatMon</span>
-            <p class="brand-subtitle">Đánh giá khách hàng</p>
-          </div>
-        </div>
-        <nav class="site-nav">
-          <a href="index.html" class="nav-link">Trang chủ</a>
-          <a href="order.html" class="nav-link">Order</a>
-          <a href="booking.html" class="nav-link">Đặt bàn</a>
-          <a href="review.html" class="nav-link active">Đánh giá</a>
-          <a href="contact.html" class="nav-link">Liên hệ</a>
-        </nav>
-        <div class="header-actions">
-          <a href="login.html" class="btn btn-primary">Đăng nhập</a>
-        </div>
-      </header>
 
-      <main>
-        <section class="section card review-hero">
-          <div>
-            <span class="eyebrow">Ý kiến khách</span>
-            <h1>Đánh giá từ khách hàng thực tế</h1>
-            <p>Xem nhận xét, đánh giá 5 sao và chia sẻ cảm nhận về trải nghiệm ăn uống.</p>
-          </div>
-          <a href="#reviewForm" class="btn btn-primary">Gửi đánh giá</a>
-        </section>
+<head>
 
-        <section class="section reviews-grid">
-          <div class="review-card">
-            <div class="review-header">
-              <strong>Nguyễn Văn B</strong>
-              <span>⭐⭐⭐⭐⭐</span>
-            </div>
-            <p>Không gian ấm cúng, món ăn đậm vị và phục vụ nhanh. Rất đáng trải nghiệm.</p>
-          </div>
-          <div class="review-card">
-            <div class="review-header">
-              <strong>Trần Hà</strong>
-              <span>⭐⭐⭐⭐⭐</span>
-            </div>
-            <p>Thức ăn ngon, trang trí đẹp mắt. Đặt bàn nhanh qua website rất tiện.</p>
-          </div>
-          <div class="review-card">
-            <div class="review-header">
-              <strong>Phạm Long</strong>
-              <span>⭐⭐⭐⭐⭐</span>
-            </div>
-            <p>AppDatMon trình bày đẹp, dễ dùng. Thức ăn tới đúng lúc và còn nóng.</p>
-          </div>
-        </section>
+    <meta charset="UTF-8">
 
-        <section id="reviewForm" class="section card form-section">
-          <div class="section-heading">
-            <div>
-              <span class="eyebrow">Gửi đánh giá</span>
-              <h2>Chia sẻ trải nghiệm của bạn</h2>
-            </div>
-          </div>
-          <form class="form-grid">
-            <div class="field">
-              <label for="reviewName">Họ tên</label>
-              <input id="reviewName" type="text" placeholder="Tên của bạn" />
-            </div>
-            <div class="field">
-              <label for="reviewEmail">Email</label>
-              <input id="reviewEmail" type="email" placeholder="email@example.com" />
-            </div>
-            <div class="field">
-              <label for="reviewRating">Đánh giá</label>
-              <select id="reviewRating">
-                <option value="5">⭐⭐⭐⭐⭐</option>
-                <option value="4">⭐⭐⭐⭐</option>
-                <option value="3">⭐⭐⭐</option>
-                <option value="2">⭐⭐</option>
-                <option value="1">⭐</option>
-              </select>
-            </div>
-            <div class="field full-width">
-              <label for="reviewComment">Bình luận</label>
-              <textarea id="reviewComment" rows="4" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
-            </div>
-            <button class="btn btn-primary btn-block" type="submit">Gửi đánh giá</button>
-          </form>
-        </section>
-      </main>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-      <footer class="site-footer">
-        <div>
-          <h3>AppDatMon</h3>
-          <p>Khách hàng luôn được lắng nghe và phản hồi nhanh chóng.</p>
-        </div>
-        <div class="footer-links">
-          <a href="index.html">Trang chủ</a>
-          <a href="order.html">Order</a>
-          <a href="booking.html">Đặt bàn</a>
-          <a href="contact.html">Liên hệ</a>
-        </div>
-      </footer>
+    <title>FutureSuShi | Đánh giá</title>
+
+    <!-- Google Font -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <!-- FontAwesome -->
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <!-- CSS -->
+
+    <link rel="stylesheet" href="./css/styles.css">
+
+    <link rel="stylesheet" href="./css/layout.css">
+
+    <link rel="stylesheet" href="./css/review.css">
+
+    <link rel="stylesheet" href="./css/responsive.css">
+
+</head>
+
+<body>
+
+<div class="ambient ambient-left"></div>
+
+<div class="ambient ambient-right"></div>
+
+<header class="header">
+
+    <div class="logo">
+
+        <img src="./assets/logo.png">
+
+        <span>
+
+            FutureSuShi
+
+        </span>
+
     </div>
-    <script src="./script.js"></script>
-  </body>
+
+    <nav>
+
+        <a href="index.html">
+
+            Trang chủ
+
+        </a>
+
+        <a href="menu.html">
+
+            Thực đơn
+
+        </a>
+
+        <a href="booking.html">
+
+            Đặt bàn
+
+        </a>
+
+        <a href="review.html"
+
+           class="active">
+
+            Đánh giá
+
+        </a>
+
+        <a href="about.html">
+
+            Giới thiệu
+
+        </a>
+
+        <a href="contact.html">
+
+            Liên hệ
+
+        </a>
+
+    </nav>
+
+    <div class="user-box">
+
+        <i class="fa-solid fa-user"></i>
+
+        <span id="username">
+
+            Khách
+
+        </span>
+
+        <a href="login.html"
+
+           class="logout-btn">
+
+            Đăng nhập
+
+        </a>
+
+    </div>
+
+</header>
+
+<section class="hero">
+
+<div class="hero-left">
+
+<div class="hero-tag">
+
+⭐ Customer Review
+
+</div>
+
+<h1 class="hero-title">
+
+Chia sẻ
+
+<span>
+
+cảm nhận
+
+</span>
+
+</h1>
+
+<p class="hero-desc">
+
+Mỗi đánh giá của bạn sẽ giúp FutureSuShi
+phục vụ khách hàng tốt hơn.
+
+</p>
+
+</div>
+
+<div class="hero-right">
+
+<img src="./assets/images/review.png">
+
+</div>
+
+</section>
+
+<section class="section">
+
+<div class="section-title">
+
+<span>
+
+REVIEW
+
+</span>
+
+<h2>
+
+Đánh giá nhà hàng
+
+</h2>
+
+<p>
+
+Chúng tôi luôn lắng nghe ý kiến của khách hàng.
+
+</p>
+
+</div>
+
+<div class="review-layout">
+
+<div class="review-form card">
+
+<form id="reviewForm">
+
+    <!--================ RATING ================-->
+
+<div class="rating-box">
+
+    <label>
+
+        Đánh giá của bạn
+
+    </label>
+
+    <div class="stars" id="starRating">
+
+        <i class="fa-regular fa-star" data-value="1"></i>
+
+        <i class="fa-regular fa-star" data-value="2"></i>
+
+        <i class="fa-regular fa-star" data-value="3"></i>
+
+        <i class="fa-regular fa-star" data-value="4"></i>
+
+        <i class="fa-regular fa-star" data-value="5"></i>
+
+    </div>
+
+</div>
+
+<div class="field">
+
+    <label>
+
+        Tiêu đề
+
+    </label>
+
+    <input
+
+        id="reviewTitle"
+
+        type="text"
+
+        placeholder="Ví dụ: Nhà hàng rất tuyệt">
+
+</div>
+
+<div class="field">
+
+    <label>
+
+        Nội dung
+
+    </label>
+
+    <textarea
+
+        id="reviewContent"
+
+        rows="6"
+
+        placeholder="Hãy chia sẻ cảm nhận của bạn..."></textarea>
+
+</div>
+
+<button
+
+    class="btn btn-primary btn-block"
+
+    type="submit">
+
+    Gửi đánh giá
+
+</button>
+
+</form>
+
+</div>
+
+
+<div class="review-info card">
+
+    <h3>
+
+        FutureSuShi
+
+    </h3>
+
+    <p>
+
+        Chúng tôi luôn trân trọng mọi đánh giá của khách hàng.
+
+    </p>
+
+    <div class="review-stat">
+
+        <div>
+
+            <h2>
+
+                4.9
+
+            </h2>
+
+            <span>
+
+                Trung bình
+
+            </span>
+
+        </div>
+
+        <div>
+
+            <h2>
+
+                500+
+
+            </h2>
+
+            <span>
+
+                Đánh giá
+
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<section class="section">
+
+<div class="section-title">
+
+<span>
+
+REVIEWS
+
+</span>
+
+<h2>
+
+Khách hàng nói gì
+
+</h2>
+
+</div>
+
+<div
+
+id="reviewList"
+
+class="review-list">
+
+<div class="empty">
+
+Chưa có đánh giá.
+
+</div>
+
+</div>
+
+</section>
+
+
+<footer class="footer">
+
+<div class="footer-bottom">
+
+© 2026 FutureSuShi
+
+</div>
+
+</footer>
+
+<script src="./js/app.js"></script>
+
+<script src="./js/review.js"></script>
+
+</body>
+
 </html>
