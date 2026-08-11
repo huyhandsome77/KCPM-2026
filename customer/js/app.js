@@ -182,60 +182,80 @@ function logout(){
 
 }
 
+/*==================================================
+                    UPDATE HEADER
+==================================================*/
 
-function updateHeader(){
+function updateHeader() {
 
     const user = getCurrentUser();
 
     const username =
-
-    document.getElementById(
-
-        "username"
-
-    );
+        document.getElementById("username");
 
     const loginBtn =
+        document.getElementById("loginBtn");
 
-    document.getElementById(
 
-        "loginBtn"
+    /*==================================================
+                    CHƯA ĐĂNG NHẬP
+    ==================================================*/
 
-    );
+    if (!user) {
 
-    if(username){
+        if (username) {
+
+            username.textContent = "Khách";
+
+        }
+
+        if (loginBtn) {
+
+            loginBtn.textContent = "Đăng nhập";
+
+            loginBtn.href = "login.html";
+
+            loginBtn.onclick = null;
+
+        }
+
+        return;
+    }
+
+
+    /*==================================================
+                    ĐÃ ĐĂNG NHẬP
+    ==================================================*/
+
+    if (username) {
 
         username.textContent =
-
-        user ?
-
-        user.fullName :
-
-        "Khách";
+            user.fullName ||
+            user.username ||
+            "Khách";
 
     }
 
-    if(loginBtn){
 
-        if(user){
+    if (loginBtn) {
 
-            loginBtn.innerHTML="Đăng xuất";
+        loginBtn.textContent =
+            "Đăng xuất";
 
-            loginBtn.onclick=logout;
+        loginBtn.href = "#";
 
-        }
+        loginBtn.onclick = function (event) {
 
-        else{
+            event.preventDefault();
 
-            loginBtn.innerHTML="Đăng nhập";
+            logout();
 
-            loginBtn.href="login.html";
-
-        }
+        };
 
     }
 
 }
+
 
 
 function requireLogin(){
@@ -400,7 +420,136 @@ async function submitOrder() {
 }
 
 
+/*==================================================
+                LOAD COMMON HEADER
+==================================================*/
+
+async function loadHeader() {
+
+    const container =
+        document.getElementById(
+            "header-container"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("./header.html");
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Không thể tải header"
+            );
+
+        }
+
+        container.innerHTML =
+    await response.text();
+
+updateHeader();
+
+if (
+    typeof setupQrEvents === "function"
+) {
+
+    setupQrEvents();
+
+}
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Header error:",
+            error
+        );
+
+    }
+
+}
 
 
+/*==================================================
+                QR BUTTON EVENTS
+==================================================*/
+
+document.addEventListener("click", function (e) {
+
+    /* HEADER - QUÉT QR */
+
+    const qrNavLink =
+        e.target.closest("#qrNavLink");
+
+    if (qrNavLink) {
+
+        e.preventDefault();
+
+        openQrScanner();
+
+        return;
+    }
 
 
+    /* INDEX - QUÉT QR */
+
+    const openQrBtn =
+        e.target.closest("#openQrBtn");
+
+    if (openQrBtn) {
+
+        e.preventDefault();
+
+        openQrScanner();
+
+        return;
+    }
+
+
+    /* ĐÓNG MODAL */
+
+    const closeBtn =
+        e.target.closest("#closeQrModal");
+
+    if (closeBtn) {
+
+        e.preventDefault();
+
+        closeQrScanner();
+
+        return;
+    }
+
+
+    /* CLICK NỀN MODAL */
+
+    if (
+        e.target.classList.contains(
+            "qr-modal-overlay"
+        )
+    ) {
+
+        closeQrScanner();
+
+    }
+
+});
+
+
+/*==================================================
+                    START APP
+==================================================*/
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
+
+        await loadHeader();
+
+    }
+);

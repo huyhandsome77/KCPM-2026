@@ -1,193 +1,408 @@
 /*==================================================
-                MENU
+                REQUIRE QR SCAN
 ==================================================*/
 
-const productGrid=document.getElementById("productGrid");
+async function verifyTableQr() {
 
-const categorySelect=document.getElementById("categorySelect");
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
 
-const searchInput=document.getElementById("searchInput");
+    const qr =
+        params.get("qr") ||
+        sessionStorage.getItem(
+            "appdatmon_table_qr"
+        );
 
-const cartItems=document.getElementById("cartItems");
+    if (!qr) {
 
-const totalPrice=document.getElementById("totalPrice");
+        showToast(
+            "Vui lòng quét mã QR tại bàn."
+        );
 
-let products=[];
+        setTimeout(() => {
 
-let categories=[];
+            window.location.href =
+                "index.html";
 
-let cart=[];
+        }, 1000);
+
+        return false;
+    }
+
+    try {
+
+        const table = await api(
+            `/api/tables/qr/${encodeURIComponent(qr)}`
+        );
+
+        if (!table) {
+
+            throw new Error(
+                "Mã QR không hợp lệ."
+            );
+
+        }
+
+        sessionStorage.setItem(
+            "appdatmon_table_qr",
+            qr
+        );
+
+        sessionStorage.setItem(
+            "appdatmon_table",
+            JSON.stringify(table)
+        );
+
+        console.log(
+            "QR verified:",
+            table
+        );
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "QR verification error:",
+            error
+        );
+
+        sessionStorage.removeItem(
+            "appdatmon_table_qr"
+        );
+
+        sessionStorage.removeItem(
+            "appdatmon_table"
+        );
+
+        showToast(
+            "Mã QR không hợp lệ hoặc bàn không tồn tại."
+        );
+
+        setTimeout(() => {
+
+            window.location.href =
+                "index.html";
+
+        }, 1000);
+
+        return false;
+    }
+}
+
 
 /*==================================================
-                INIT
+                    MENU
+==================================================*/
+
+const productGrid =
+    document.getElementById("productGrid");
+
+const categorySelect =
+    document.getElementById("categorySelect");
+
+const searchInput =
+    document.getElementById("searchInput");
+
+const cartItems =
+    document.getElementById("cartItems");
+
+const totalPrice =
+    document.getElementById("totalPrice");
+
+
+let products = [];
+
+let categories = [];
+
+let cart = [];
+
+
+/*==================================================
+                    INIT
 ==================================================*/
 
 document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-"DOMContentLoaded",
+        /*
+         * Kiểm tra các element cần thiết
+         */
 
-()=>{
+        if (
+            !productGrid ||
+            !categorySelect ||
+            !searchInput ||
+            !cartItems ||
+            !totalPrice
+        ) {
 
-loadCategories();
+            console.error(
+                "Không tìm thấy element của menu."
+            );
 
-loadProducts();
+            return;
 
-searchInput.addEventListener(
+        }
 
-"input",
 
-renderProducts
+        /*
+         * QUAN TRỌNG:
+         * Phải xác thực QR trước
+         */
 
+        const verified =
+            await verifyTableQr();
+
+
+        if (!verified) {
+
+            return;
+
+        }
+
+
+        /*
+         * QR hợp lệ
+         * mới tải menu
+         */
+
+        await loadCategories();
+
+        await loadProducts();
+
+        renderCart();
+
+
+        /*
+         * Search
+         */
+
+        searchInput.addEventListener(
+            "input",
+            renderProducts
+        );
+
+
+        /*
+         * Category
+         */
+
+        categorySelect.addEventListener(
+            "change",
+            renderProducts
+        );
+
+
+        /*
+         * Checkout
+         */
+
+        const checkoutBtn =
+            document.getElementById(
+                "checkoutBtn"
+            );
+
+
+        if (checkoutBtn) {
+
+            checkoutBtn.addEventListener(
+                "click",
+                checkout
+            );
+
+        }
+
+    }
 );
 
-categorySelect.addEventListener(
-
-"change",
-
-renderProducts
-
-);
-
-document
-
-.getElementById("checkoutBtn")
-
-.addEventListener(
-
-"click",
-
-checkout
-
-);
-
-}
-
-);
 
 /*==================================================
-            CATEGORY
+                    CATEGORY
 ==================================================*/
 
-async function loadCategories(){
+async function loadCategories() {
 
-try{
+    try {
 
-categories=await api("/api/categories");
+        categories =
+            await api(
+                "/api/categories"
+            );
 
-categories.forEach(category=>{
 
-categorySelect.innerHTML+=`
+        categorySelect.innerHTML = `
 
-<option value="${category.id}">
+            <option value="">
 
-${category.name}
+                Tất cả danh mục
 
-</option>
+            </option>
 
-`;
+        `;
 
-});
 
-}
+        categories.forEach(
+            category => {
 
-catch(err){
+                categorySelect.innerHTML += `
 
-console.log(err);
+                    <option value="${category.id}">
 
-}
+                        ${category.name}
+
+                    </option>
+
+                `;
+
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Load categories error:",
+            error
+        );
+
+    }
 
 }
 
 
 /*==================================================
-                PRODUCT
+                    PRODUCT
 ==================================================*/
 
-async function loadProducts(){
+async function loadProducts() {
 
-try{
+    try {
 
-products=await api(
-
-"/api/products"
-
-);
-
-renderProducts();
-
-}
-
-catch(err){
-
-console.log(err);
-
-showToast(
-
-"Không tải được thực đơn."
-
-);
-
-}
-
-}
+        products =
+            await api(
+                "/api/products"
+            );
 
 
-function renderProducts(){
+        renderProducts();
 
-const keyword=
+    } catch (error) {
 
-searchInput.value
+        console.error(
+            "Load products error:",
+            error
+        );
 
-.toLowerCase();
+        showToast(
+            "Không tải được thực đơn."
+        );
 
-const category=
-
-categorySelect.value;
-
-const list=
-
-products.filter(product=>{
-
-const matchName=
-
-product.name
-
-.toLowerCase()
-
-.includes(keyword);
-
-const matchCategory=
-
-category==="" ||
-
-product.category_id==category;
-
-return matchName && matchCategory;
-
-});
-
-productGrid.innerHTML="";
-
-if(list.length===0){
-
-productGrid.innerHTML=
-
-`
-
-<div class="empty">
-
-Không có món ăn.
-
-</div>
-
-`;
-
-return;
+    }
 
 }
 
-list.forEach(renderCard);
 
+/*==================================================
+                RENDER PRODUCTS
+==================================================*/
+
+function renderProducts() {
+
+    const keyword =
+        searchInput.value
+            .toLowerCase()
+            .trim();
+
+
+    const category =
+        categorySelect.value;
+
+
+    const list =
+        products.filter(
+            product => {
+
+                const matchName =
+                    product.name
+                        .toLowerCase()
+                        .includes(keyword);
+
+
+                const matchCategory =
+                    category === "" ||
+                    String(product.category_id) ===
+                    String(category);
+
+
+                return (
+                    matchName &&
+                    matchCategory
+                );
+
+            }
+        );
+
+
+    productGrid.innerHTML = "";
+
+
+    if (list.length === 0) {
+
+        productGrid.innerHTML = `
+
+            <div class="empty">
+
+                Không có món ăn.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    list.forEach(
+        renderCard
+    );
+
+}
+
+
+
+
+/*==================================================
+                PRODUCT IMAGE
+==================================================*/
+
+function getProductImage(product) {
+
+    if (
+        !product.image ||
+        product.image.trim() === ""
+    ) {
+        return "./assets/images/no-image.png";
+    }
+
+    // Nếu database đã lưu URL đầy đủ
+    if (
+        product.image.startsWith("http://") ||
+        product.image.startsWith("https://")
+    ) {
+        return product.image;
+    }
+
+    // Nếu database lưu /uploads/...
+    if (product.image.startsWith("/")) {
+        return `http://localhost:3000${product.image}`;
+    }
+
+    // Nếu database chỉ lưu tên file
+    return `http://localhost:3000/uploads/${product.image}`;
 }
 
 
@@ -195,351 +410,462 @@ list.forEach(renderCard);
                 PRODUCT CARD
 ==================================================*/
 
-function renderCard(product){
+function renderCard(product) {
+
+    const imageUrl =
+        getProductImage(product);
 
     productGrid.innerHTML += `
 
-    <div class="product-card">
+        <div class="product-card">
 
-        <img src="${
-            product.image && product.image !== ""
-                ? product.image
-                : "./assets/images/no-image.png"
-        }">
+            <div class="product-image">
 
-        <div class="product-content">
+                <img
+                    src="${imageUrl}"
+                    alt="${product.name}"
+                    onerror="this.onerror=null; this.src='./assets/images/no-image.png';"
+                >
 
-            <h3>
+            </div>
 
-                ${product.name}
+            <div class="product-content">
 
-            </h3>
+                <h3>
+                    ${product.name}
+                </h3>
 
-            <p>
+                <p>
+                    ${
+                        product.description ||
+                        "Đang cập nhật mô tả..."
+                    }
+                </p>
 
-                ${product.description || ""}
+                <div class="product-footer">
 
-            </p>
+                    <div class="product-price">
 
-            <div class="product-footer">
+                        ${
+                            Number(product.price)
+                                .toLocaleString("vi-VN")
+                        }đ
 
-                <div class="product-price">
+                    </div>
 
-                    ${Number(product.price).toLocaleString("vi-VN")}đ
+                    <button
+                        class="add-cart"
+                        onclick="addToCart(${product.id})">
+
+                        <i class="fa-solid fa-cart-plus"></i>
+
+                    </button>
 
                 </div>
-
-                <button
-
-                    class="add-cart"
-
-                    onclick="addToCart(${product.id})">
-
-                    <i class="fa-solid fa-cart-plus"></i>
-
-                </button>
 
             </div>
 
         </div>
 
-    </div>
-
     `;
-
 }
 
+
 /*==================================================
-                CART
+                    CART
 ==================================================*/
 
-window.addToCart=function(id){
+window.addToCart =
+function(id) {
 
-    const product=
+    const product =
+        products.find(
+            p => p.id === id
+        );
 
-    products.find(
 
-        p=>p.id===id
+    if (!product) {
 
-    );
-
-    if(!product) return;
-
-    const item=
-
-    cart.find(
-
-        i=>i.id===id
-
-    );
-
-    if(item){
-
-        item.quantity++;
+        return;
 
     }
 
-    else{
+
+    const item =
+        cart.find(
+            i => i.id === id
+        );
+
+
+    if (item) {
+
+        item.quantity++;
+
+    } else {
 
         cart.push({
 
             ...product,
 
-            quantity:1
+            quantity: 1
 
         });
 
     }
 
+
     renderCart();
 
+
     showToast(
-
         "Đã thêm vào giỏ hàng."
-
     );
 
-}
+};
 
 
-function renderCart(){
+/*==================================================
+                RENDER CART
+==================================================*/
 
-    cartItems.innerHTML="";
+function renderCart() {
 
-    let total=0;
-
-    if(cart.length===0){
-
-        cartItems.innerHTML=`
-
-        <div class="empty-cart">
-
-            Chưa có món ăn.
-
-        </div>
-
-        `;
-
-        totalPrice.innerHTML="0đ";
+    if (!cartItems || !totalPrice) {
 
         return;
 
     }
 
-    cart.forEach(item=>{
 
-        total+=
+    cartItems.innerHTML = "";
 
-        item.quantity*
 
-        Number(item.price);
+    let total = 0;
 
-        cartItems.innerHTML+=`
 
-        <div class="cart-item">
+    if (cart.length === 0) {
 
-            <div class="cart-info">
+        cartItems.innerHTML = `
 
-                <h4>
+            <div class="empty-cart">
 
-                    ${item.name}
-
-                </h4>
-
-                <span>
-
-                    ${Number(item.price).toLocaleString("vi-VN")}đ
-
-                </span>
+                Chưa có món ăn.
 
             </div>
-
-            <div class="quantity">
-
-                <button onclick="minus(${item.id})">
-
-                    -
-
-                </button>
-
-                <span>
-
-                    ${item.quantity}
-
-                </span>
-
-                <button onclick="plus(${item.id})">
-
-                    +
-
-                </button>
-
-            </div>
-
-        </div>
 
         `;
 
-    });
 
-    totalPrice.innerHTML=
-
-    total.toLocaleString("vi-VN")+"đ";
-
-}
+        totalPrice.innerHTML =
+            "0đ";
 
 
-window.plus=function(id){
-
-    const item=
-
-    cart.find(
-
-        p=>p.id===id
-
-    );
-
-    if(item){
-
-        item.quantity++;
-
-        renderCart();
+        return;
 
     }
 
-}
+
+    cart.forEach(
+        item => {
+
+            total +=
+                item.quantity *
+                Number(item.price);
 
 
-window.minus=function(id){
+            cartItems.innerHTML += `
 
-    const item=
+                <div class="cart-item">
 
-    cart.find(
+                    <div class="cart-info">
 
-        p=>p.id===id
+                        <h4>
 
+                            ${item.name}
+
+                        </h4>
+
+                        <span>
+
+                            ${
+                                Number(
+                                    item.price
+                                ).toLocaleString(
+                                    "vi-VN"
+                                )
+                            }đ
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="quantity">
+
+                        <button
+                            onclick="minus(${item.id})">
+
+                            -
+
+                        </button>
+
+
+                        <span>
+
+                            ${item.quantity}
+
+                        </span>
+
+
+                        <button
+                            onclick="plus(${item.id})">
+
+                            +
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
     );
 
-    if(!item) return;
 
-    item.quantity--;
-
-    if(item.quantity<=0){
-
-        cart=
-
-        cart.filter(
-
-            p=>p.id!==id
-
-        );
-
-    }
-
-    renderCart();
+    totalPrice.innerHTML =
+        total.toLocaleString(
+            "vi-VN"
+        ) + "đ";
 
 }
 
 
 /*==================================================
-                CHECKOUT
+                    PLUS
 ==================================================*/
 
-async function checkout(){
+window.plus =
+function(id) {
 
-    if(cart.length===0){
+    const item =
+        cart.find(
+            p => p.id === id
+        );
+
+
+    if (!item) {
+
+        return;
+
+    }
+
+
+    item.quantity++;
+
+    renderCart();
+
+};
+
+
+/*==================================================
+                    MINUS
+==================================================*/
+
+window.minus =
+function(id) {
+
+    const item =
+        cart.find(
+            p => p.id === id
+        );
+
+
+    if (!item) {
+
+        return;
+
+    }
+
+
+    item.quantity--;
+
+
+    if (item.quantity <= 0) {
+
+        cart =
+            cart.filter(
+                p => p.id !== id
+            );
+
+    }
+
+
+    renderCart();
+
+};
+
+
+/*==================================================
+                    CHECKOUT
+==================================================*/
+
+async function checkout() {
+
+    if (cart.length === 0) {
 
         showToast(
-
             "Giỏ hàng đang trống."
-
         );
 
         return;
 
     }
 
-    const token=
 
-    localStorage.getItem(
+    /*
+     * Lấy thông tin bàn đã xác thực
+     */
 
-        TOKEN_KEY
+    const tableQr =
+        sessionStorage.getItem(
+            "appdatmon_table_qr"
+        );
 
-    );
 
-    if(!token){
+    const tableData =
+        sessionStorage.getItem(
+            "appdatmon_table"
+        );
+
+
+    if (!tableQr || !tableData) {
 
         showToast(
-
-            "Vui lòng đăng nhập."
-
+            "Phiên QR không hợp lệ. Vui lòng quét lại."
         );
 
-        setTimeout(()=>{
 
-            location.href="login.html";
+        setTimeout(() => {
 
-        },800);
+            window.location.href =
+                "index.html";
+
+        }, 1000);
+
 
         return;
 
     }
 
-    const body={
 
-        items:cart.map(item=>({
+    /*
+     * Kiểm tra đăng nhập
+     */
 
-            product_id:item.id,
+    const token =
+        localStorage.getItem(
+            TOKEN_KEY
+        );
 
-            quantity:item.quantity
 
-        })),
+    if (!token) {
 
-        note:"Đặt món từ Website"
+        showToast(
+            "Vui lòng đăng nhập."
+        );
+
+
+        setTimeout(() => {
+
+            location.href =
+                "login.html";
+
+        }, 800);
+
+
+        return;
+
+    }
+
+
+    const table =
+        JSON.parse(
+            tableData
+        );
+
+
+    const body = {
+
+        table_id:
+            table.id,
+
+        items:
+            cart.map(
+                item => ({
+
+                    product_id:
+                        item.id,
+
+                    quantity:
+                        item.quantity
+
+                })
+            ),
+
+        note:
+            "Đặt món từ Website"
 
     };
 
-    try{
 
-        const result=
+    try {
 
-        await api(
+        const result =
+            await api(
 
-            "/api/orders",
+                "/api/orders",
 
-            {
+                {
 
-                method:"POST",
+                    method: "POST",
 
-                body:JSON.stringify(body)
+                    body:
+                        JSON.stringify(
+                            body
+                        )
 
-            }
+                }
 
-        );
+            );
+
 
         showToast(
 
             result.message ||
-
             "Đặt món thành công."
 
         );
 
-        cart=[];
+
+        cart = [];
 
         renderCart();
 
-    }
 
-    catch(error){
+    } catch (error) {
 
-        console.log(error);
+        console.error(
+            "Checkout error:",
+            error
+        );
 
-        showToast(error.message);
+
+        showToast(
+            error.message
+        );
 
     }
 
 }
-
-
-renderCart();
