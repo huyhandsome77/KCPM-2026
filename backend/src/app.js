@@ -5,13 +5,26 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./docs/swagger');
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 
-// Static Folder for Uploads
-app.use('/uploads', express.static('uploads'));
+const customerDir = path.join(__dirname, '..', '..', 'customer');
+const adminDir = path.join(__dirname, '..', '..', 'admin');
+const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
+const docsDir = path.join(__dirname, '..', '..', 'docs');
 
+// Static Folder for Uploads
+app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Modern Interactive API Documentation Portal
+app.use('/docs', express.static(docsDir, { etag: false, maxAge: 0, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); } }));
+app.get('/docs', (req, res) => {
+    res.sendFile(path.join(docsDir, 'index.html'));
+});
+
+// Swagger UI & Specification
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
     customSiteTitle: 'AppDatMon API Docs'
@@ -22,7 +35,6 @@ app.get('/api-docs.json', (req, res) => {
     res.send(swaggerSpec);
 });
 
-const adminDir = path.join(__dirname, '..', '..', 'admin');
 app.use('/admin', express.static(adminDir, { etag: false, maxAge: 0, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); } }));
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(adminDir, 'index.html'));
@@ -35,11 +47,6 @@ app.get('/admin/*', (req, res) => {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Sample Route
-app.get('/', (req, res) => {
-    res.json({ message: "Welcome to AppDatMon API" });
-});
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -68,6 +75,19 @@ app.use('/api/points', pointRoutes);
 app.use('/api/stats', statRoutes);
 app.use('/api/payos', payosRoutes);
 
+// Customer Static files
+app.use(express.static(customerDir, { etag: false, maxAge: 0, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); } }));
+app.use('/customer', express.static(customerDir, { etag: false, maxAge: 0, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); } }));
+
+// Customer Root route: Serve customer login.html by default (which auto-redirects if already logged in)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(customerDir, 'login.html'));
+});
+
+app.get('/customer', (req, res) => {
+    res.sendFile(path.join(customerDir, 'login.html'));
+});
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
@@ -79,3 +99,4 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+
