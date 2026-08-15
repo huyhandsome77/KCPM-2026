@@ -62,122 +62,233 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-// 1. Quản lý Đơn hàng: Render Enterprise Order Cards Grid
+function getOrderTableInfo(order, tables = []) {
+  if (!order) {
+    return {
+      tableNumber: null,
+      label: 'Mang đi',
+      isTakeaway: true,
+      displayBadge: '<span class="order-table-chip takeaway"><i class="fa-solid fa-bag-shopping"></i> Mang đi</span>'
+    };
+  }
+
+  // 1. Direct object associations
+  const directNum = order.RestaurantTable?.tableNumber ?? order.table?.tableNumber ?? order.tableNumber;
+  if (directNum !== undefined && directNum !== null && directNum !== '') {
+    return {
+      tableNumber: directNum,
+      label: `Bàn #${directNum}`,
+      isTakeaway: false,
+      displayBadge: `<span class="order-table-chip"><i class="fa-solid fa-chair"></i> Bàn #${directNum}</span>`
+    };
+  }
+
+  // 2. Lookup in tables list (by table_id or matching id/tableNumber)
+  const tableId = order.table_id ?? order.tableId ?? order.RestaurantTable?.id ?? order.table?.id;
+  if (tableId !== undefined && tableId !== null && tableId !== '') {
+    const tableList = Array.isArray(tables) && tables.length ? tables : (state.tables || []);
+    const matchedTable = tableList.find(t => String(t.id) === String(tableId) || String(t.tableNumber) === String(tableId));
+    if (matchedTable && (matchedTable.tableNumber !== undefined && matchedTable.tableNumber !== null)) {
+      return {
+        tableNumber: matchedTable.tableNumber,
+        label: `Bàn #${matchedTable.tableNumber}`,
+        isTakeaway: false,
+        displayBadge: `<span class="order-table-chip"><i class="fa-solid fa-chair"></i> Bàn #${matchedTable.tableNumber}</span>`
+      };
+    }
+    return {
+      tableNumber: tableId,
+      label: `Bàn #${tableId}`,
+      isTakeaway: false,
+      displayBadge: `<span class="order-table-chip"><i class="fa-solid fa-chair"></i> Bàn #${tableId}</span>`
+    };
+  }
+
+  return {
+    tableNumber: null,
+    label: 'Mang đi',
+    isTakeaway: true,
+    displayBadge: '<span class="order-table-chip takeaway"><i class="fa-solid fa-bag-shopping"></i> Mang đi</span>'
+  };
+}
+
+function statusChip(typeClass, label) {
+  return `<span class="badge-inline ${typeClass}">${escapeHtml(label)}</span>`;
+}
+
+function paymentStatusClass(status) {
+  switch (String(status).toUpperCase()) {
+    case 'PAID': return 'badge-success';
+    case 'UNPAID': return 'badge-warning';
+    case 'REFUNDED': return 'badge-danger';
+    default: return 'badge-neutral';
+  }
+}
+
+function orderStatusClass(status) {
+  switch (String(status).toUpperCase()) {
+    case 'PENDING': return 'badge-warning';
+    case 'CONFIRMED':
+    case 'PREPARING': return 'badge-info';
+    case 'READY': return 'badge-primary';
+    case 'COMPLETED': return 'badge-success';
+    case 'CANCELLED': return 'badge-danger';
+    default: return 'badge-neutral';
+  }
+}
+
+function renderOrderFilterTabs(records) {
+  const tabsContainer = document.querySelector('#order-filter-pills');
+  if (!tabsContainer) return;
+
+  const list = Array.isArray(records) ? records : [];
+  const activeTab = state.orderFilter || 'ALL';
+
+  const tabs = [
+    { id: 'ALL', label: 'Tất cả đơn', count: list.length },
+    { id: 'PENDING', label: 'Chờ xử lý ⏳', count: list.filter(o => String(o.status).toUpperCase() === 'PENDING').length },
+    { id: 'PREPARING', label: 'Đang làm món 🍳', count: list.filter(o => ['CONFIRMED', 'PREPARING'].includes(String(o.status).toUpperCase())).length },
+    { id: 'READY', label: 'Sẵn sàng 🔔', count: list.filter(o => String(o.status).toUpperCase() === 'READY').length },
+    { id: 'COMPLETED', label: 'Hoàn thành ✅', count: list.filter(o => String(o.status).toUpperCase() === 'COMPLETED').length },
+    { id: 'UNPAID', label: 'Chưa trả tiền 💳', count: list.filter(o => String(o.paymentStatus).toUpperCase() !== 'PAID').length }
+  ];
+
+  tabsContainer.innerHTML = tabs.map(tab => `
+    <button class="filter-tab ${activeTab === tab.id ? 'active' : ''}" data-order-filter="${tab.id}">
+      <span>${tab.label}</span>
+      <span class="filter-tab-count">${tab.count}</span>
+    </button>
+  `).join('');
+}
+
+// 1. Quản lý Đơn hàng: Render Enterprise Order Cards Grid (Template chuẩn Admin)
 function renderOrdersGrid(records) {
   const container = document.querySelector('#staff-orders-grid');
   if (!container) return;
 
+  renderOrderFilterTabs(state.orders);
+
   const list = Array.isArray(records) ? records : [];
   const activeFilter = state.orderFilter || 'ALL';
+  const query = (state.userSearchQuery || '').trim().toLowerCase();
 
-  const filtered = list.filter(order => {
-    const st = String(order.status).toUpperCase();
-    const paySt = String(order.paymentStatus).toUpperCase();
-    if (activeFilter === 'PENDING') return st === 'PENDING';
-    if (activeFilter === 'PREPARING') return ['CONFIRMED', 'PREPARING'].includes(st);
-    if (activeFilter === 'UNPAID') return paySt !== 'PAID';
-    if (activeFilter === 'COMPLETED') return st === 'COMPLETED';
-    return true;
-  });
+  let filtered = list;
+  if (activeFilter && activeFilter !== 'ALL') {
+    filtered = list.filter(o => {
+      const st = String(o.status || '').toUpperCase();
+      const pst = String(o.paymentStatus || '').toUpperCase();
+      if (activeFilter === 'PREPARING') return ['CONFIRMED', 'PREPARING'].includes(st);
+      if (activeFilter === 'UNPAID') return pst !== 'PAID';
+      return st === activeFilter;
+    });
+  }
+
+  if (query) {
+    filtered = filtered.filter(order => {
+      const tInfo = getOrderTableInfo(order, state.tables);
+      const str = `${JSON.stringify(order)} ${tInfo.label} ${tInfo.tableNumber || ''}`.toLowerCase();
+      return str.includes(query);
+    });
+  }
 
   if (filtered.length === 0) {
-    container.innerHTML = `
-      <div style="grid-column:1/-1; text-align:center; padding:2.5rem; background:#ffffff; border-radius:16px; border:1px dashed #cbd5e1; color:#64748b">
-        <i class="fa-solid fa-receipt" style="font-size:2rem; margin-bottom:0.5rem; color:#94a3b8"></i>
-        <div style="font-weight:700">Không tìm thấy đơn hàng nào trong mục này</div>
-      </div>
-    `;
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><strong>Không tìm thấy đơn hàng nào ở trạng thái này</strong></div>`;
     return;
   }
 
-  const statusBadgeMap = {
-    PENDING: { label: '⏳ Chờ xác nhận', bg: '#fff7d6', color: '#b45309' },
-    CONFIRMED: { label: '⚡ Đã xác nhận', bg: '#dbe1ff', color: '#004ac6' },
-    PREPARING: { label: '🔥 Đang bếp làm', bg: '#ffe3ec', color: '#b8004f' },
-    READY: { label: '🔔 Món đã sẵn sàng', bg: '#dcfce7', color: '#15803d' },
-    COMPLETED: { label: '🎉 Đã hoàn tất', bg: '#e0e7ff', color: '#3730a3' },
-    CANCELLED: { label: '❌ Đã hủy đơn', bg: '#fee2e2', color: '#b91c1c' }
-  };
-
   container.innerHTML = filtered.map(order => {
-    const tableNumber = order.RestaurantTable?.tableNumber || order.table_id || '-';
-    const customerName = order.User?.fullName || (order.user_id ? `#${order.user_id}` : 'Khách vãng lai');
-    const isPaid = String(order.paymentStatus).toUpperCase() === 'PAID';
-    const status = String(order.status).toUpperCase();
-    const stInfo = statusBadgeMap[status] || { label: status, bg: '#f1f5f9', color: '#475569' };
+    const tableInfo = getOrderTableInfo(order, state.tables);
+    const customerName = order.User?.fullName || (order.user_id ? `Khách #${order.user_id}` : 'Khách vãng lai');
+    const rawStatus = String(order.status || 'PENDING').toUpperCase();
+    const paymentStatus = String(order.paymentStatus || 'UNPAID').toUpperCase();
+    const items = order.OrderItems || [];
+    const itemsCount = items.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
-    const itemsList = Array.isArray(order.OrderItems) && order.OrderItems.length > 0
-      ? order.OrderItems.map(item => `
-          <div style="display:flex; justify-content:space-between; font-size:0.83rem; padding:0.25rem 0; border-bottom:1px dashed #f1f5f9">
-            <span><strong>${escapeHtml(item.Product?.name || `#${item.product_id}`)}</strong> x${item.quantity}</span>
-            <span style="color:#475569; font-weight:700">${formatCurrency(item.totalPrice || 0)}</span>
-          </div>
-        `).join('')
-      : `<div style="font-size:0.8rem; color:#94a3b8; font-style:italic">Ghi chú: ${escapeHtml(order.note || 'Không có ghi chú món')}</div>`;
-
-    const paymentBadge = isPaid
-      ? `<span class="badge-inline" style="background:#dcfce7; color:#15803d; font-weight:800"><i class="fa-solid fa-circle-check"></i> Đã thanh toán (${escapeHtml(order.paymentMethod || 'Tiền mặt')})</span>`
-      : `<span class="badge-inline" style="background:#fee2e2; color:#b91c1c; font-weight:800"><i class="fa-solid fa-clock"></i> Chưa thanh toán</span>`;
-
-    const amount = order.finalPrice ?? order.totalPrice ?? 0;
-    const itemsCount = order.OrderItems?.length || 0;
+    let stepIdx = 0;
+    if (rawStatus === 'CONFIRMED' || rawStatus === 'PREPARING') stepIdx = 1;
+    if (rawStatus === 'READY') stepIdx = 2;
+    if (rawStatus === 'COMPLETED') stepIdx = 3;
 
     return `
-      <article class="user-card" style="display:flex; flex-direction:column; justify-space-between; background:#ffffff; border-radius:18px; border:1px solid #e2e8f0; box-shadow:0 4px 12px rgba(0,0,0,0.03); padding:1.1rem">
-        <div>
-          <!-- Header -->
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.6rem">
-            <div>
-              <strong style="font-size:1.1rem; color:#111c2d">Đơn hàng #${order.id}</strong>
-              <div style="font-size:0.8rem; color:#64748b; margin-top:0.1rem">🪑 Bàn #${tableNumber} • 👤 ${escapeHtml(customerName)}</div>
-            </div>
-            <span class="badge-inline" style="background:${stInfo.bg}; color:${stInfo.color}; font-weight:800; font-size:0.78rem">${stInfo.label}</span>
+      <article class="order-card">
+        <div class="order-card-head">
+          <div class="order-id-badge">
+            <i class="fa-solid fa-receipt"></i> Đơn #${order.id}
           </div>
-
-          <!-- Items list -->
-          <div style="background:#f8fafc; padding:0.6rem 0.8rem; border-radius:12px; margin:0.6rem 0; max-height:140px; overflow-y:auto">
-            ${itemsList}
-          </div>
-
-          <!-- Price & Payment status -->
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem">
-            <span style="font-size:0.85rem; color:#64748b">Tổng tiền đơn:</span>
-            <strong style="font-size:1.3rem; color:#004ac6; font-weight:900">${formatCurrency(amount)}</strong>
-          </div>
-          <div style="margin-top:0.4rem; text-align:right">
-            ${paymentBadge}
-          </div>
+          ${tableInfo.displayBadge}
         </div>
 
-        <!-- Action buttons -->
-        <div style="display:grid; grid-template-columns:${!isPaid ? '1fr 1.1fr' : '1fr'}; gap:0.5rem; margin-top:1rem">
-          ${!isPaid ? `
-            ${['READY', 'COMPLETED'].includes(status) ? `
-              <button class="btn btn-primary" data-action="open-checkout-modal" data-id="${order.id}" data-table="${tableNumber}" data-customer="${escapeHtml(customerName)}" data-amount="${amount}" data-items="${itemsCount}" data-status="${status}" style="font-weight:800">
-                <i class="fa-solid fa-credit-card"></i> Thanh toán
-              </button>
-            ` : `
-              <button class="btn btn-secondary" disabled style="opacity:0.55; cursor:not-allowed; font-weight:700" title="Đơn hàng chưa nấu xong! Chỉ có thể thanh toán khi món ăn SẴN SÀNG (Trạng thái READY)">
-                <i class="fa-solid fa-clock"></i> Chờ bếp (READY)
-              </button>
-            `}
-          ` : ''}
+        <div class="order-customer-info">
+          <div><i class="fa-solid fa-user"></i> <strong>${escapeHtml(customerName)}</strong></div>
+          <span class="muted">${formatDateTime(order.createdAt || order.created_at)}</span>
+        </div>
 
-          <select data-action="change-order-status" data-id="${order.id}" style="font-size:0.8rem; padding:0.45rem; border-radius:10px; border:1px solid #cbd5e1; background:#ffffff; font-weight:700">
-            <option value="PENDING" ${status === 'PENDING' ? 'selected' : ''}>⏳ Chờ xác nhận</option>
-            <option value="CONFIRMED" ${status === 'CONFIRMED' ? 'selected' : ''}>⚡ Đã xác nhận</option>
-            <option value="PREPARING" ${status === 'PREPARING' ? 'selected' : ''}>🔥 Đang bếp làm</option>
-            <option value="READY" ${status === 'READY' ? 'selected' : ''}>🔔 Món sẵn sàng</option>
-            <option value="COMPLETED" ${status === 'COMPLETED' ? 'selected' : ''}>🎉 Đã hoàn tất</option>
-            <option value="CANCELLED" ${status === 'CANCELLED' ? 'selected' : ''}>❌ Đã hủy đơn</option>
-          </select>
+        <div class="order-stepper">
+          <div class="order-stepper-line"></div>
+          <div class="order-step ${stepIdx >= 0 ? 'done' : ''}" title="Nhận đơn"><i class="fa-solid fa-check"></i></div>
+          <div class="order-step ${stepIdx >= 1 ? 'done' : ''}" title="Đang chế biến"><i class="fa-solid fa-fire"></i></div>
+          <div class="order-step ${stepIdx >= 2 ? 'done' : ''}" title="Sẵn sàng"><i class="fa-solid fa-bell"></i></div>
+          <div class="order-step ${stepIdx >= 3 ? 'done' : ''}" title="Hoàn thành"><i class="fa-solid fa-flag-checkered"></i></div>
+        </div>
+
+        <div class="order-summary-box">
+          <div>
+            <span class="muted" style="font-size:0.82rem; display:block">Số món: <strong>${itemsCount} phần</strong></span>
+            ${statusChip(paymentStatusClass(paymentStatus), paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán')}
+          </div>
+          <div class="order-total-price">${formatCurrency(order.finalPrice ?? order.totalPrice)}</div>
+        </div>
+
+        <!-- Action Buttons Row -->
+        <div class="row-actions" style="gap:0.45rem; justify-content:space-between; align-items:center">
+          ${rawStatus === 'PENDING' ? `
+            <button type="button" class="btn btn-primary btn-small" data-action="confirm-order" data-id="${order.id}" style="font-weight:700; flex:1; padding:0.45rem 0.75rem" title="Xác nhận đơn và chuyển qua Bếp">
+              <i class="fa-solid fa-check"></i> Xác nhận
+            </button>
+            <button type="button" class="btn btn-danger btn-small" data-action="cancel-order" data-id="${order.id}" style="font-weight:700; padding:0.45rem 0.75rem" title="Hủy bỏ đơn hàng">
+              <i class="fa-solid fa-ban"></i> Hủy đơn
+            </button>
+          ` : (rawStatus === 'CONFIRMED' || rawStatus === 'PREPARING') ? `
+            <div class="status-chip status-pending" style="flex:1; justify-content:center; padding:0.45rem 0.75rem; border-radius:10px; font-weight:700; font-size:0.83rem">
+              <i class="fa-solid fa-fire text-rose"></i> Bếp đang chế biến...
+            </div>
+          ` : rawStatus === 'READY' ? `
+            <button type="button" class="btn btn-primary btn-small" data-action="open-checkout-modal" data-id="${order.id}" data-table="${tableInfo.tableNumber || ''}" data-customer="${escapeHtml(customerName)}" data-amount="${order.finalPrice ?? order.totalPrice}" data-items="${itemsCount}" data-status="${rawStatus}" style="font-weight:800; flex:1; padding:0.45rem 0.75rem; background:linear-gradient(135deg, #15803d, #16a34a)" title="Món đã sẵn sàng! Bấm để thu tiền">
+              <i class="fa-solid fa-credit-card"></i> Thu tiền
+            </button>
+          ` : rawStatus === 'COMPLETED' ? `
+            <div class="status-chip status-completed" style="flex:1; justify-content:center; padding:0.45rem 0.75rem; border-radius:10px; font-weight:700; font-size:0.83rem">
+              <i class="fa-solid fa-circle-check"></i> Đã hoàn thành & Thanh toán
+            </div>
+          ` : `
+            <div class="status-chip status-cancelled" style="flex:1; justify-content:center; padding:0.45rem 0.75rem; border-radius:10px; font-weight:700; font-size:0.83rem">
+              <i class="fa-solid fa-ban"></i> Đơn đã hủy
+            </div>
+          `}
+          <button type="button" class="btn btn-ghost btn-small" data-action="toggle-order-detail" data-id="${order.id}" style="padding:0.45rem 0.65rem" title="Xem chi tiết đơn"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
+
+        <div class="mini-card hidden" data-order-detail="${order.id}">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; padding-bottom:0.4rem; border-bottom:1px dashed #cbd5e1">
+            <div><strong>Vị trí phục vụ:</strong> <span class="badge-inline" style="background:#e0f2fe; color:#004ac6; font-weight:800"><i class="fa-solid ${tableInfo.isTakeaway ? 'fa-bag-shopping' : 'fa-chair'}"></i> ${tableInfo.label}</span></div>
+            <div><i class="fa-solid fa-user"></i> <strong>${escapeHtml(customerName)}</strong></div>
+          </div>
+          <h4 class="mini-card-title">Ghi chú: ${escapeHtml(order.note || 'Không có')}</h4>
+          <div class="info-list" style="margin-top:0.6rem">
+            ${items.map(item => `
+              <div class="info-row" style="padding:0.4rem 0.6rem">
+                <span>${escapeHtml(item.Product?.name || `#${item.product_id}`)} x${item.quantity}</span>
+                <strong>${formatCurrency(item.totalPrice || 0)}</strong>
+              </div>
+            `).join('')}
+          </div>
         </div>
       </article>
     `;
   }).join('');
 }
 
-// 2. Quản lý Bàn: Render Interactive Grid (Ultra-Minimalist - Only Status Pill has Color)
+// 2. Quản lý Bàn: Render Interactive Grid (Template Order Card & Hiển thị Mã QR)
 function renderTablesGrid(tables) {
   const container = document.querySelector('#staff-tables-grid');
   if (!container) return;
@@ -196,47 +307,191 @@ function renderTablesGrid(tables) {
   };
 
   const now = new Date();
+  const allOrders = state.orders || [];
+  const allRes = state.reservations || [];
+  const baseUrl = window.location.origin.includes('http') ? window.location.origin : 'http://localhost:3000';
 
   container.innerHTML = list.map(table => {
-    const st = String(table.calculatedStatus || table.status).toUpperCase();
+    const st = String(table.calculatedStatus || table.status || 'AVAILABLE').toUpperCase();
     const info = statusMap[st] || statusMap.AVAILABLE;
 
-    let liveTimerText = '';
+    // Active UNPAID order lookup
+    const tableIdStr = String(table.id);
+    const tableNumStr = String(table.tableNumber);
+    const activeOrder = allOrders.find(o => {
+      const oTableId = String(o.table_id ?? o.tableId ?? o.RestaurantTable?.id ?? o.table?.id ?? '');
+      const oTableNum = String(o.RestaurantTable?.tableNumber ?? o.table?.tableNumber ?? o.tableNumber ?? '');
+      const matches = (oTableId === tableIdStr || oTableNum === tableNumStr) && (oTableId !== '' || oTableNum !== '');
+      const isUnpaid = String(o.paymentStatus || 'UNPAID').toUpperCase() !== 'PAID';
+      const notDone = !['COMPLETED', 'CANCELLED'].includes(String(o.status || '').toUpperCase());
+      return matches && isUnpaid && notDone;
+    });
+
+    // Active reservation lookup
+    const activeRes = allRes.find(r => {
+      const rTableId = String(r.table_id ?? r.table?.id ?? '');
+      const rTableNum = String(r.table?.tableNumber ?? '');
+      const matches = (rTableId === tableIdStr || rTableNum === tableNumStr) && (rTableId !== '' || rTableNum !== '');
+      return matches && ['PENDING', 'CONFIRMED'].includes(String(r.status || '').toUpperCase());
+    });
+
+    let customerDisplay = 'Bàn sẵn sàng đón khách';
+    let customerIcon = 'fa-chair';
+    let durationText = '';
+
     if (st === 'OCCUPIED') {
-      const startTime = table.occupiedSince ? new Date(table.occupiedSince) : null;
+      customerIcon = 'fa-user-group';
+      if (activeOrder) {
+        customerDisplay = activeOrder.User?.fullName || (activeOrder.user_id ? `Khách #${activeOrder.user_id}` : 'Khách tại bàn');
+      } else if (activeRes) {
+        customerDisplay = activeRes.guestName || activeRes.User?.fullName || 'Khách đặt trước';
+      } else {
+        customerDisplay = 'Khách đang dùng bữa';
+      }
+
+      const startTime = table.occupiedSince ? new Date(table.occupiedSince) : (activeOrder?.createdAt ? new Date(activeOrder.createdAt) : null);
       if (startTime && !isNaN(startTime)) {
         const diffMins = Math.max(0, Math.floor((now - startTime) / 60000));
         const timeStr = diffMins >= 60 ? `${Math.floor(diffMins / 60)}h ${diffMins % 60}p` : `${diffMins}p`;
-        liveTimerText = ` • ⏱️ ${timeStr}`;
+        durationText = `⏱️ ${timeStr}`;
       } else if (table.timeUsed) {
-        liveTimerText = ` • ⏱️ ${table.timeUsed}`;
+        durationText = `⏱️ ${table.timeUsed}`;
+      } else {
+        durationText = '⏱️ Đang phục vụ';
       }
+    } else if (st === 'BOOKED') {
+      customerIcon = 'fa-calendar-check';
+      if (activeRes) {
+        customerDisplay = `${activeRes.guestName || 'Khách đặt'} (${activeRes.numberOfGuests || table.capacity || 2} khách)`;
+        durationText = `📅 ${formatDateTime(activeRes.reservationTime)}`;
+      } else {
+        customerDisplay = 'Đã có lịch hẹn đặt trước';
+        durationText = '📅 Đã đặt trước';
+      }
+    } else if (st === 'CLEANING') {
+      customerIcon = 'fa-broom';
+      customerDisplay = 'Chờ nhân viên dọn dẹp vệ sinh';
+      durationText = '🟣 Cần dọn';
+    } else {
+      customerIcon = 'fa-circle-check';
+      customerDisplay = `Bàn trống • Sức chứa ${table.capacity || 4} chỗ`;
+      durationText = '🟢 Sẵn sàng';
     }
 
-    const targetUrl = `https://appdatmon.com/table/${table.qrCode || `T${table.tableNumber}`}`;
-    const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
+    let stepIdx = 0;
+    if (st === 'AVAILABLE') stepIdx = 0;
+    if (st === 'BOOKED') stepIdx = 1;
+    if (st === 'OCCUPIED') stepIdx = 2;
+    if (st === 'CLEANING') stepIdx = 3;
+
+    const qrCodeString = table.qrCode || `TABLE_${table.tableNumber}`;
+    const targetUrl = `${baseUrl}/customer/menu.html?qr=${encodeURIComponent(qrCodeString)}&table=${table.tableNumber}&tableId=${table.id}`;
+    const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(targetUrl)}`;
+
+    const orderItems = activeOrder?.OrderItems || [];
+    const itemsCount = orderItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
+    const orderTotal = activeOrder ? (activeOrder.finalPrice ?? activeOrder.totalPrice) : 0;
+    const paymentStatus = activeOrder ? String(activeOrder.paymentStatus || 'UNPAID').toUpperCase() : 'NONE';
+    const orderStatus = activeOrder ? String(activeOrder.status || 'PENDING').toUpperCase() : '';
 
     return `
-      <article class="table-card-clean">
-        <div class="table-card-head-clean">
-          <div class="table-title-clean">Bàn #${table.tableNumber}</div>
-          <span class="table-pill-clean ${info.cssClass}">${info.label}</span>
+      <article class="order-card table-card-premium status-border-${st.toLowerCase()}">
+        <div class="order-card-head">
+          <div class="order-id-badge">
+            <i class="fa-solid fa-chair"></i> Bàn #${table.tableNumber}
+          </div>
+          <span class="table-pill-clean ${info.cssClass}">
+            ${info.label}
+          </span>
         </div>
 
-        <div style="font-size:0.8rem; color:#475569; margin:0.3rem 0; line-height:1.4">
-          👥 ${table.capacity || 4} chỗ ${liveTimerText} • QR: <code>${escapeHtml(table.qrCode || `T${table.tableNumber}`)}</code>
+        <div class="order-customer-info">
+          <div style="display:flex; align-items:center; gap:0.4rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:65%">
+            <i class="fa-solid ${customerIcon}" style="color:#004ac6"></i>
+            <strong style="font-size:0.92rem; color:#111c2d">${escapeHtml(customerDisplay)}</strong>
+          </div>
+          <span class="muted" style="font-size:0.8rem; font-weight:700">${escapeHtml(durationText)}</span>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr auto; gap:0.4rem; align-items:center; margin-top:0.4rem">
-          <select data-action="change-table-status" data-id="${table.id}" style="width:100%; font-size:0.78rem; padding:0.35rem 0.5rem; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; font-weight:600">
+        <div class="order-stepper table-stepper" title="Tiến trình trạng thái bàn">
+          <div class="order-stepper-line"></div>
+          <div class="order-step ${stepIdx >= 0 ? 'done' : ''}" title="Trống (Sẵn sàng)"><i class="fa-solid fa-chair"></i></div>
+          <div class="order-step ${stepIdx >= 1 ? 'done' : ''}" title="Đặt trước (Booked)"><i class="fa-solid fa-calendar-check"></i></div>
+          <div class="order-step ${stepIdx >= 2 ? 'done' : ''}" title="Đang ăn (Occupied)"><i class="fa-solid fa-utensils"></i></div>
+          <div class="order-step ${stepIdx >= 3 ? 'done' : ''}" title="Cần dọn (Cleaning)"><i class="fa-solid fa-broom"></i></div>
+        </div>
+
+        ${activeOrder ? `
+          <div class="order-summary-box">
+            <div>
+              <span class="muted" style="font-size:0.82rem; display:block">Đơn #${activeOrder.id} • <strong>${itemsCount} món</strong></span>
+              ${statusChip(paymentStatusClass(paymentStatus), 'Chưa thanh toán')}
+            </div>
+            <div class="order-total-price">${formatCurrency(orderTotal)}</div>
+          </div>
+        ` : ''}
+
+        <div class="row-actions" style="gap:0.4rem; justify-content:space-between; align-items:center">
+          <select data-action="change-table-status" data-id="${table.id}" class="table-quick-select" style="font-weight:700; flex:1" title="Đổi trạng thái bàn (Hệ thống sẽ tự động lưu)">
             <option value="AVAILABLE" ${st === 'AVAILABLE' ? 'selected' : ''}>🟢 Bàn trống</option>
-            <option value="OCCUPIED" ${st === 'OCCUPIED' ? 'selected' : ''}>🟡 Đang ăn</option>
             <option value="BOOKED" ${st === 'BOOKED' ? 'selected' : ''}>🔵 Đặt trước</option>
+            <option value="OCCUPIED" ${st === 'OCCUPIED' ? 'selected' : ''}>🟡 Đang ăn</option>
             <option value="CLEANING" ${st === 'CLEANING' ? 'selected' : ''}>🟣 Cần dọn</option>
           </select>
-          <button class="btn btn-secondary btn-small" data-action="open-table-qr-modal" data-number="${table.tableNumber}" data-capacity="${table.capacity || 4}" data-url="${targetUrl}" data-img="${qrImageSrc}" style="font-size:0.75rem; padding:0.35rem 0.6rem" title="Mở Mã QR Bàn">
-            <i class="fa-solid fa-qrcode"></i> QR
+
+          <button class="btn btn-primary btn-small" data-action="open-table-qr-modal" data-number="${table.tableNumber}" data-capacity="${table.capacity || 4}" data-code="${escapeHtml(qrCodeString)}" data-url="${escapeHtml(targetUrl)}" data-img="${qrImageSrc}" style="font-weight:800; padding:0.4rem 0.75rem" title="Mở mã QR bàn">
+            <i class="fa-solid fa-qrcode"></i> QR Bàn
           </button>
+
+          ${activeOrder && paymentStatus !== 'PAID' && ['READY', 'COMPLETED'].includes(orderStatus) ? `
+            <button class="btn btn-primary btn-small" data-action="open-checkout-modal" data-id="${activeOrder.id}" data-table="${table.tableNumber}" data-customer="${escapeHtml(customerDisplay)}" data-amount="${orderTotal}" data-items="${itemsCount}" data-status="${orderStatus}" style="font-weight:800; background:#15803d" title="Thanh toán đơn hàng">
+              <i class="fa-solid fa-credit-card"></i> Thu tiền
+            </button>
+          ` : ''}
+
+          <button class="btn btn-ghost btn-small" data-action="toggle-staff-table-detail" data-id="${table.id}" title="Xem chi tiết bàn"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
+
+        <div class="mini-card hidden" data-staff-table-detail="${table.id}">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; padding-bottom:0.4rem; border-bottom:1px dashed #cbd5e1">
+            <div><strong>Mã Bàn:</strong> <span class="badge-inline" style="background:#e0f2fe; color:#004ac6; font-weight:800"><i class="fa-solid fa-chair"></i> Bàn #${table.tableNumber}</span></div>
+            <div style="font-size:0.82rem; color:#64748b">👥 Sức chứa: <strong>${table.capacity || 4} người</strong></div>
+          </div>
+
+          ${activeOrder ? `
+            <div style="margin-top:0.4rem">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem">
+                <h4 class="mini-card-title" style="margin:0"><i class="fa-solid fa-receipt"></i> Đơn hàng #${activeOrder.id} (${itemsCount} món)</h4>
+                <span class="badge-inline" style="font-size:0.75rem; background:#f1f5f9">${activeOrder.status}</span>
+              </div>
+              <div class="info-list" style="max-height:160px; overflow-y:auto">
+                ${orderItems.map(item => `
+                  <div class="info-row" style="padding:0.3rem 0.5rem">
+                    <span>${escapeHtml(item.Product?.name || `#${item.product_id}`)} x${item.quantity}</span>
+                    <strong>${formatCurrency(item.totalPrice || 0)}</strong>
+                  </div>
+                `).join('')}
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem; padding-top:0.4rem; border-top:1px solid #f1f5f9">
+                <strong style="font-size:0.85rem">Tổng tiền đơn:</strong>
+                <strong style="color:#004ac6; font-size:1rem">${formatCurrency(orderTotal)}</strong>
+              </div>
+            </div>
+          ` : activeRes ? `
+            <div style="margin-top:0.4rem">
+              <h4 class="mini-card-title" style="margin:0 0 0.4rem 0"><i class="fa-solid fa-calendar-check"></i> Thông tin đặt bàn trước</h4>
+              <div class="info-list">
+                <div class="info-row" style="padding:0.3rem 0.5rem"><span>Khách đặt:</span><strong>${escapeHtml(activeRes.guestName || '-')}</strong></div>
+                <div class="info-row" style="padding:0.3rem 0.5rem"><span>Điện thoại:</span><strong>${escapeHtml(activeRes.guestPhone || '-')}</strong></div>
+                <div class="info-row" style="padding:0.3rem 0.5rem"><span>Thời gian hẹn:</span><strong>${formatDateTime(activeRes.reservationTime)}</strong></div>
+                <div class="info-row" style="padding:0.3rem 0.5rem"><span>Số khách:</span><strong>${activeRes.numberOfGuests || table.capacity || 2} người</strong></div>
+              </div>
+            </div>
+          ` : `
+            <div style="font-size:0.84rem; color:#64748b; padding:0.4rem 0; text-align:center">
+              <i class="fa-solid fa-circle-check text-success"></i> Bàn đang trống và sẵn sàng đón khách
+            </div>
+          `}
         </div>
       </article>
     `;
@@ -714,13 +969,61 @@ function bindGlobalActions() {
       return;
     }
 
+    // Confirm Order Action (Chuyển trạng thái sang CONFIRMED để chuyển tiếp qua Bếp)
+    const confirmOrderBtn = event.target.closest('[data-action="confirm-order"]');
+    if (confirmOrderBtn) {
+      const id = confirmOrderBtn.dataset.id;
+      try {
+        await api(`/api/orders/${id}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({ status: 'CONFIRMED' })
+        });
+        alert(`✅ Đã xác nhận Đơn hàng #${id}! Đơn đã được chuyển qua Bếp chế biến.`);
+        await bootstrap();
+      } catch (err) {
+        alert(err.message || 'Không thể xác nhận đơn hàng');
+      }
+      return;
+    }
+
+    // Cancel Order Action (Chuyển trạng thái sang CANCELLED)
+    const cancelOrderBtn = event.target.closest('[data-action="cancel-order"]');
+    if (cancelOrderBtn) {
+      const id = cancelOrderBtn.dataset.id;
+      if (confirm(`Bạn chắc chắn muốn HỦY bỏ Đơn hàng #${id}?`)) {
+        try {
+          await api(`/api/orders/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: 'CANCELLED' })
+          });
+          alert(`❌ Đã hủy bỏ Đơn hàng #${id}.`);
+          await bootstrap();
+        } catch (err) {
+          alert(err.message || 'Không thể hủy đơn hàng');
+        }
+      }
+      return;
+    }
+
+    // Toggle Order Detail Accordion
+    const toggleDetailBtn = event.target.closest('[data-action="toggle-order-detail"]');
+    if (toggleDetailBtn) {
+      const id = toggleDetailBtn.dataset.id;
+      const detailEl = document.querySelector(`[data-order-detail="${id}"]`);
+      if (detailEl) {
+        detailEl.classList.toggle('hidden');
+        const icon = toggleDetailBtn.querySelector('i');
+        if (icon) {
+          icon.className = detailEl.classList.contains('hidden') ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+        }
+      }
+      return;
+    }
+
     // Filter Pills
     const filterBtn = event.target.closest('[data-order-filter]');
     if (filterBtn) {
       state.orderFilter = filterBtn.dataset.orderFilter;
-      document.querySelectorAll('#order-filter-pills button').forEach(b => {
-        b.className = b.dataset.orderFilter === state.orderFilter ? 'btn btn-primary btn-small' : 'btn btn-secondary btn-small';
-      });
       renderOrdersGrid(state.orders);
       return;
     }
@@ -814,27 +1117,84 @@ function bindGlobalActions() {
     // Open Table QR Code Generator Modal
     const qrTableBtn = event.target.closest('[data-action="open-table-qr-modal"]');
     if (qrTableBtn) {
-      const tableNumber = qrTableBtn.dataset.number;
-      const capacity = qrTableBtn.dataset.capacity;
-      const targetUrl = qrTableBtn.dataset.url;
-      const qrImg = qrTableBtn.dataset.img;
+      const tableNumber = qrTableBtn.dataset.number || '1';
+      const capacity = qrTableBtn.dataset.capacity || 4;
+      const targetUrl = qrTableBtn.dataset.url || '';
+      const qrImg = qrTableBtn.dataset.img || `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(targetUrl)}`;
+      const code = qrTableBtn.dataset.code || `TABLE_${tableNumber}`;
 
-      if (document.querySelector('#table-qr-modal-title')) document.querySelector('#table-qr-modal-title').textContent = `📱 Mã QR Gọi Món Bàn #${tableNumber}`;
-      if (document.querySelector('#table-qr-subtext')) document.querySelector('#table-qr-subtext').textContent = `Bàn #${tableNumber} • Sức chứa ${capacity} người`;
-      if (document.querySelector('#table-qr-url-text')) document.querySelector('#table-qr-url-text').textContent = targetUrl;
-      if (document.querySelector('#table-qr-image')) document.querySelector('#table-qr-image').src = qrImg;
-      if (document.querySelector('#btn-download-table-qr')) {
-        document.querySelector('#btn-download-table-qr').href = qrImg;
-        document.querySelector('#btn-download-table-qr').setAttribute('download', `Ma_QR_Ban_${tableNumber}.png`);
+      let modal = document.querySelector('#table-qr-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'table-qr-modal';
+        modal.className = 'modal-backdrop';
+        document.body.appendChild(modal);
       }
 
-      if (document.querySelector('#table-qr-modal')) document.querySelector('#table-qr-modal').classList.remove('hidden');
+      modal.innerHTML = `
+        <div class="modal-card" style="max-width:440px; text-align:center; background:#ffffff">
+          <div class="modal-head">
+            <div>
+              <h3 class="modal-title"><i class="fa-solid fa-qrcode text-accent" style="margin-right:0.4rem"></i>Mã QR Bàn #${tableNumber}</h3>
+              <div class="subtle">Quét mã QR để truy cập thực đơn và đặt món trực tuyến</div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-small" id="close-table-qr-modal"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="modal-body" style="padding:1rem 0; display:grid; gap:1.1rem">
+            <div style="background:#ffffff; padding:1.4rem; border-radius:22px; border:2px solid #3b82f6; box-shadow:0 10px 30px rgba(0,74,198,0.12)">
+              <div style="font-weight:900; font-size:1.15rem; color:#004ac6; margin-bottom:0.2rem; letter-spacing:0.5px">FUTURESUSHI RESTAURANT</div>
+              <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.9rem">Hệ Thống Đặt Món Thông Minh Tại Bàn</div>
+              <img id="table-qr-image" src="${qrImg}" alt="Mã QR Bàn #${tableNumber}" style="width:220px; height:220px; border-radius:14px; margin:0 auto; display:block; border:1px solid #cbd5e1; box-shadow:0 4px 14px rgba(0,0,0,0.06)" />
+              <div style="margin-top:0.9rem; font-weight:800; font-size:1.1rem; color:#111c2d" id="table-qr-subtext">Bàn #${tableNumber} • Sức chứa ${capacity} người</div>
+              <div style="font-size:0.82rem; color:#64748b; margin-top:0.2rem">Mã định danh: <code>${code}</code></div>
+              <code style="display:block; margin-top:0.6rem; background:#f1f5f9; padding:0.45rem; border-radius:8px; font-size:0.75rem; word-break:break-all; border:1px solid #e2e8f0" id="table-qr-url-text">${targetUrl}</code>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem">
+              <button type="button" class="btn btn-secondary" data-action="copy-table-url" data-url="${targetUrl}" style="padding:0.65rem; font-size:0.88rem"><i class="fa-regular fa-copy"></i> Sao chép link</button>
+              <a id="btn-download-table-qr" class="btn btn-primary" href="${qrImg}" download="Ma_QR_Ban_${tableNumber}.png" target="_blank" style="padding:0.65rem; font-size:0.88rem"><i class="fa-solid fa-download"></i> Tải ảnh QR</a>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem">
+              <button type="button" class="btn btn-secondary" onclick="window.print()" style="padding:0.65rem; font-size:0.88rem"><i class="fa-solid fa-print"></i> In mã QR</button>
+              <a class="btn btn-ghost" href="${targetUrl}" target="_blank" style="padding:0.65rem; font-size:0.88rem; border:1px solid #cbd5e1"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Menu Web</a>
+            </div>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
       return;
     }
 
     // Close Table QR Modal
-    if (event.target.closest('#close-table-qr-modal')) {
-      if (document.querySelector('#table-qr-modal')) document.querySelector('#table-qr-modal').classList.add('hidden');
+    if (event.target.closest('#close-table-qr-modal') || event.target.matches('#table-qr-modal')) {
+      const modal = document.querySelector('#table-qr-modal');
+      if (modal) modal.classList.add('hidden');
+      return;
+    }
+
+    // Toggle Staff Table Detail Drawer
+    const toggleTableBtn = event.target.closest('[data-action="toggle-staff-table-detail"]');
+    if (toggleTableBtn) {
+      const tableId = toggleTableBtn.dataset.id;
+      const detailEl = document.querySelector(`[data-staff-table-detail="${tableId}"]`);
+      if (detailEl) detailEl.classList.toggle('hidden');
+      return;
+    }
+
+    // Copy Table QR URL
+    const copyUrlBtn = event.target.closest('[data-action="copy-table-url"]');
+    if (copyUrlBtn) {
+      const url = copyUrlBtn.dataset.url;
+      if (url) {
+        if (navigator?.clipboard?.writeText) {
+          navigator.clipboard.writeText(url).then(() => {
+            alert('Đã sao chép liên kết gọi món bàn!');
+          }).catch(() => {
+            prompt('Sao chép liên kết gọi món bàn:', url);
+          });
+        } else {
+          prompt('Sao chép liên kết gọi món bàn:', url);
+        }
+      }
       return;
     }
 
@@ -1070,11 +1430,16 @@ function bindGlobalActions() {
         renderVipUsers(state.users);
         return;
       }
-      const filteredOrders = state.orders.filter(o =>
-        String(o.id).includes(q) ||
-        (o.User?.fullName || '').toLowerCase().includes(q) ||
-        String(o.RestaurantTable?.tableNumber || o.table_id || '').includes(q)
-      );
+      const filteredOrders = state.orders.filter(o => {
+        const tInfo = getOrderTableInfo(o, state.tables);
+        return (
+          String(o.id).includes(q) ||
+          (o.User?.fullName || '').toLowerCase().includes(q) ||
+          tInfo.label.toLowerCase().includes(q) ||
+          String(tInfo.tableNumber || '').includes(q) ||
+          (o.note || '').toLowerCase().includes(q)
+        );
+      });
       renderOrdersGrid(filteredOrders);
 
       const filteredTables = state.tables.filter(t =>
@@ -1142,13 +1507,19 @@ async function bootstrap() {
   }
 }
 
-// DOM Ready Handler
-window.addEventListener('DOMContentLoaded', () => {
-  bindGlobalActions();
-  bootstrap();
+// Initialize Event Delegation & Clock
+bindGlobalActions();
 
-  // Auto polling refresh every 10 seconds
-  setInterval(() => {
+// Initial Data Bootstrap
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
     bootstrap();
-  }, 10000);
-});
+  });
+} else {
+  bootstrap();
+}
+
+// Auto polling refresh every 10 seconds
+setInterval(() => {
+  bootstrap();
+}, 10000);

@@ -2,7 +2,7 @@ import { TOKEN_KEY, USER_KEY, API_BASE_URL, RESERVATION_STATUS_MAP } from './js/
 import { formatCurrency, formatDateTime, formatNumber, escapeHtml, userInitials, statusChip, tableStatusClass, orderStatusClass, paymentStatusClass, reservationStatusClass } from './js/utils.js';
 import { api } from './js/api.js';
 import { renderReservationsGrid } from './js/views/reservationsView.js';
-import { renderOrdersGrid, generatePayOSQRUrl } from './js/views/ordersView.js';
+import { renderOrdersGrid, generatePayOSQRUrl, getOrderTableInfo } from './js/views/ordersView.js';
 import { renderTablesFloorGrid } from './js/views/tablesView.js';
 import { renderProductsGrid } from './js/views/productsView.js';
 import { renderUsersGrid } from './js/views/usersView.js';
@@ -203,7 +203,13 @@ const ENTITY_CONFIGS = {
     columns: [
       { label: 'Mã đơn', render: row => `#${row.id}` },
       { label: 'Khách', render: row => row.User?.fullName || row.user_id ? `${row.User?.fullName || 'Khách'} (#${row.user_id})` : 'Khách vãng lai' },
-      { label: 'Bàn', render: row => row.RestaurantTable?.tableNumber ? `#${row.RestaurantTable.tableNumber}` : row.table_id ? `#${row.table_id}` : '-' },
+      { 
+        label: 'Bàn', 
+        render: row => {
+          const tInfo = getOrderTableInfo(row, state.data.tables);
+          return `<span class="badge-inline" style="background:#e0f2fe; color:#004ac6; font-weight:700"><i class="fa-solid ${tInfo.isTakeaway ? 'fa-bag-shopping' : 'fa-chair'}"></i> ${tInfo.label}</span>`;
+        } 
+      },
       { label: 'Tổng tiền', render: row => formatCurrency(row.finalPrice ?? row.totalPrice) },
       { label: 'Thanh toán', render: row => statusChip(paymentStatusClass(row.paymentStatus), row.paymentStatus) },
       { label: 'Trạng thái', render: row => statusChip(orderStatusClass(row.status), row.status) }
@@ -409,6 +415,15 @@ async function loadAllData() {
 
   for (const [key, value] of entries) {
     state.data[key] = value;
+  }
+  if (Array.isArray(state.data.tables)) {
+    window.__tablesList = state.data.tables;
+  }
+  if (Array.isArray(state.data.orders)) {
+    window.__ordersList = state.data.orders;
+  }
+  if (Array.isArray(state.data.reservations)) {
+    window.__reservationsList = state.data.reservations;
   }
 }
 
@@ -853,21 +868,26 @@ function renderOverview() {
               <tr>
                 <th>Mã đơn</th>
                 <th>Khách hàng</th>
+                <th>Vị trí / Bàn</th>
                 <th>Thời gian</th>
                 <th>Trạng thái</th>
                 <th class="right">Tổng tiền</th>
               </tr>
             </thead>
             <tbody>
-              ${recentOrders.map(order => `
+              ${recentOrders.map(order => {
+                const tInfo = getOrderTableInfo(order, state.data.tables);
+                return `
                 <tr>
                   <td>#${escapeHtml(order.id)}</td>
                   <td>${escapeHtml(order.User?.fullName || order.user_id ? (order.User?.fullName || `#${order.user_id}`) : 'Khách vãng lai')}</td>
+                  <td><span class="badge-inline" style="background:#e0f2fe; color:#004ac6; font-weight:700"><i class="fa-solid ${tInfo.isTakeaway ? 'fa-bag-shopping' : 'fa-chair'}"></i> ${tInfo.label}</span></td>
                   <td>${escapeHtml(formatDateTime(order.createdAt || order.created_at))}</td>
                   <td>${statusChip(orderStatusClass(order.status), order.status)}</td>
                   <td class="right">${formatCurrency(order.finalPrice ?? order.totalPrice)}</td>
                 </tr>
-              `).join('')}
+              `;
+              }).join('')}
             </tbody>
           </table>
         </div>
@@ -1388,7 +1408,14 @@ function getFilteredRecords(view, records) {
   }
 
   if (!query) return list;
-  return list.filter(record => JSON.stringify(record).toLowerCase().includes(query));
+  return list.filter(record => {
+    if (view === 'orders') {
+      const tInfo = getOrderTableInfo(record, state.data.tables);
+      const searchStr = `${JSON.stringify(record)} ${tInfo.label} ${tInfo.tableNumber || ''}`.toLowerCase();
+      return searchStr.includes(query);
+    }
+    return JSON.stringify(record).toLowerCase().includes(query);
+  });
 }
 
 function renderViewContent(view, records, mode) {
@@ -1402,9 +1429,9 @@ function renderViewContent(view, records, mode) {
 
   if (view === 'products') return renderProductsGrid(records);
   if (view === 'categories') return renderCategoriesGrid(records);
-  if (view === 'tables') return renderTablesFloorGrid(records);
+  if (view === 'tables') return renderTablesFloorGrid(records, state.activeTabs.tables || 'ALL', state.data.orders, state.data.reservations);
   if (view === 'reservations') return renderReservationsGrid(records);
-  if (view === 'orders') return renderOrdersGrid(records);
+  if (view === 'orders') return renderOrdersGrid(records, state.activeTabs.orders || 'ALL', state.data.tables);
   if (view === 'users') return renderUsersGrid(records);
   if (view === 'reviews') return renderReviewsGrid(records);
 
@@ -1647,11 +1674,14 @@ function renderOrdersTable(records) {
           </tr>
         </thead>
         <tbody>
-          ${records.map(record => `
+          ${records.map(record => {
+            const tInfo = getOrderTableInfo(record, state.data.tables);
+            const customerName = record.User?.fullName || record.user_id ? (record.User?.fullName || `#${record.user_id}`) : 'Khách vãng lai';
+            return `
             <tr>
               <td>#${record.id}</td>
-              <td>${escapeHtml(record.User?.fullName || record.user_id ? (record.User?.fullName || `#${record.user_id}`) : 'Khách vãng lai')}</td>
-              <td>${escapeHtml(record.RestaurantTable?.tableNumber ? `#${record.RestaurantTable.tableNumber}` : record.table_id ? `#${record.table_id}` : '-')}</td>
+              <td>${escapeHtml(customerName)}</td>
+              <td><span class="badge-inline" style="background:#e0f2fe; color:#004ac6; font-weight:700"><i class="fa-solid ${tInfo.isTakeaway ? 'fa-bag-shopping' : 'fa-chair'}"></i> ${tInfo.label}</span></td>
               <td>${formatCurrency(record.finalPrice ?? record.totalPrice)}</td>
               <td>${statusChip(paymentStatusClass(record.paymentStatus), record.paymentStatus)}</td>
               <td>
@@ -1662,7 +1692,7 @@ function renderOrdersTable(records) {
               <td>
                 <div class="row-actions">
                   <button class="btn btn-secondary btn-small" data-action="save-order-status" data-id="${record.id}">Lưu</button>
-                  <button class="btn btn-primary btn-small" data-action="pay-order" data-id="${record.id}">Thanh toán</button>
+                  <button class="btn btn-primary btn-small" data-action="open-admin-checkout" data-id="${record.id}" data-table="${tInfo.tableNumber || ''}" data-customer="${escapeHtml(customerName)}" data-amount="${record.finalPrice ?? record.totalPrice}" data-items="${(record.OrderItems || []).length}" data-status="${String(record.status || 'PENDING').toUpperCase()}">Thanh toán</button>
                   <button class="btn btn-danger btn-small" data-action="delete-record" data-view="orders" data-id="${record.id}">Xóa</button>
                   <button class="btn btn-ghost btn-small" data-action="toggle-order-detail" data-id="${record.id}">Chi tiết</button>
                 </div>
@@ -1671,7 +1701,10 @@ function renderOrdersTable(records) {
             <tr class="hidden" data-order-detail="${record.id}">
               <td colspan="7">
                 <div class="mini-card">
-                  <h4 class="mini-card-title">Chi tiết đơn #${record.id}</h4>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; padding-bottom:0.4rem; border-bottom:1px dashed #cbd5e1">
+                    <h4 class="mini-card-title" style="margin:0">Chi tiết đơn #${record.id}</h4>
+                    <span class="badge-inline" style="background:#e0f2fe; color:#004ac6; font-weight:800"><i class="fa-solid ${tInfo.isTakeaway ? 'fa-bag-shopping' : 'fa-chair'}"></i> ${tInfo.label}</span>
+                  </div>
                   <p class="mini-card-copy">${escapeHtml(record.note || 'Không có ghi chú')}</p>
                   <div class="info-list" style="margin-top:0.8rem">
                     ${(record.OrderItems || []).map(item => `
@@ -1684,7 +1717,8 @@ function renderOrdersTable(records) {
                 </div>
               </td>
             </tr>
-          `).join('')}
+          `;
+          }).join('')}
         </tbody>
       </table>
     </div>
@@ -1764,7 +1798,49 @@ function renderModal() {
     return renderTableBulkModal();
   }
 
+  if (state.modal.kind === 'table-qr') {
+    return renderTableQrModal(state.modal.record);
+  }
+
   return '';
+}
+
+function renderTableQrModal(tableData) {
+  if (!tableData) return '';
+  return `
+    <div class="modal-backdrop" data-action="close-modal">
+      <div class="modal-card" data-action="stop-propagation" style="max-width:440px; text-align:center">
+        <div class="modal-head">
+          <div>
+            <h3 class="modal-title"><i class="fa-solid fa-qrcode text-accent" style="margin-right:0.4rem"></i>Mã QR Bàn #${escapeHtml(tableData.number)}</h3>
+            <div class="subtle">Quét mã QR để truy cập thực đơn và đặt món trực tuyến</div>
+          </div>
+          <button class="btn btn-ghost btn-small" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body" style="padding:1rem 0; display:grid; gap:1.1rem">
+          <div style="background:#ffffff; padding:1.4rem; border-radius:22px; border:2px solid #3b82f6; box-shadow:0 10px 30px rgba(0,74,198,0.12)">
+            <div style="font-weight:900; font-size:1.15rem; color:#004ac6; margin-bottom:0.2rem; letter-spacing:0.5px">FUTURESUSHI RESTAURANT</div>
+            <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.9rem">Hệ Thống Đặt Món Thông Minh Tại Bàn</div>
+            <img src="${escapeHtml(tableData.img)}" alt="Mã QR Bàn #${escapeHtml(tableData.number)}" style="width:220px; height:220px; border-radius:14px; margin:0 auto; display:block; border:1px solid #cbd5e1; box-shadow:0 4px 14px rgba(0,0,0,0.06)" />
+            <div style="margin-top:0.9rem; font-weight:800; font-size:1.1rem; color:#111c2d">Bàn #${escapeHtml(tableData.number)} • Sức chứa ${escapeHtml(tableData.capacity || 4)} người</div>
+            <div style="font-size:0.82rem; color:#64748b; margin-top:0.2rem">Mã định danh: <code>${escapeHtml(tableData.code || `T${tableData.number}`)}</code></div>
+            <code style="display:block; margin-top:0.6rem; background:#f1f5f9; padding:0.45rem; border-radius:8px; font-size:0.75rem; word-break:break-all; border:1px solid #e2e8f0">${escapeHtml(tableData.url)}</code>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem">
+            <button type="button" class="btn btn-secondary" data-action="copy-table-url" data-url="${escapeHtml(tableData.url)}" style="padding:0.65rem; font-size:0.88rem"><i class="fa-regular fa-copy"></i> Sao chép link</button>
+            <a class="btn btn-primary" href="${escapeHtml(tableData.img)}" download="QR_Ban_${tableData.number}.png" target="_blank" style="padding:0.65rem; font-size:0.88rem"><i class="fa-solid fa-download"></i> Tải ảnh QR</a>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem">
+            <button type="button" class="btn btn-secondary" onclick="window.print()" style="padding:0.65rem; font-size:0.88rem"><i class="fa-solid fa-print"></i> In mã QR</button>
+            <a class="btn btn-ghost" href="${escapeHtml(tableData.url)}" target="_blank" style="padding:0.65rem; font-size:0.88rem; border:1px solid #cbd5e1"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Menu Web</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderUserDetailModal(user) {
@@ -2313,6 +2389,66 @@ function bindGlobalEvents() {
           }
           break;
         }
+        case 'confirm-order': {
+          await simpleAction(`/api/orders/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: 'CONFIRMED' })
+          }, `Đã xác nhận Đơn hàng #${id} và chuyển qua Bếp chế biến!`);
+          break;
+        }
+        case 'cancel-order': {
+          if (confirm(`Bạn chắc chắn muốn HỦY bỏ Đơn hàng #${id}?`)) {
+            await simpleAction(`/api/orders/${id}/status`, {
+              method: 'PUT',
+              body: JSON.stringify({ status: 'CANCELLED' })
+            }, `Đã hủy bỏ Đơn hàng #${id}.`);
+          }
+          break;
+        }
+        case 'open-admin-checkout': {
+          const tableNumber = target.dataset.table;
+          const customerName = target.dataset.customer;
+          const amount = target.dataset.amount;
+          const itemsCount = target.dataset.items;
+          const status = target.dataset.status;
+          openAdminCheckoutModal(id, tableNumber, customerName, amount, itemsCount, status);
+          break;
+        }
+        case 'open-table-qr-modal': {
+          const number = target.dataset.number;
+          const capacity = target.dataset.capacity || 4;
+          const code = target.dataset.code || `T${number}`;
+          const url = target.dataset.url;
+          const img = target.dataset.img;
+          state.modal = {
+            kind: 'table-qr',
+            record: { number, capacity, code, url, img }
+          };
+          render();
+          break;
+        }
+        case 'toggle-table-detail': {
+          const detailRow = app.querySelector(`[data-table-detail="${id}"]`);
+          if (detailRow) {
+            detailRow.classList.toggle('hidden');
+          }
+          break;
+        }
+        case 'copy-table-url': {
+          const url = target.dataset.url;
+          if (url) {
+            if (navigator?.clipboard?.writeText) {
+              navigator.clipboard.writeText(url).then(() => {
+                toast('success', 'Đã sao chép liên kết', 'Đường dẫn gọi món bàn đã được sao chép.');
+              }).catch(() => {
+                prompt('Sao chép liên kết gọi món bàn:', url);
+              });
+            } else {
+              prompt('Sao chép liên kết gọi món bàn:', url);
+            }
+          }
+          break;
+        }
         default:
           break;
       }
@@ -2672,8 +2808,10 @@ function openAdminCheckoutModal(orderId, tableNumber, customerName, amount, item
   state.checkoutOrderId = orderId;
   state.checkoutAmount = Number(amount || 0);
 
+  const tableText = tableNumber ? `Bàn #${tableNumber}` : 'Mang đi / Chưa gán bàn';
+
   if (document.querySelector('#payment-modal-title')) document.querySelector('#payment-modal-title').textContent = `💳 Thanh toán Đơn hàng #${orderId}`;
-  if (document.querySelector('#payment-modal-sub')) document.querySelector('#payment-modal-sub').textContent = `Vị trí: Bàn #${tableNumber} • Khách hàng: ${customerName}`;
+  if (document.querySelector('#payment-modal-sub')) document.querySelector('#payment-modal-sub').textContent = `Vị trí: ${tableText} • Khách hàng: ${customerName}`;
   if (document.querySelector('#payment-modal-amount')) document.querySelector('#payment-modal-amount').textContent = formatCurrency(amount);
   if (document.querySelector('#payment-modal-items-count')) document.querySelector('#payment-modal-items-count').textContent = `${itemsCount || 0} món ăn trong đơn hàng`;
 

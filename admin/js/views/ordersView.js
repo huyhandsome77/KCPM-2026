@@ -2,7 +2,57 @@
 import { formatCurrency, formatDateTime, statusChip, paymentStatusClass, escapeHtml } from '../utils.js';
 import { api } from '../api.js';
 
-export function renderOrdersGrid(records, activeFilter = 'ALL') {
+export function getOrderTableInfo(order, tables = []) {
+  if (!order) {
+    return {
+      tableNumber: null,
+      label: 'Mang đi',
+      isTakeaway: true,
+      displayBadge: '<span class="order-table-chip takeaway"><i class="fa-solid fa-bag-shopping"></i> Mang đi</span>'
+    };
+  }
+
+  // 1. Check direct object associations
+  const directNum = order.RestaurantTable?.tableNumber ?? order.table?.tableNumber ?? order.tableNumber;
+  if (directNum !== undefined && directNum !== null && directNum !== '') {
+    return {
+      tableNumber: directNum,
+      label: `Bàn #${directNum}`,
+      isTakeaway: false,
+      displayBadge: `<span class="order-table-chip"><i class="fa-solid fa-chair"></i> Bàn #${directNum}</span>`
+    };
+  }
+
+  // 2. Lookup in tables list (by table_id or matching id/tableNumber)
+  const tableId = order.table_id ?? order.tableId ?? order.RestaurantTable?.id ?? order.table?.id;
+  if (tableId !== undefined && tableId !== null && tableId !== '') {
+    const tableList = Array.isArray(tables) && tables.length ? tables : (window.__tablesList || []);
+    const matchedTable = tableList.find(t => String(t.id) === String(tableId) || String(t.tableNumber) === String(tableId));
+    if (matchedTable && (matchedTable.tableNumber !== undefined && matchedTable.tableNumber !== null)) {
+      return {
+        tableNumber: matchedTable.tableNumber,
+        label: `Bàn #${matchedTable.tableNumber}`,
+        isTakeaway: false,
+        displayBadge: `<span class="order-table-chip"><i class="fa-solid fa-chair"></i> Bàn #${matchedTable.tableNumber}</span>`
+      };
+    }
+    return {
+      tableNumber: tableId,
+      label: `Bàn #${tableId}`,
+      isTakeaway: false,
+      displayBadge: `<span class="order-table-chip"><i class="fa-solid fa-chair"></i> Bàn #${tableId}</span>`
+    };
+  }
+
+  return {
+    tableNumber: null,
+    label: 'Mang đi',
+    isTakeaway: true,
+    displayBadge: '<span class="order-table-chip takeaway"><i class="fa-solid fa-bag-shopping"></i> Mang đi</span>'
+  };
+}
+
+export function renderOrdersGrid(records, activeFilter = 'ALL', tables = []) {
   if (!records || records.length === 0) {
     return `<div class="empty-state"><strong>Không có đơn hàng phù hợp</strong></div>`;
   }
@@ -24,7 +74,7 @@ export function renderOrdersGrid(records, activeFilter = 'ALL') {
   return `
     <div class="orders-grid">
       ${filtered.map(order => {
-        const tableBadge = order.RestaurantTable?.tableNumber ? `Bàn #${order.RestaurantTable.tableNumber}` : order.table_id ? `Bàn #${order.table_id}` : 'Mang đi';
+        const tableInfo = getOrderTableInfo(order, tables);
         const customerName = order.User?.fullName || (order.user_id ? `Khách #${order.user_id}` : 'Khách vãng lai');
         const rawStatus = String(order.status || 'PENDING').toUpperCase();
         const paymentStatus = String(order.paymentStatus || 'UNPAID').toUpperCase();
@@ -42,7 +92,7 @@ export function renderOrdersGrid(records, activeFilter = 'ALL') {
               <div class="order-id-badge">
                 <i class="fa-solid fa-receipt"></i> Đơn #${order.id}
               </div>
-              <span class="order-table-chip">${tableBadge}</span>
+              ${tableInfo.displayBadge}
             </div>
 
             <div class="order-customer-info">
@@ -66,26 +116,40 @@ export function renderOrdersGrid(records, activeFilter = 'ALL') {
               <div class="order-total-price">${formatCurrency(order.finalPrice ?? order.totalPrice)}</div>
             </div>
 
-            <div class="row-actions" style="gap:0.4rem; justify-content:space-between;">
-              <select class="table-quick-select" data-action="order-status-select" data-id="${order.id}">
-                ${['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'].map(s => `<option value="${s}" ${rawStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
-              </select>
-              <button class="btn btn-secondary btn-small" data-action="save-order-status" data-id="${order.id}">Lưu</button>
-              ${paymentStatus !== 'PAID' ? `
-                ${['READY', 'COMPLETED'].includes(rawStatus) ? `
-                  <button class="btn btn-primary btn-small" data-action="open-admin-checkout" data-id="${order.id}" data-table="${order.RestaurantTable?.tableNumber || order.table_id || ''}" data-customer="${escapeHtml(customerName)}" data-amount="${order.finalPrice ?? order.totalPrice}" data-items="${itemsCount}" data-status="${rawStatus}" style="font-weight:800">
-                    <i class="fa-solid fa-credit-card"></i> Thanh toán
-                  </button>
-                ` : `
-                  <button class="btn btn-secondary btn-small" disabled style="opacity:0.55; cursor:not-allowed; font-weight:700" title="Đơn hàng chưa nấu xong! Chỉ có thể thanh toán khi món ăn SẴN SÀNG (Trạng thái READY)">
-                    <i class="fa-solid fa-clock"></i> Chờ bếp (READY)
-                  </button>
-                `}
-              ` : ''}
-              <button class="btn btn-ghost btn-small" data-action="toggle-order-detail" data-id="${order.id}"><i class="fa-solid fa-chevron-down"></i></button>
+            <!-- Action Buttons Row -->
+            <div class="row-actions" style="gap:0.45rem; justify-content:space-between; align-items:center">
+              ${rawStatus === 'PENDING' ? `
+                <button type="button" class="btn btn-primary btn-small" data-action="confirm-order" data-id="${order.id}" style="font-weight:700; flex:1; padding:0.45rem 0.75rem" title="Xác nhận đơn và chuyển qua Bếp">
+                  <i class="fa-solid fa-check"></i> Xác nhận
+                </button>
+                <button type="button" class="btn btn-danger btn-small" data-action="cancel-order" data-id="${order.id}" style="font-weight:700; padding:0.45rem 0.75rem" title="Hủy bỏ đơn hàng">
+                  <i class="fa-solid fa-ban"></i> Hủy đơn
+                </button>
+              ` : (rawStatus === 'CONFIRMED' || rawStatus === 'PREPARING') ? `
+                <div class="status-chip status-pending" style="flex:1; justify-content:center; padding:0.45rem 0.75rem; border-radius:10px; font-weight:700; font-size:0.83rem">
+                  <i class="fa-solid fa-fire text-rose"></i> Bếp đang chế biến...
+                </div>
+              ` : rawStatus === 'READY' ? `
+                <button type="button" class="btn btn-primary btn-small" data-action="open-admin-checkout" data-id="${order.id}" data-table="${tableInfo.tableNumber || ''}" data-customer="${escapeHtml(customerName)}" data-amount="${order.finalPrice ?? order.totalPrice}" data-items="${itemsCount}" data-status="${rawStatus}" style="font-weight:800; flex:1; padding:0.45rem 0.75rem; background:linear-gradient(135deg, #15803d, #16a34a)" title="Món đã sẵn sàng! Bấm để thu tiền">
+                  <i class="fa-solid fa-credit-card"></i> Thu tiền
+                </button>
+              ` : rawStatus === 'COMPLETED' ? `
+                <div class="status-chip status-completed" style="flex:1; justify-content:center; padding:0.45rem 0.75rem; border-radius:10px; font-weight:700; font-size:0.83rem">
+                  <i class="fa-solid fa-circle-check"></i> Đã hoàn thành & Thanh toán
+                </div>
+              ` : `
+                <div class="status-chip status-cancelled" style="flex:1; justify-content:center; padding:0.45rem 0.75rem; border-radius:10px; font-weight:700; font-size:0.83rem">
+                  <i class="fa-solid fa-ban"></i> Đơn đã hủy
+                </div>
+              `}
+              <button type="button" class="btn btn-ghost btn-small" data-action="toggle-order-detail" data-id="${order.id}" style="padding:0.45rem 0.65rem" title="Xem chi tiết đơn"><i class="fa-solid fa-chevron-down"></i></button>
             </div>
 
             <div class="mini-card hidden" data-order-detail="${order.id}">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; padding-bottom:0.4rem; border-bottom:1px dashed #cbd5e1">
+                <div><strong>Vị trí phục vụ:</strong> <span class="badge-inline" style="background:#e0f2fe; color:#004ac6; font-weight:800"><i class="fa-solid ${tableInfo.isTakeaway ? 'fa-bag-shopping' : 'fa-chair'}"></i> ${tableInfo.label}</span></div>
+                <div><i class="fa-solid fa-user"></i> <strong>${escapeHtml(customerName)}</strong></div>
+              </div>
               <h4 class="mini-card-title">Ghi chú: ${escapeHtml(order.note || 'Không có')}</h4>
               <div class="info-list" style="margin-top:0.6rem">
                 ${items.map(item => `

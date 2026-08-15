@@ -140,17 +140,13 @@
               </div>
 
               <!-- Order Filter Pills -->
-              <div style="display:flex; gap:0.4rem; flex-wrap:wrap" id="order-filter-pills">
-                <button class="btn btn-primary btn-small" data-order-filter="ALL">Tất cả</button>
-                <button class="btn btn-secondary btn-small" data-order-filter="PENDING">⌛ Chờ xác nhận</button>
-                <button class="btn btn-secondary btn-small" data-order-filter="PREPARING">🔥 Đang bếp làm</button>
-                <button class="btn btn-secondary btn-small" data-order-filter="UNPAID">💳 Cần thanh toán</button>
-                <button class="btn btn-secondary btn-small" data-order-filter="COMPLETED">✅ Đã hoàn tất</button>
+              <div class="filter-tabs-group" id="order-filter-pills">
+                <!-- Dynamically rendered tabs with counts -->
               </div>
             </div>
 
             <!-- Rich Cards Grid Container -->
-            <div id="staff-orders-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.25rem; margin-top:1rem">
+            <div id="staff-orders-grid" class="orders-grid">
               <!-- Dynamically rendered order cards -->
             </div>
           </section>
@@ -244,6 +240,6 @@
       </div>
     </div>
 
-    <script src="./staff.js"></script>
+    <script src="./staff.js?v=1.0.5"></script>
   </body>
 </html>

@@ -240,12 +240,31 @@ exports.deleteTable = async (req, res, next) => {
 exports.getTableByQRCode = async (req, res, next) => {
     try {
         const { qrCode } = req.params;
+        const cleanCode = String(qrCode || '').trim();
+        const extractedDigits = cleanCode.replace(/\D/g, '');
+        const num = extractedDigits ? parseInt(extractedDigits, 10) : NaN;
+
+        const orConditions = [
+            { qrCode: cleanCode },
+            { qrCode: `TABLE_${cleanCode}` },
+            { qrCode: `T${cleanCode}` }
+        ];
+
+        if (!isNaN(num) && num > 0) {
+            orConditions.push({ tableNumber: num });
+            orConditions.push({ id: num });
+            orConditions.push({ qrCode: `TABLE_${num}` });
+            orConditions.push({ qrCode: `T${num}` });
+        }
+
         const table = await RestaurantTable.findOne({
-            where: { qrCode }
+            where: {
+                [Op.or]: orConditions
+            }
         });
 
         if (!table) {
-            return res.status(404).json({ message: "Không tìm thấy bàn với mã QR này" });
+            return res.status(404).json({ message: "Không tìm thấy bàn với mã QR hoặc số bàn này" });
         }
 
         res.json(table);

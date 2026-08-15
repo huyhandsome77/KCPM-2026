@@ -3,31 +3,14 @@
 ==================================================*/
 
 async function verifyTableQr() {
-
-    const params =
-        new URLSearchParams(
-            window.location.search
-        );
-
-    const qr =
-        params.get("qr") ||
-        sessionStorage.getItem(
-            "appdatmon_table_qr"
-        );
+    const params = new URLSearchParams(window.location.search);
+    const qr = params.get("qr") || params.get("table") || params.get("tableId") || sessionStorage.getItem("appdatmon_table_qr");
 
     if (!qr) {
-
-        showToast(
-            "Vui lòng quét mã QR tại bàn."
-        );
-
+        showToast("Vui lòng quét mã QR tại bàn.");
         setTimeout(() => {
-
-            window.location.href =
-                "index.html";
-
-        }, 1000);
-
+            window.location.href = "index.html";
+        }, 1200);
         return false;
     }
 
@@ -761,111 +744,46 @@ async function checkout() {
 
 
     /*
-     * Kiểm tra đăng nhập
+     * Thông tin đăng nhập & Thông tin khách
      */
+    const token = localStorage.getItem(TOKEN_KEY);
+    const user = JSON.parse(localStorage.getItem(USER_KEY) || "null");
+    const isGuest = !token;
 
-    const token =
-        localStorage.getItem(
-            TOKEN_KEY
-        );
-
-
-    if (!token) {
-
-        showToast(
-            "Vui lòng đăng nhập."
-        );
-
-
-        setTimeout(() => {
-
-            location.href =
-                "login.html";
-
-        }, 800);
-
-
-        return;
-
-    }
-
-
-    const table =
-        JSON.parse(
-            tableData
-        );
-
+    const table = JSON.parse(tableData);
+    const customerLabel = user ? (user.fullName || user.username || `Thành viên #${user.id}`) : `Khách vãng lai tại Bàn #${table.tableNumber || table.id}`;
 
     const body = {
-
-        table_id:
-            table.id,
-
-        items:
-            cart.map(
-                item => ({
-
-                    product_id:
-                        item.id,
-
-                    quantity:
-                        item.quantity
-
-                })
-            ),
-
-        note:
-            "Đặt món từ Website"
-
+        table_id: table.id,
+        items: cart.map(item => ({
+            product_id: item.id,
+            quantity: item.quantity
+        })),
+        note: isGuest ? `Khách vãng lai gọi món tại Bàn #${table.tableNumber || table.id}` : `Khách đặt món: ${customerLabel}`
     };
 
-
     try {
-
-        const result =
-            await api(
-
-                "/api/orders",
-
-                {
-
-                    method: "POST",
-
-                    body:
-                        JSON.stringify(
-                            body
-                        )
-
-                }
-
-            );
-
-
-        showToast(
-
-            result.message ||
-            "Đặt món thành công."
-
+        const result = await api(
+            "/api/orders",
+            {
+                method: "POST",
+                body: JSON.stringify(body)
+            }
         );
 
+        showToast(
+            result.message || `🎉 Đặt món thành công cho Bàn #${table.tableNumber || table.id}! Bếp đã nhận được đơn.`
+        );
 
         cart = [];
-
         renderCart();
 
+        setTimeout(() => {
+            alert(`✅ Đã gửi đơn đặt món thành công cho Bàn #${table.tableNumber || table.id}!\nBộ phận Bếp và Phục vụ đang tiến hành chuẩn bị món cho bạn.`);
+        }, 300);
 
     } catch (error) {
-
-        console.error(
-            "Checkout error:",
-            error
-        );
-
-
-        showToast(
-            error.message
-        );
-
+        console.error("Checkout error:", error);
+        showToast(error.message || "Không thể đặt món. Vui lòng thử lại.");
     }
-
 }

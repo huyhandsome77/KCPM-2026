@@ -330,7 +330,7 @@ async function loadInitialData() {
 
 function getTableFromQr() {
   const params = new URLSearchParams(window.location.search);
-  const qr = params.get('qr') || params.get('table') || state.tableQr;
+  const qr = params.get('qr') || params.get('table') || params.get('tableId') || state.tableQr;
   if (qr) {
     return qr;
   }
@@ -480,76 +480,54 @@ if (
 ==================================================*/
 
 document.addEventListener("click", function (e) {
-
     /* HEADER - QUÉT QR */
-
-    const qrNavLink =
-        e.target.closest("#qrNavLink");
-
+    const qrNavLink = e.target.closest("#qrNavLink");
     if (qrNavLink) {
-
         e.preventDefault();
-
-        openQrScanner();
-
+        if (typeof window.openQrScanner === 'function') {
+            window.openQrScanner();
+        } else {
+            window.location.href = "index.html#open-qr";
+        }
         return;
     }
-
 
     /* INDEX - QUÉT QR */
-
-    const openQrBtn =
-        e.target.closest("#openQrBtn");
-
+    const openQrBtn = e.target.closest("#openQrBtn");
     if (openQrBtn) {
-
         e.preventDefault();
-
-        openQrScanner();
-
+        if (typeof window.openQrScanner === 'function') {
+            window.openQrScanner();
+        } else {
+            window.location.href = "index.html#open-qr";
+        }
         return;
     }
-
 
     /* ĐÓNG MODAL */
-
-    const closeBtn =
-        e.target.closest("#closeQrModal");
-
+    const closeBtn = e.target.closest("#closeQrModal");
     if (closeBtn) {
-
         e.preventDefault();
-
-        closeQrScanner();
-
+        if (typeof window.closeQrScanner === 'function') {
+            window.closeQrScanner();
+        }
         return;
     }
 
-
     /* CLICK NỀN MODAL */
-
-    if (
-        e.target.classList.contains(
-            "qr-modal-overlay"
-        )
-    ) {
-
-        closeQrScanner();
-
+    if (e.target.classList.contains("qr-modal-overlay")) {
+        if (typeof window.closeQrScanner === 'function') {
+            window.closeQrScanner();
+        }
     }
-
 });
-
 
 /*==================================================
                     START APP
 ==================================================*/
 
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
-
-        await loadHeader();
-
-    }
-);
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", loadHeader);
+} else {
+    loadHeader();
+}

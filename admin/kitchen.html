@@ -96,6 +96,20 @@
             </div>
           </article>
 
+          <!-- Kitchen Date & Quick Filter Toolbar -->
+          <div class="dashboard-panel" style="padding:0.75rem 1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem">
+            <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap">
+              <span style="font-weight:700; font-size:0.9rem; color:#111c2d"><i class="fa-solid fa-calendar-day text-accent" style="margin-right:0.3rem"></i>Ngày chế biến:</span>
+              <input type="date" id="kitchen-date-picker" style="padding:0.45rem 0.8rem; border-radius:10px; border:1px solid #cbd5e1; font-weight:700; font-size:0.88rem; background:#ffffff" />
+              <button type="button" class="btn btn-primary btn-small" id="btn-kitchen-today" style="font-weight:700"><i class="fa-solid fa-calendar-check"></i> Hôm nay</button>
+              <button type="button" class="btn btn-secondary btn-small" id="btn-kitchen-all-dates" style="font-weight:700">Tất cả ngày</button>
+            </div>
+            <div style="font-size:0.82rem; color:#64748b; font-weight:600; display:flex; align-items:center; gap:0.4rem">
+              <span class="badge-inline" style="background:#dcfce7; color:#15803d; font-weight:800"><i class="fa-solid fa-circle-check"></i> READY</span>
+              <span>Chỉ hiển thị món Sẵn sàng, đã hoàn tất (COMPLETED) sẽ tự động ẩn</span>
+            </div>
+          </div>
+
           <!-- Kanban Board columns -->
           <section class="kanban-board">
             <article class="kanban-column">
