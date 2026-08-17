@@ -34,4 +34,4 @@ Nguyễn Anh Huy
 
 ## Jira Ticket
 
-SCRUM-10
+SCRUM-29
