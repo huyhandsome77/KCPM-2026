@@ -72,10 +72,6 @@ describe('White-Box Testing: Reservation Controller', () => {
     });
 
 
-    // ============================================================
-    // CREATE RESERVATION
-    // ============================================================
-
     describe('createReservation', () => {
 
         test('[WB-RES-01] Tạo đặt bàn thành công khi có bàn phù hợp', async () => {
@@ -328,11 +324,6 @@ describe('White-Box Testing: Reservation Controller', () => {
 
     });
 
-
-    // ============================================================
-    // CHECK IN
-    // ============================================================
-
     describe('checkIn', () => {
 
         test('[WB-RES-06] Không tìm thấy reservation -> 404', async () => {
@@ -529,10 +520,6 @@ describe('White-Box Testing: Reservation Controller', () => {
     });
 
 
-    // ============================================================
-    // CANCEL RESERVATION
-    // ============================================================
-
     describe('cancelReservation', () => {
 
         test('[WB-RES-13] Không tìm thấy reservation -> 404', async () => {
@@ -677,11 +664,6 @@ describe('White-Box Testing: Reservation Controller', () => {
 
     });
 
-
-    // ============================================================
-    // CONFIRM RESERVATION
-    // ============================================================
-
     describe('confirmReservation', () => {
 
         test('[WB-RES-19] Không tìm thấy reservation -> 404', async () => {
@@ -797,10 +779,6 @@ describe('White-Box Testing: Reservation Controller', () => {
     });
 
 
-    // ============================================================
-    // UPDATE STATUS
-    // ============================================================
-
     describe('updateReservationStatus', () => {
 
         test('[WB-RES-24] Cập nhật trạng thái thành công', async () => {
@@ -885,10 +863,6 @@ describe('White-Box Testing: Reservation Controller', () => {
     });
 
 
-    // ============================================================
-    // GET MY RESERVATIONS
-    // ============================================================
-
     describe('getMyReservations', () => {
 
         test('[WB-RES-27] Lấy danh sách reservation của user thành công', async () => {
@@ -945,10 +919,6 @@ describe('White-Box Testing: Reservation Controller', () => {
 
     });
 
-
-    // ============================================================
-    // GET ALL RESERVATIONS
-    // ============================================================
 
     describe('getAllReservations', () => {
 

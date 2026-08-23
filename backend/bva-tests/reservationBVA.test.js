@@ -220,7 +220,7 @@ describe('BVA Testing: Reservation Controller', () => {
 
     describe('BVA - checkIn time boundary ±30 minutes', () => {
 
-        test('[BVA-RES-09] Lower boundary: exactly 30 minutes before', async () => {
+        test('[BVA-RES-06] Lower boundary: exactly 30 minutes before', async () => {
 
             const now = new Date();
 
@@ -247,7 +247,7 @@ describe('BVA Testing: Reservation Controller', () => {
         });
 
 
-        test('[BVA-RES-10] Below lower boundary: more than 30 minutes early', async () => {
+        test('[BVA-RES-07] Below lower boundary: more than 30 minutes early', async () => {
 
             const now = new Date();
 
@@ -271,34 +271,38 @@ describe('BVA Testing: Reservation Controller', () => {
         });
 
 
-        test('[BVA-RES-11] Upper boundary: exactly 30 minutes after', async () => {
+       test('[BVA-RES-08] Upper boundary: exactly 30 minutes after', async () => {
 
-            const now = new Date();
+    const now = new Date();
 
-            const reservationTime =
-                new Date(now.getTime() - 30 * 60 * 1000);
+    jest.useFakeTimers();
+    jest.setSystemTime(now);
 
-            req.params.id = 1;
+    const reservationTime =
+        new Date(now.getTime() - 30 * 60 * 1000);
 
-            const reservation = {
-                id: 1,
-                table_id: 1,
-                status: 'PENDING',
-                reservationTime,
-                save: jest.fn()
-            };
+    req.params.id = 1;
 
-            Reservation.findByPk.mockResolvedValue(reservation);
+    const reservation = {
+        id: 1,
+        table_id: 1,
+        status: 'PENDING',
+        reservationTime,
+        save: jest.fn().mockResolvedValue(true)
+    };
 
-            await reservationController.checkIn(req, res, next);
+    Reservation.findByPk.mockResolvedValue(reservation);
 
-            expect(reservation.save).toHaveBeenCalled();
+    await reservationController.checkIn(req, res, next);
 
-            expect(transaction.commit).toHaveBeenCalled();
-        });
+    expect(reservation.save).toHaveBeenCalled();
 
+    expect(transaction.commit).toHaveBeenCalled();
 
-        test('[BVA-RES-12] Above upper boundary: more than 30 minutes late', async () => {
+    jest.useRealTimers();
+});
+
+        test('[BVA-RES-09] Above upper boundary: more than 30 minutes late', async () => {
 
             const now = new Date();
 
@@ -326,7 +330,7 @@ describe('BVA Testing: Reservation Controller', () => {
 
     describe('BVA - Reservation Status', () => {
 
-        test('[BVA-RES-13] Boundary valid: PENDING -> CONFIRMED', async () => {
+        test('[BVA-RES-10] Boundary valid: PENDING -> CONFIRMED', async () => {
 
             req.params.id = 1;
 
@@ -346,7 +350,7 @@ describe('BVA Testing: Reservation Controller', () => {
         });
 
 
-        test('[BVA-RES-14] Invalid boundary: CONFIRMED cannot confirm again', async () => {
+        test('[BVA-RES-11] Invalid boundary: CONFIRMED cannot confirm again', async () => {
 
             req.params.id = 1;
 
@@ -362,7 +366,7 @@ describe('BVA Testing: Reservation Controller', () => {
         });
 
 
-        test('[BVA-RES-15] Valid cancel boundary: PENDING', async () => {
+        test('[BVA-RES-12] Valid cancel boundary: PENDING', async () => {
 
             req.params.id = 1;
 
@@ -382,7 +386,7 @@ describe('BVA Testing: Reservation Controller', () => {
         });
 
 
-        test('[BVA-RES-16] Valid cancel boundary: CONFIRMED', async () => {
+        test('[BVA-RES-13] Valid cancel boundary: CONFIRMED', async () => {
 
             req.params.id = 1;
 
@@ -402,7 +406,7 @@ describe('BVA Testing: Reservation Controller', () => {
         });
 
 
-        test('[BVA-RES-17] Invalid cancel boundary: CHECKED_IN', async () => {
+        test('[BVA-RES-14] Invalid cancel boundary: CHECKED_IN', async () => {
 
             req.params.id = 1;
 
