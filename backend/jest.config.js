@@ -1,6 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
-  roots: ['<rootDir>/whitebox-tests'],
+  roots: ['<rootDir>/whitebox-tests', '<rootDir>/stateTransition-tests'],
   testMatch: ['**/*.test.js'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
