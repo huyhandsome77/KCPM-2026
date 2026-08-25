@@ -5,8 +5,12 @@ exports.addPointsFromOrder = async (req, res, next) => {
     try {
         const { phone, orderId } = req.body;
 
-        if (!phone || !orderId) {
-            return res.status(400).json({ message: "Vui lòng nhập đầy đủ Số điện thoại và Mã hóa đơn" });
+        if (!phone || typeof phone !== 'string' || phone.trim() === '') {
+            return res.status(400).json({ message: "Vui lòng nhập Số điện thoại hợp lệ" });
+        }
+
+        if (orderId === undefined || orderId === null || isNaN(orderId) || Number(orderId) <= 0) {
+            return res.status(400).json({ message: "Mã hóa đơn không hợp lệ (phải là số nguyên dương)" });
         }
 
         const user = await User.findOne({ where: { phone } });
