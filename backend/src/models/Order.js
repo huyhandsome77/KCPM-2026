@@ -27,11 +27,11 @@ module.exports = (sequelize) => {
             defaultValue: "PENDING",
         },
         paymentStatus: {
-            type: DataTypes.ENUM("UNPAID", "PAID", "REFUNDED"),
+            type: DataTypes.ENUM("UNPAID", "PAID"),
             defaultValue: "UNPAID",
         },
         paymentMethod: {
-            type: DataTypes.ENUM("CASH", "TRANSFER"),
+            type: DataTypes.STRING(50),
             allowNull: true,
         },
         isPointsAdded: {

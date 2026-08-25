@@ -87,7 +87,7 @@ const swaggerSpec = {
                     finalPrice: { type: 'number', example: 1100000 },
                     note: { type: 'string', example: 'Ít cay' },
                     status: { type: 'string', enum: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'], example: 'PENDING' },
-                    paymentStatus: { type: 'string', enum: ['UNPAID', 'PAID', 'REFUNDED'], example: 'UNPAID' },
+                    paymentStatus: { type: 'string', enum: ['UNPAID', 'PAID'], example: 'UNPAID' },
                     paymentMethod: { type: 'string', enum: ['CASH', 'TRANSFER'], example: 'CASH' }
                 }
             },

@@ -18,6 +18,13 @@ connectDB();
 // Đồng bộ database
 sequelize.sync().then(async () => {
     console.log('Database synced successfully.');
+    try {
+        await sequelize.query("ALTER TABLE payments MODIFY COLUMN paymentMethod VARCHAR(50) NOT NULL DEFAULT 'CASH';");
+        await sequelize.query("ALTER TABLE orders MODIFY COLUMN paymentMethod VARCHAR(50) NULL;");
+        console.log('Database schema column paymentMethod altered successfully.');
+    } catch (err) {
+        console.log('Column alter note:', err.message);
+    }
     await seedAdmin();
     await seedReviews();
     await seedOrders();
