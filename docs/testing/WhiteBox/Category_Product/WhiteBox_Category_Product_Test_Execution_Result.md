@@ -1,10 +1,11 @@
 # KẾT QUẢ THỰC THI KIỂM THỬ HỘP TRẮNG & CODE COVERAGE (TEST EXECUTION RESULT)
+## ĐỒNG BỘ VÀ BAO PHỦ TOÀN DIỆN GIÁ TRỊ BIÊN BVA (CATEGORY & PRODUCT)
 
 **Dự án:** FutureSushi - Hệ thống Đặt món & Quản lý Nhà hàng Sushi  
 **Module kiểm thử:** Category & Product Management (kèm Auth Guard Middleware)  
 **Thư mục chứa Test Suite:** `backend/whitebox-tests/`  
-**Môi trường kiểm thử:** Node.js v20+, Jest Test Runner v29.7+, Istanbul Engine  
-**Thời gian thực thi:** 21/08/2026  
+**Môi trường kiểm thử:** Node.js v20+, Jest Test Runner v30+, Istanbul Engine  
+**Thời gian thực thi:** 26/08/2026  
 **Người thực hiện / Tester:** Nguyễn Anh Huy  
 
 ---
@@ -13,77 +14,103 @@
 
 | Chỉ số tổng quan | Giá trị thực tế | Tỷ lệ đạt được | Đánh giá |
 | :--- | :---: | :---: | :---: |
-| **Tổng số Test Suites** | 3 / 3 Suites | **100% PASS** | Đạt yêu cầu |
-| **Tổng số Test Cases** | **48 / 48 Cases** | **100% PASS** | Hoàn hảo |
-| **Số Test Case thất bại (Failed)** | 0 Cases | **0%** | Không có lỗi |
-| **Thời gian thực thi (Runtime)** | ~1.30 giây | Nhanh / Hiệu quả | Đạt chuẩn |
-| **Statements Coverage** | 121 / 121 Statements | **100%** | Xuất sắc |
-| **Branches Coverage** | 37 / 37 Branches | **100%** | Xuất sắc |
-| **Functions Coverage** | 15 / 15 Functions | **100%** | Xuất sắc |
-| **Lines Coverage** | 118 / 118 Lines | **100%** | Xuất sắc |
+| **Tổng số Test Suites** | **3 / 3 Suites** | **100% PASS** | Đạt yêu cầu |
+| **Tổng số Test Cases** | **74 / 74 Cases** | **100% PASS** | Hoàn hảo |
+| **Số Test Case thất bại (Failed)** | **0 Cases** | **0%** | Không có lỗi |
+| **Thời gian thực thi (Runtime)** | **~1.24 giây** | Nhanh / Hiệu quả | Đạt chuẩn |
+| **Statements Coverage** | **212 / 212 Statements** | **100.00%** | Xuất sắc |
+| **Branches Coverage** | **202 / 202 Branches** | **100.00%** | Xuất sắc |
+| **Functions Coverage** | **15 / 15 Functions** | **100.00%** | Xuất sắc |
+| **Lines Coverage** | **203 / 203 Lines** | **100.00%** | Xuất sắc |
 
 ---
 
 ## 2. KẾT QUẢ CHI TIẾT THEO TỪNG TEST SUITE
 
-### 2.1 Test Suite 1: `categoryController.test.js` (15/15 PASS)
+### 2.1 Test Suite 1: `categoryController.test.js` (26/26 PASS)
 
-- **File kiểm thử:** [`backend/whitebox-tests/categoryController.test.js`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/clone2/KCPM-2026/backend/whitebox-tests/categoryController.test.js)
+- **File kiểm thử:** [`backend/whitebox-tests/categoryController.test.js`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/ngay26/KCPM-2026/backend/whitebox-tests/categoryController.test.js)
 - **Đối tượng kiểm thử:** `backend/src/controllers/categoryController.js`
-- **Kết quả Coverage:** Statements: 100% | Branches: 100% | Functions: 100% | Lines: 100%
+- **Kết quả Coverage:** Statements: 100% (71/71) | Branches: 100% (61/61) | Functions: 100% (6/6) | Lines: 100% (69/69)
 
 | Test Case ID | Tên Kịch Bản Kiểm Thử | Assertion / Kỳ vọng kiểm tra | Kết quả thực tế | Trạng thái |
 | :--- | :--- | :--- | :--- | :---: |
-| **WB-CAT-01** | `getAllCategories` không có search & có products | `res.json` trả về list có `productCount` chính xác | Trả về đúng mảng đối tượng | **PASS** |
-| **WB-CAT-02** | `getAllCategories` không có search & `products: null` | `productCount` mặc định gán về 0 | `productCount = 0` | **PASS** |
-| **WB-CAT-03** | `getAllCategories` có từ khóa search | Gọi `findAll` với `Op.or` theo name và description | Đúng cú pháp query Sequelize | **PASS** |
-| **WB-CAT-04** | `getAllCategories` Database exception | `res.status(500)` và trả về `{ message }` | HTTP 500, message lỗi | **PASS** |
-| **WB-CAT-05** | `getCategoryById` danh mục tồn tại | `res.json` trả về đối tượng Category | HTTP 200, category JSON | **PASS** |
-| **WB-CAT-06** | `getCategoryById` danh mục không tồn tại | `res.status(404)` kèm `{ message: "Not found" }` | HTTP 404 Not Found | **PASS** |
-| **WB-CAT-07** | `getCategoryById` DB exception | `res.status(500)` | HTTP 500 | **PASS** |
-| **WB-CAT-08** | `createCategory` dữ liệu hợp lệ | `res.status(201)` và trả về đối tượng mới tạo | HTTP 201 Created | **PASS** |
-| **WB-CAT-09** | `createCategory` Validation error | `res.status(400)` | HTTP 400 Bad Request | **PASS** |
-| **WB-CAT-10** | `updateCategory` thành công (`updated = 1`) | `res.json` trả về đối tượng sau cập nhật | HTTP 200, updated object | **PASS** |
-| **WB-CAT-11** | `updateCategory` không tìm thấy ID (`updated = 0`) | `res.status(404)` | HTTP 404 Not Found | **PASS** |
-| **WB-CAT-12** | `updateCategory` Lỗi ngoại lệ DB | `res.status(400)` | HTTP 400 Bad Request | **PASS** |
-| **WB-CAT-13** | `deleteCategory` thành công (`deleted = 1`) | `res.status(204).send()` | HTTP 204 No Content | **PASS** |
-| **WB-CAT-14** | `deleteCategory` không tìm thấy ID (`deleted = 0`) | `res.status(404)` | HTTP 404 Not Found | **PASS** |
-| **WB-CAT-15** | `deleteCategory` Lỗi Database/FK | `res.status(500)` | HTTP 500 Server Error | **PASS** |
+| **WB-CAT-01** | `getAllCategories` không có search & có products | Trả về mảng danh mục kèm `productCount` đúng | Trả về mảng đối tượng chuẩn | **PASS** |
+| **WB-CAT-02** | `getAllCategories` danh mục plain object (không có toJSON) | Fallback xử lý an toàn không lỗi | Trả về đối tượng plain object | **PASS** |
+| **WB-CAT-03** | `getAllCategories` có từ khóa search hợp lệ | Gọi `findAll` với `Op.or` theo name và description | Đúng cú pháp query Sequelize | **PASS** |
+| **WB-CAT-04** | `getAllCategories` từ khóa search rỗng hoặc whitespace | Bỏ qua search, query `where = {}` | `where = {}` | **PASS** |
+| **WB-CAT-05** | `getAllCategories` Database exception | `res.status(500)` và trả về `{ message }` | HTTP 500 Server Error | **PASS** |
+| **WB-CAT-06** | `getCategoryById` ID hợp lệ (Min ID = 1) | `res.json` trả về đối tượng Category | HTTP 200 OK | **PASS** |
+| **WB-CAT-07** | `getCategoryById` ID sai biên (0, -1, 'abc', 1.5) | Chặn ID không hợp lệ: `Invalid category ID` | HTTP 400 Bad Request | **PASS** |
+| **WB-CAT-08** | `getCategoryById` ID không tồn tại | `res.status(404)` kèm `{ message: "Not found" }` | HTTP 404 Not Found | **PASS** |
+| **WB-CAT-09** | `getCategoryById` DB exception | `res.status(500)` | HTTP 500 Server Error | **PASS** |
+| **WB-CAT-10** | `createCategory` Name Min (1 ký tự "A") | `res.status(201)` và trả về category mới | HTTP 201 Created | **PASS** |
+| **WB-CAT-11** | `createCategory` Name Min+1 (2 ký tự "AB") | Tạo thành công với desc/img null | HTTP 201 Created | **PASS** |
+| **WB-CAT-12** | `createCategory` Name Max (100 ký tự) | Tạo thành công category độ dài 100 | HTTP 201 Created | **PASS** |
+| **WB-CAT-13** | `createCategory` Name Max+1 (101 ký tự) | Báo lỗi vượt quá 100 ký tự | HTTP 400 Bad Request | **PASS** |
+| **WB-CAT-14** | `createCategory` Name rỗng `""`, whitespace, null, thiếu, số | Báo lỗi tên bắt buộc và không rỗng | HTTP 400 Bad Request | **PASS** |
+| **WB-CAT-15** | `createCategory` Ngoại lệ Database Error | `res.status(400)` | HTTP 400 Bad Request | **PASS** |
+| **WB-CAT-16** | `updateCategory` thành công đầy đủ trường | `res.json` trả về đối tượng sau cập nhật | HTTP 200 OK | **PASS** |
+| **WB-CAT-17** | `updateCategory` chỉ cập nhật description | Giữ nguyên name, cập nhật desc | HTTP 200 OK | **PASS** |
+| **WB-CAT-18** | `updateCategory` ID không hợp lệ (0, -1, 'abc') | Báo lỗi `Invalid category ID` | HTTP 400 Bad Request | **PASS** |
+| **WB-CAT-19** | `updateCategory` Name rỗng, null, > 100 ký tự | Chặn cập nhật tên vi phạm biên | HTTP 400 Bad Request | **PASS** |
+| **WB-CAT-20** | `updateCategory` req.body là undefined | Xử lý an toàn không crash | HTTP 200 OK | **PASS** |
+| **WB-CAT-21** | `updateCategory` ID không tồn tại (`updated = 0`) | `res.status(404)` | HTTP 404 Not Found | **PASS** |
+| **WB-CAT-22** | `updateCategory` Ngoại lệ khi cập nhật DB | `res.status(400)` | HTTP 400 Bad Request | **PASS** |
+| **WB-CAT-23** | `deleteCategory` thành công (`deleted = 1`) | `res.status(204).send()` | HTTP 204 No Content | **PASS** |
+| **WB-CAT-24** | `deleteCategory` ID không hợp lệ (0, -1) | Báo lỗi `Invalid category ID` | HTTP 400 Bad Request | **PASS** |
+| **WB-CAT-25** | `deleteCategory` ID không tồn tại (`deleted = 0`) | `res.status(404)` | HTTP 404 Not Found | **PASS** |
+| **WB-CAT-26** | `deleteCategory` Ngoại lệ Database (Khóa ngoại) | `res.status(500)` | HTTP 500 Server Error | **PASS** |
 
 ---
 
-### 2.2 Test Suite 2: `productController.test.js` (16/16 PASS)
+### 2.2 Test Suite 2: `productController.test.js` (31/31 PASS)
 
-- **File kiểm thử:** [`backend/whitebox-tests/productController.test.js`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/clone2/KCPM-2026/backend/whitebox-tests/productController.test.js)
+- **File kiểm thử:** [`backend/whitebox-tests/productController.test.js`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/ngay26/KCPM-2026/backend/whitebox-tests/productController.test.js)
 - **Đối tượng kiểm thử:** `backend/src/controllers/productController.js`
-- **Kết quả Coverage:** Statements: 100% | Branches: 100% | Functions: 100% | Lines: 100%
+- **Kết quả Coverage:** Statements: 100% (113/113) | Branches: 100% (123/123) | Functions: 100% (5/5) | Lines: 100% (106/106)
 
 | Test Case ID | Tên Kịch Bản Kiểm Thử | Assertion / Kỳ vọng kiểm tra | Kết quả thực tế | Trạng thái |
 | :--- | :--- | :--- | :--- | :---: |
-| **WB-PRD-01** | `getAllProducts` không truyền filter | `findAll({ where: {} })`, `status(200)` | HTTP 200, trả về danh sách | **PASS** |
+| **WB-PRD-01** | `getAllProducts` không truyền filter | `findAll({ where: {} })`, `status(200)` | Trả về toàn bộ danh sách | **PASS** |
 | **WB-PRD-02** | `getAllProducts` lọc theo `category_id` | `where = { category_id: '2' }`, `status(200)` | Lọc chính xác category_id | **PASS** |
-| **WB-PRD-03** | `getAllProducts` tìm theo `search` | `where = { name: { [Op.like]: ... } }` | Tìm đúng tên món ăn | **PASS** |
+| **WB-PRD-03** | `getAllProducts` tìm theo `search` | `where = { name: { [Op.like]: '%salmon%' } }` | Tìm đúng tên món ăn | **PASS** |
 | **WB-PRD-04** | `getAllProducts` kết hợp cả `category_id` & `search` | `where` chứa cả 2 điều kiện lọc | Query kết hợp 2 trường | **PASS** |
-| **WB-PRD-05** | `getAllProducts` Database exception | `res.status(500)` | HTTP 500 Server Error | **PASS** |
-| **WB-PRD-06** | `getProductById` món ăn tồn tại | `res.status(200)` kèm đối tượng món ăn | HTTP 200 OK | **PASS** |
-| **WB-PRD-07** | `getProductById` món ăn không tồn tại | `res.status(404)` kèm `{ message: "Product not found" }` | HTTP 404 Not Found | **PASS** |
-| **WB-PRD-08** | `getProductById` DB exception | `res.status(500)` | HTTP 500 Server Error | **PASS** |
-| **WB-PRD-09** | `createProduct` tạo món ăn hợp lệ | `res.status(201)` kèm product đã tạo | HTTP 201 Created | **PASS** |
-| **WB-PRD-10** | `createProduct` Lỗi validation dữ liệu | `res.status(400)` | HTTP 400 Bad Request | **PASS** |
-| **WB-PRD-11** | `updateProduct` cập nhật thành công | `res.status(200)` kèm product cập nhật | HTTP 200 OK | **PASS** |
-| **WB-PRD-12** | `updateProduct` không tìm thấy ID (`updated = 0`) | `res.status(404)` | HTTP 404 Not Found | **PASS** |
-| **WB-PRD-13** | `updateProduct` lỗi validation/DB | `res.status(400)` | HTTP 400 Bad Request | **PASS** |
-| **WB-PRD-14** | `deleteProduct` xóa thành công (`deleted = 1`) | `res.status(204).send()` | HTTP 204 No Content | **PASS** |
-| **WB-PRD-15** | `deleteProduct` không tìm thấy ID (`deleted = 0`) | `res.status(404)` | HTTP 404 Not Found | **PASS** |
-| **WB-PRD-16** | `deleteProduct` DB exception | `res.status(500)` | HTTP 500 Server Error | **PASS** |
+| **WB-PRD-05** | `getAllProducts` search rỗng hoặc whitespace | Bỏ qua search rỗng, `where = {}` | `where = {}` | **PASS** |
+| **WB-PRD-06** | `getAllProducts` Database exception | `res.status(500)` | HTTP 500 Server Error | **PASS** |
+| **WB-PRD-07** | `getProductById` món ăn tồn tại (Min ID = 1) | `res.status(200)` kèm đối tượng món ăn | HTTP 200 OK | **PASS** |
+| **WB-PRD-08** | `getProductById` ID sai biên (0, -1, 'abc', 1.5) | Chặn ID: `Invalid product ID` | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-09** | `getProductById` món ăn không tồn tại | `res.status(404)` kèm `{ message: "Product not found" }` | HTTP 404 Not Found | **PASS** |
+| **WB-PRD-10** | `getProductById` DB exception | `res.status(500)` | HTTP 500 Server Error | **PASS** |
+| **WB-PRD-11** | `createProduct` các biên Min (Name 1, Price 0.01, Stock 0, Cat 1) | Tạo thành công món ăn tại các biên Min | HTTP 201 Created | **PASS** |
+| **WB-PRD-12** | `createProduct` các biên Max (Name 150, Price Max, Stock Max) | Tạo thành công món ăn tại các biên Max | HTTP 201 Created | **PASS** |
+| **WB-PRD-13** | `createProduct` Name Max+1 (151 ký tự) | Báo lỗi vượt quá 150 ký tự | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-14** | `createProduct` Name rỗng `""`, whitespace, null, thiếu | Báo lỗi tên bắt buộc và không rỗng | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-15** | `createProduct` Price âm, tràn số, sai kiểu chuỗi | Chặn price không hợp lệ | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-16** | `createProduct` Stock âm, tràn số, số thực 10.5, chuỗi | Chặn stock không hợp lệ | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-17** | `createProduct` Category ID 0, âm, null, float, chuỗi | Chặn category_id không hợp lệ | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-18** | `createProduct` Ngoại lệ Database Error | `res.status(400)` | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-19** | `updateProduct` cập nhật thành công đầy đủ trường | `res.status(200)` kèm product cập nhật | HTTP 200 OK | **PASS** |
+| **WB-PRD-20** | `updateProduct` ID không hợp lệ (0, -1, 'abc') | Báo lỗi `Invalid product ID` | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-21** | `updateProduct` Name rỗng, null, > 150 ký tự | Chặn name không hợp lệ | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-22** | `updateProduct` Price rỗng, null, âm, tràn số, chuỗi | Chặn price vi phạm miền | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-23** | `updateProduct` Stock null, âm, tràn số, float, chuỗi | Chặn stock không hợp lệ | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-24** | `updateProduct` Category ID null, 0, âm, float, chuỗi | Chặn category_id không hợp lệ | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-25** | `updateProduct` req.body là undefined | Xử lý an toàn không crash | HTTP 200 OK | **PASS** |
+| **WB-PRD-26** | `updateProduct` không tìm thấy ID (`updated = 0`) | `res.status(404)` | HTTP 404 Not Found | **PASS** |
+| **WB-PRD-27** | `updateProduct` Ngoại lệ DB Error khi cập nhật | `res.status(400)` | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-28** | `deleteProduct` xóa thành công (`deleted = 1`) | `res.status(204).send()` | HTTP 204 No Content | **PASS** |
+| **WB-PRD-29** | `deleteProduct` ID không hợp lệ (0, -1, 'abc') | Báo lỗi `Invalid product ID` | HTTP 400 Bad Request | **PASS** |
+| **WB-PRD-30** | `deleteProduct` không tìm thấy ID (`deleted = 0`) | `res.status(404)` | HTTP 404 Not Found | **PASS** |
+| **WB-PRD-31** | `deleteProduct` Ngoại lệ DB Error khi xóa | `res.status(500)` | HTTP 500 Server Error | **PASS** |
 
 ---
 
 ### 2.3 Test Suite 3: `authMiddleware.test.js` (17/17 PASS)
 
-- **File kiểm thử:** [`backend/whitebox-tests/authMiddleware.test.js`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/clone2/KCPM-2026/backend/whitebox-tests/authMiddleware.test.js)
+- **File kiểm thử:** [`backend/whitebox-tests/authMiddleware.test.js`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/ngay26/KCPM-2026/backend/whitebox-tests/authMiddleware.test.js)
 - **Đối tượng kiểm thử:** `backend/src/middlewares/authMiddleware.js`
-- **Kết quả Coverage:** Statements: 100% | Branches: 100% | Functions: 100% | Lines: 100%
+- **Kết quả Coverage:** Statements: 100% (28/28) | Branches: 100% (18/18) | Functions: 100% (4/4) | Lines: 100% (28/28)
 
 | Test Case ID | Tên Kịch Bản Kiểm Thử | Assertion / Kỳ vọng kiểm tra | Kết quả thực tế | Trạng thái |
 | :--- | :--- | :--- | :--- | :---: |
@@ -110,12 +137,13 @@
 ## 3. LOG MÁY THỰC THI (RAW TEST EXECUTION LOG)
 
 ```text
-> backend-app-dat-mon@1.0.0 test:coverage
-> jest --coverage
+> backend-app-dat-mon@1.0.0 test
+> jest whitebox-tests/categoryController.test.js whitebox-tests/productController.test.js whitebox-tests/authMiddleware.test.js --coverage
 
 PASS whitebox-tests/authMiddleware.test.js
 PASS whitebox-tests/categoryController.test.js
 PASS whitebox-tests/productController.test.js
+
 ------------------------|---------|----------|---------|---------|-------------------
 File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 ------------------------|---------|----------|---------|---------|-------------------
@@ -128,25 +156,24 @@ All files               |     100 |      100 |     100 |     100 |
 ------------------------|---------|----------|---------|---------|-------------------
 
 =============================== Coverage summary ===============================
-Statements   : 100% ( 121/121 )
-Branches     : 100% ( 37/37 )
+Statements   : 100% ( 212/212 )
+Branches     : 100% ( 202/202 )
 Functions    : 100% ( 15/15 )
-Lines        : 100% ( 118/118 )
+Lines        : 100% ( 203/203 )
 ================================================================================
 
 Test Suites: 3 passed, 3 total
-Tests:       48 passed, 48 total
+Tests:       74 passed, 74 total
 Snapshots:   0 total
-Time:        1.301 s
-Ran all test suites.
+Time:        1.237 s
+Ran all test suites matching whitebox-tests/categoryController.test.js|whitebox-tests/productController.test.js|whitebox-tests/authMiddleware.test.js.
 ```
 
 ---
 
 ## 4. TÀI NGUYÊN BÀN GIAO KÈM THEO
 
-- **Thư mục mã nguồn Test:** [`backend/whitebox-tests/`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/clone2/KCPM-2026/backend/whitebox-tests)
-- **File Test Case Excel:** [`docs/testing/WhiteBox/Category_Product/WhiteBox_Category_Product_TestCases.xlsx`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/clone2/KCPM-2026/docs/testing/WhiteBox/Category_Product/WhiteBox_Category_Product_TestCases.xlsx)
-- **Báo cáo HTML trực quan:** [`docs/testing/WhiteBox/Category_Product/WhiteBox_Category_Product_Test_Report.html`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/clone2/KCPM-2026/docs/testing/WhiteBox/Category_Product/WhiteBox_Category_Product_Test_Report.html)
-- **Chứng minh 100% Branch Coverage:** [`docs/testing/WhiteBox/Category_Product/WhiteBox_Branch_Coverage_Proof.md`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/clone2/KCPM-2026/docs/testing/WhiteBox/Category_Product/WhiteBox_Branch_Coverage_Proof.md)
-- **Báo cáo Coverage tự sinh Istanbul:** [`backend/coverage/lcov-report/index.html`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/clone2/KCPM-2026/backend/coverage/lcov-report/index.html)
+- **Thư mục mã nguồn Test:** [`backend/whitebox-tests/`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/ngay26/KCPM-2026/backend/whitebox-tests)
+- **File Test Case Excel:** [`docs/testing/WhiteBox/Category_Product/WhiteBox_Category_Product_TestCases.xlsx`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/ngay26/KCPM-2026/docs/testing/WhiteBox/Category_Product/WhiteBox_Category_Product_TestCases.xlsx)
+- **Báo cáo Kiểm thử Markdown:** [`docs/testing/WhiteBox/Category_Product/WhiteBox_Category_Product_Test_Report.md`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/ngay26/KCPM-2026/docs/testing/WhiteBox/Category_Product/WhiteBox_Category_Product_Test_Report.md)
+- **Báo cáo Coverage tự sinh Istanbul:** [`backend/coverage/lcov-report/index.html`](file:///c:/Users/ADMIN/OneDrive%20-%20ut.edu.vn/Backup/Desktop/Clone%20CNPM/ngay26/KCPM-2026/backend/coverage/lcov-report/index.html)
