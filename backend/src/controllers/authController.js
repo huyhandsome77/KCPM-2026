@@ -6,18 +6,39 @@ require("dotenv").config();
 
 exports.register = async (req, res) => {
     try {
-        const { fullName, email, phone, username, password } = req.body;
+        const { fullName, email, phone, username, password } = req.body || {};
+
+        if (!fullName || typeof fullName !== 'string' || fullName.trim() === '') {
+            return res.status(400).json({ message: "Vui lòng nhập Họ và tên đầy đủ!" });
+        }
+        if (!phone || typeof phone !== 'string' || phone.trim() === '') {
+            return res.status(400).json({ message: "Vui lòng nhập Số điện thoại hợp lệ!" });
+        }
+        if (!username || typeof username !== 'string' || username.trim() === '') {
+            return res.status(400).json({ message: "Vui lòng nhập Tên đăng nhập!" });
+        }
+        if (!password || typeof password !== 'string' || password.trim() === '') {
+            return res.status(400).json({ message: "Vui lòng nhập Mật khẩu!" });
+        }
+
+        const orConditions = [{ phone: phone.trim() }, { username: username.trim() }];
+        if (email && typeof email === 'string' && email.trim() !== '') {
+            orConditions.push({ email: email.trim() });
+        }
 
         const userExists = await User.findOne({
             where: {
-                [Op.or]: [{ phone }, { username }]
+                [Op.or]: orConditions
             }
         });
 
         if (userExists) {
-            const message = userExists.phone === phone
-                ? 'Số điện thoại này đã được đăng ký!'
-                : 'Tên đăng nhập này đã tồn tại!';
+            let message = 'Tên đăng nhập này đã tồn tại!';
+            if (userExists.phone === phone.trim()) {
+                message = 'Số điện thoại này đã được đăng ký!';
+            } else if (email && userExists.email === email.trim()) {
+                message = 'Email này đã tồn tại trong hệ thống!';
+            }
             return res.status(400).json({ message });
         }
 
@@ -25,11 +46,14 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const user = await User.create({
-            fullName,
-            email,
-            phone,
-            username,
-            password: hashedPassword
+            fullName: fullName.trim(),
+            email: email ? email.trim() : null,
+            phone: phone.trim(),
+            username: username.trim(),
+            password: hashedPassword,
+            role: "CUSTOMER",
+            status: "ACTIVE",
+            points: 0
         });
 
         return res.status(201).json({
@@ -38,13 +62,14 @@ exports.register = async (req, res) => {
                 id: user.id,
                 fullName: user.fullName,
                 username: user.username,
-                phone: user.phone
+                phone: user.phone,
+                role: user.role
             }
         });
 
     } catch (error) {
-        return res.status(500).json({
-            message: "Lỗi server",
+        return res.status(400).json({
+            message: "Lỗi đăng ký tài khoản",
             error: error.message
         });
     }
@@ -52,7 +77,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        const { account, password } = req.body;
+        const { account, password } = req.body || {};
 
         if (!account || !password) {
             return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin!" });
@@ -70,6 +95,10 @@ exports.login = async (req, res) => {
 
         if (!user) {
             return res.status(404).json({ message: "Tài khoản không tồn tại!" });
+        }
+
+        if (user.status === 'BLOCKED') {
+            return res.status(403).json({ message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);

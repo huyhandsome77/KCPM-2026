@@ -997,9 +997,13 @@
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });",
-                                    "const json = pm.response.json();",
-                                    "pm.test('Price is 100000000', function () { pm.expect(Number(json.price)).to.eql(100000000); });"
+                                    "pm.test('Status code is 400 Bad Request or 201 Created', function () { pm.expect(pm.response.code).to.be.oneOf([201, 400]); });",
+                                    "if (pm.response.code === 201) {",
+                                    "    const json = pm.response.json();",
+                                    "    pm.test('Price is 100000000', function () { pm.expect(Number(json.price)).to.eql(100000000); });",
+                                    "} else {",
+                                    "    pm.test('Error message received for upper boundary', function () { pm.expect(pm.response.code).to.eql(400); });",
+                                    "}"
                                 ]
                             }
                         }

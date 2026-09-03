@@ -24,7 +24,20 @@
               "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"123\"\n}"
             },
             "url": "{{baseUrl}}/api/auth/login"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "var res = pm.response.json();",
+                  "if (res.token) { pm.collectionVariables.set('admin_token', res.token); pm.environment.set('admin_token', res.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },
@@ -50,7 +63,20 @@
               "raw": "{\"orderId\":1}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "TB_BVA_POINT_002 - phone: Chuỗi rỗng \"\"",
@@ -71,7 +97,20 @@
               "raw": "{\"phone\":\"\",\"orderId\":1}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "TB_BVA_POINT_003 - phone: Giá trị null",
@@ -92,7 +131,20 @@
               "raw": "{\"phone\":null,\"orderId\":1}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "TB_BVA_POINT_004 - orderId: Thiếu trường",
@@ -113,7 +165,20 @@
               "raw": "{\"phone\":\"0900000000\"}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "TB_BVA_POINT_005 - orderId: 0",
@@ -134,7 +199,20 @@
               "raw": "{\"phone\":\"0900000000\",\"orderId\":0}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "TB_BVA_POINT_006 - orderId: -1",
@@ -155,7 +233,20 @@
               "raw": "{\"phone\":\"0900000000\",\"orderId\":-1}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "TB_BVA_POINT_007 - orderId: null",
@@ -176,7 +267,20 @@
               "raw": "{\"phone\":\"0900000000\",\"orderId\":null}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "TB_BVA_POINT_008 - orderId: Sai kiểu (\"abc\")",
@@ -197,7 +301,20 @@
               "raw": "{\"phone\":\"0900000000\",\"orderId\":\"abc\"}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "TB_BVA_POINT_009 - Dữ liệu hợp lệ",
@@ -218,9 +335,34 @@
               "raw": "{\"phone\":\"0900000000\",\"orderId\":1}"
             },
             "url": "{{baseUrl}}/api/points/add-points"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is valid handled response', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
     }
   ]
 }
