@@ -58,7 +58,7 @@
     },
     {
       "key": "expired_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IkFETUlOIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid",
+      "value": "mock_expired_token_for_test",
       "type": "string"
     },
     {
@@ -2263,7 +2263,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OTk5LCJyb2xlIjoiQURNSU4ifQ.tampered_signature"
+                "value": "Bearer tampered_jwt_mock_token_for_test"
               }
             ],
             "url": {

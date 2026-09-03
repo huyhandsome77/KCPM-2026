@@ -554,21 +554,6 @@
   ],
   "variable": [
     {
-      "key": "supabase_service_role_api_key_0x3a",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IkFETUlOIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid",
-      "type": "string"
-    },
-    {
-      "key": "supabase_service_role_api_key_10l4",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IkFETUlOIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE5OTk5OTk5OTl9.tampered_signature",
-      "type": "string"
-    },
-    {
-      "key": "supabase_service_role_api_key_1blp",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IkFETUlOIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.expired_signature",
-      "type": "string"
-    },
-    {
       "key": "jwt_token",
       "value": "",
       "type": "string"
