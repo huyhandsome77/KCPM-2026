@@ -1,22 +1,22 @@
 {
-	"id": "a64e95ce-e8fb-4ec6-b476-cd14adf10b65",
-	"name": "FutureSushi - Order & Payment BVA & API Test Suite",
-	"timestamp": "2026-08-30T06:17:53.806Z",
-	"collection_id": "56967522-cb25fc5c-0050-4d8d-a5ae-fd2b1f68248a",
+	"id": "5c642fa7-3a8f-4a95-8395-2f3815700b5d",
+	"name": "FutureSushi - Order & Payment BVA & API Test Suite (SRS Compliant)",
+	"timestamp": "2026-09-04T17:33:26.620Z",
+	"collection_id": "56967522-a93f5287-bb4e-4af8-aec0-23e95cec2719",
 	"folder_id": 0,
 	"environment_id": "0",
 	"totalPass": 20,
 	"delay": 0,
 	"persist": true,
 	"status": "finished",
-	"startedAt": "2026-08-30T06:17:50.399Z",
+	"startedAt": "2026-09-04T17:33:23.300Z",
 	"totalFail": 0,
 	"results": [
 		{
-			"id": "1454bcd3-3974-4760-9da6-2c2f936a5319",
+			"id": "839bdf08-91aa-473b-9f36-56c7a61554b6",
 			"name": "0.1 Setup - Admin Login (Get Admin Token)",
 			"url": "http://localhost:3000/api/auth/login",
-			"time": 173,
+			"time": 158,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -31,7 +31,7 @@
 				}
 			},
 			"times": [
-				173
+				158
 			],
 			"allTests": [
 				{
@@ -40,10 +40,10 @@
 			]
 		},
 		{
-			"id": "8ad40a43-77e9-4304-96b1-4ed8f55263bf",
-			"name": "[TC_BVA_BASE] Nominal: quantity=5, used_points=50, price=Nominal",
+			"id": "c3d0d515-cd3c-4c77-9db0-6b80ef5e812b",
+			"name": "[TC_BVA_BASE] Nominal: quantity=50, used_points=500, price=Nominal (150k)",
 			"url": "http://localhost:3000/api/orders",
-			"time": 62,
+			"time": 42,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -58,7 +58,7 @@
 				}
 			},
 			"times": [
-				62
+				42
 			],
 			"allTests": [
 				{
@@ -67,10 +67,10 @@
 			]
 		},
 		{
-			"id": "442b5a64-7d19-4660-9ce1-71d75eec5142",
-			"name": "[TC_BVA_Q_01] quantity = Min (1), used_points=50",
+			"id": "65384940-25b3-463f-bf04-6ad9fb30cf63",
+			"name": "[TC_BVA_Q_01] quantity = Min (1), used_points=500",
 			"url": "http://localhost:3000/api/orders",
-			"time": 40,
+			"time": 28,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -85,7 +85,7 @@
 				}
 			},
 			"times": [
-				40
+				28
 			],
 			"allTests": [
 				{
@@ -94,10 +94,10 @@
 			]
 		},
 		{
-			"id": "205925bb-4e19-4ef8-9ace-ebc870261338",
-			"name": "[TC_BVA_Q_02] quantity = Min+ (2), used_points=50",
+			"id": "85cde4ff-f2c3-4ef9-a7c7-e6b4f2f97258",
+			"name": "[TC_BVA_Q_02] quantity = Min+ (2), used_points=500",
 			"url": "http://localhost:3000/api/orders",
-			"time": 36,
+			"time": 31,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -112,7 +112,7 @@
 				}
 			},
 			"times": [
-				36
+				31
 			],
 			"allTests": [
 				{
@@ -121,10 +121,10 @@
 			]
 		},
 		{
-			"id": "d4ec1196-1ae2-4364-819d-e35651a12dd5",
-			"name": "[TC_BVA_Q_03] quantity = Max- (9), used_points=50",
+			"id": "2d1ba3bb-f8eb-4ea5-9a34-9dbbb024c285",
+			"name": "[TC_BVA_Q_03] quantity = Max- (98), used_points=500",
 			"url": "http://localhost:3000/api/orders",
-			"time": 37,
+			"time": 26,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -139,7 +139,7 @@
 				}
 			},
 			"times": [
-				37
+				26
 			],
 			"allTests": [
 				{
@@ -148,10 +148,10 @@
 			]
 		},
 		{
-			"id": "26593ca0-ade0-433f-920a-45cfcae19cef",
-			"name": "[TC_BVA_Q_04] quantity = Max (10), used_points=50",
+			"id": "85a21b80-c506-49aa-9a6a-47fe27ca9818",
+			"name": "[TC_BVA_Q_04] quantity = Max (99), used_points=500",
 			"url": "http://localhost:3000/api/orders",
-			"time": 25,
+			"time": 26,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -166,7 +166,7 @@
 				}
 			},
 			"times": [
-				25
+				26
 			],
 			"allTests": [
 				{
@@ -175,10 +175,10 @@
 			]
 		},
 		{
-			"id": "95db3e27-a244-4405-bc17-eed5ceceeede",
-			"name": "[TC_BVA_P_01] used_points = Min (0), quantity=5",
+			"id": "1b0d1dba-c8c0-4480-9d2b-3fed909d8ce6",
+			"name": "[TC_BVA_P_01] used_points = Min (0), quantity=50",
 			"url": "http://localhost:3000/api/orders",
-			"time": 24,
+			"time": 44,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -193,7 +193,7 @@
 				}
 			},
 			"times": [
-				24
+				44
 			],
 			"allTests": [
 				{
@@ -202,10 +202,10 @@
 			]
 		},
 		{
-			"id": "e4398ef6-0ef5-45c6-a5cc-11bf82502017",
-			"name": "[TC_BVA_P_02] used_points = Min+ (1), quantity=5",
+			"id": "0bf95906-5bcb-43f7-87a3-5a1af72d81b7",
+			"name": "[TC_BVA_P_02] used_points = Min+ (1), quantity=50",
 			"url": "http://localhost:3000/api/orders",
-			"time": 35,
+			"time": 31,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -220,7 +220,7 @@
 				}
 			},
 			"times": [
-				35
+				31
 			],
 			"allTests": [
 				{
@@ -229,10 +229,10 @@
 			]
 		},
 		{
-			"id": "2015b842-663f-4111-8400-b19e24a376a2",
-			"name": "[TC_BVA_P_03] used_points = Max- (99), quantity=5",
+			"id": "bcf99729-df54-4953-bb3f-d0d45402b34c",
+			"name": "[TC_BVA_P_03] used_points = Max- (7.499.999), quantity=50",
 			"url": "http://localhost:3000/api/orders",
-			"time": 38,
+			"time": 31,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -247,7 +247,7 @@
 				}
 			},
 			"times": [
-				38
+				31
 			],
 			"allTests": [
 				{
@@ -256,10 +256,10 @@
 			]
 		},
 		{
-			"id": "f2f262b6-1143-4a87-ba8f-60896a17ccac",
-			"name": "[TC_BVA_P_04] used_points = Max (100), quantity=5",
+			"id": "1fbd6f51-3c94-4703-a61f-1163d230bc89",
+			"name": "[TC_BVA_P_04] used_points = Max (7.500.000), quantity=50",
 			"url": "http://localhost:3000/api/orders",
-			"time": 27,
+			"time": 26,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -274,7 +274,7 @@
 				}
 			},
 			"times": [
-				27
+				26
 			],
 			"allTests": [
 				{
@@ -283,10 +283,10 @@
 			]
 		},
 		{
-			"id": "6abc7248-b489-46b3-8041-61249f003c40",
-			"name": "[TC_BVA_S_01] product price = Min (10), quantity=5, used_points=50",
+			"id": "dd81a5bc-e540-466b-b57a-8ef2e08e54a8",
+			"name": "[TC_BVA_S_01] product price = Min (1.000), quantity=50, used_points=500",
 			"url": "http://localhost:3000/api/orders",
-			"time": 39,
+			"time": 32,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -301,7 +301,7 @@
 				}
 			},
 			"times": [
-				39
+				32
 			],
 			"allTests": [
 				{
@@ -310,10 +310,10 @@
 			]
 		},
 		{
-			"id": "adbd1f36-da64-43c3-b4e9-0997fbd082df",
-			"name": "[TC_BVA_S_02] product price = Min+ (20), quantity=5, used_points=50",
+			"id": "46514441-c11b-4b2f-ab78-2383e2e6b0c6",
+			"name": "[TC_BVA_S_02] product price = Min+ (2.000), quantity=50, used_points=500",
 			"url": "http://localhost:3000/api/orders",
-			"time": 35,
+			"time": 29,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -328,7 +328,7 @@
 				}
 			},
 			"times": [
-				35
+				29
 			],
 			"allTests": [
 				{
@@ -337,10 +337,10 @@
 			]
 		},
 		{
-			"id": "baaa4371-d8e6-46f0-8480-9fbfce96b22d",
-			"name": "[TC_BVA_S_03] product price = Max- (900), quantity=5, used_points=50",
+			"id": "0948144c-0a6e-43a4-9db2-0d50ad24cd36",
+			"name": "[TC_BVA_S_03] product price = Max- (99.999.000), quantity=50, used_points=500",
 			"url": "http://localhost:3000/api/orders",
-			"time": 51,
+			"time": 34,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -355,7 +355,7 @@
 				}
 			},
 			"times": [
-				51
+				34
 			],
 			"allTests": [
 				{
@@ -364,10 +364,10 @@
 			]
 		},
 		{
-			"id": "9c7915d5-0ef4-4112-a3f8-24b94e4397ef",
-			"name": "[TC_BVA_S_04] product price = Max (1000), quantity=5, used_points=50",
+			"id": "23e4cf1d-465d-422c-a034-3fd191cb97a9",
+			"name": "[TC_BVA_S_04] product price = Max (100.000.000), quantity=50, used_points=500",
 			"url": "http://localhost:3000/api/orders",
-			"time": 35,
+			"time": 31,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -382,7 +382,7 @@
 				}
 			},
 			"times": [
-				35
+				31
 			],
 			"allTests": [
 				{
@@ -391,10 +391,10 @@
 			]
 		},
 		{
-			"id": "fc2a09eb-dc18-4fb2-a63d-8277460ef4af",
+			"id": "2c96f917-9ef2-496c-b402-b0b023b4bf48",
 			"name": "2.1 GET /api/orders - Get All Orders",
 			"url": "http://localhost:3000/api/orders",
-			"time": 23,
+			"time": 56,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -409,7 +409,7 @@
 				}
 			},
 			"times": [
-				23
+				56
 			],
 			"allTests": [
 				{
@@ -418,10 +418,10 @@
 			]
 		},
 		{
-			"id": "3088748f-6ab7-436b-958f-071f7d9da273",
+			"id": "5e5c6801-afef-4596-9b43-5533881ad0f9",
 			"name": "2.2 PUT /api/orders/:id/pay - Pay Single Order (Cash)",
 			"url": "http://localhost:3000/api/orders/1/pay",
-			"time": 8,
+			"time": 10,
 			"responseCode": {
 				"code": 400,
 				"name": "Bad Request"
@@ -436,7 +436,7 @@
 				}
 			},
 			"times": [
-				8
+				10
 			],
 			"allTests": [
 				{
@@ -445,10 +445,10 @@
 			]
 		},
 		{
-			"id": "e51ce918-b08b-4c3e-ab4b-e0fbb429d5f5",
+			"id": "faa27d98-d7a3-4807-a0b9-d65bd908fc72",
 			"name": "2.3 PUT /api/orders/table/:tableId/pay-all - Pay All Orders for Table",
 			"url": "http://localhost:3000/api/orders/table/1/pay-all",
-			"time": 19,
+			"time": 21,
 			"responseCode": {
 				"code": 400,
 				"name": "Bad Request"
@@ -463,7 +463,7 @@
 				}
 			},
 			"times": [
-				19
+				21
 			],
 			"allTests": [
 				{
@@ -472,10 +472,10 @@
 			]
 		},
 		{
-			"id": "f597a872-3940-49a9-8cc4-83f2d9847c7a",
+			"id": "b95d551e-fb32-4a17-aead-67b150eaf781",
 			"name": "2.4 POST /api/payos/create-payment-link - Create PayOS Checkout Link",
 			"url": "http://localhost:3000/api/payos/create-payment-link",
-			"time": 1044,
+			"time": 846,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -490,7 +490,7 @@
 				}
 			},
 			"times": [
-				1044
+				846
 			],
 			"allTests": [
 				{
@@ -499,10 +499,10 @@
 			]
 		},
 		{
-			"id": "9fb4fb02-fa8b-4f60-a463-d50c538b8529",
+			"id": "1019786b-696e-4d1c-9c0e-15703a1acb1a",
 			"name": "2.5 GET /api/payos/order-status/:orderId - Check PayOS Status",
 			"url": "http://localhost:3000/api/payos/order-status/1",
-			"time": 6,
+			"time": 8,
 			"responseCode": {
 				"code": 500,
 				"name": "Internal Server Error"
@@ -517,7 +517,7 @@
 				}
 			},
 			"times": [
-				6
+				8
 			],
 			"allTests": [
 				{
@@ -526,10 +526,10 @@
 			]
 		},
 		{
-			"id": "d3527444-5bfe-4889-992b-efd8b5c624cd",
+			"id": "5e5a4aea-6fba-46cc-bb74-dd06d263e9a4",
 			"name": "2.6 POST /api/payos/webhook - PayOS Webhook Confirmation",
 			"url": "http://localhost:3000/api/payos/webhook",
-			"time": 7,
+			"time": 6,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -544,7 +544,7 @@
 				}
 			},
 			"times": [
-				7
+				6
 			],
 			"allTests": [
 				{
@@ -554,87 +554,87 @@
 		}
 	],
 	"count": 1,
-	"totalTime": 1764,
+	"totalTime": 1516,
 	"collection": {
 		"requests": [
 			{
-				"id": "1454bcd3-3974-4760-9da6-2c2f936a5319",
+				"id": "839bdf08-91aa-473b-9f36-56c7a61554b6",
 				"method": "POST"
 			},
 			{
-				"id": "8ad40a43-77e9-4304-96b1-4ed8f55263bf",
+				"id": "c3d0d515-cd3c-4c77-9db0-6b80ef5e812b",
 				"method": "POST"
 			},
 			{
-				"id": "442b5a64-7d19-4660-9ce1-71d75eec5142",
+				"id": "65384940-25b3-463f-bf04-6ad9fb30cf63",
 				"method": "POST"
 			},
 			{
-				"id": "205925bb-4e19-4ef8-9ace-ebc870261338",
+				"id": "85cde4ff-f2c3-4ef9-a7c7-e6b4f2f97258",
 				"method": "POST"
 			},
 			{
-				"id": "d4ec1196-1ae2-4364-819d-e35651a12dd5",
+				"id": "2d1ba3bb-f8eb-4ea5-9a34-9dbbb024c285",
 				"method": "POST"
 			},
 			{
-				"id": "26593ca0-ade0-433f-920a-45cfcae19cef",
+				"id": "85a21b80-c506-49aa-9a6a-47fe27ca9818",
 				"method": "POST"
 			},
 			{
-				"id": "95db3e27-a244-4405-bc17-eed5ceceeede",
+				"id": "1b0d1dba-c8c0-4480-9d2b-3fed909d8ce6",
 				"method": "POST"
 			},
 			{
-				"id": "e4398ef6-0ef5-45c6-a5cc-11bf82502017",
+				"id": "0bf95906-5bcb-43f7-87a3-5a1af72d81b7",
 				"method": "POST"
 			},
 			{
-				"id": "2015b842-663f-4111-8400-b19e24a376a2",
+				"id": "bcf99729-df54-4953-bb3f-d0d45402b34c",
 				"method": "POST"
 			},
 			{
-				"id": "f2f262b6-1143-4a87-ba8f-60896a17ccac",
+				"id": "1fbd6f51-3c94-4703-a61f-1163d230bc89",
 				"method": "POST"
 			},
 			{
-				"id": "6abc7248-b489-46b3-8041-61249f003c40",
+				"id": "dd81a5bc-e540-466b-b57a-8ef2e08e54a8",
 				"method": "POST"
 			},
 			{
-				"id": "adbd1f36-da64-43c3-b4e9-0997fbd082df",
+				"id": "46514441-c11b-4b2f-ab78-2383e2e6b0c6",
 				"method": "POST"
 			},
 			{
-				"id": "baaa4371-d8e6-46f0-8480-9fbfce96b22d",
+				"id": "0948144c-0a6e-43a4-9db2-0d50ad24cd36",
 				"method": "POST"
 			},
 			{
-				"id": "9c7915d5-0ef4-4112-a3f8-24b94e4397ef",
+				"id": "23e4cf1d-465d-422c-a034-3fd191cb97a9",
 				"method": "POST"
 			},
 			{
-				"id": "fc2a09eb-dc18-4fb2-a63d-8277460ef4af",
+				"id": "2c96f917-9ef2-496c-b402-b0b023b4bf48",
 				"method": "GET"
 			},
 			{
-				"id": "3088748f-6ab7-436b-958f-071f7d9da273",
+				"id": "5e5c6801-afef-4596-9b43-5533881ad0f9",
 				"method": "PUT"
 			},
 			{
-				"id": "e51ce918-b08b-4c3e-ab4b-e0fbb429d5f5",
+				"id": "faa27d98-d7a3-4807-a0b9-d65bd908fc72",
 				"method": "PUT"
 			},
 			{
-				"id": "f597a872-3940-49a9-8cc4-83f2d9847c7a",
+				"id": "b95d551e-fb32-4a17-aead-67b150eaf781",
 				"method": "POST"
 			},
 			{
-				"id": "9fb4fb02-fa8b-4f60-a463-d50c538b8529",
+				"id": "1019786b-696e-4d1c-9c0e-15703a1acb1a",
 				"method": "GET"
 			},
 			{
-				"id": "d3527444-5bfe-4889-992b-efd8b5c624cd",
+				"id": "5e5a4aea-6fba-46cc-bb74-dd06d263e9a4",
 				"method": "POST"
 			}
 		]

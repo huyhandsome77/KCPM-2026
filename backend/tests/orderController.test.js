@@ -41,12 +41,15 @@ beforeEach(() => {
 
 // =========================================================================
 // 1. STANDARD BVA TEST CASES (Công thức 4n + 1 = 13 Test Cases, n = 3)
-// Variables: quantity (1..10), used_points (0..100), price (10..1000)
+// Variables theo đúng đặc tả SRS Mục 2.6:
+// - quantity: Miền [1, 99] (Min=1, Min+=2, Nom=50, Max-=98, Max=99)
+// - used_points: Miền [0, 10.000.000] (Min=0, Min+=1, Nom=500, Max-=7.499.999, Max=7.500.000)
+// - price: Miền [1.000, 100.000.000] đ (Min=1.000, Min+=2.000, Nom=150.000, Max-=99.999.000, Max=100.000.000)
 // =========================================================================
-describe('1. STANDARD BVA TEST CASES (4n + 1 = 13 TCs)', () => {
-  test('TC_BVA_BASE: All variables at Nominal (quantity=5, used_points=50, price=100)', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+describe('1. STANDARD BVA TEST CASES (4n + 1 = 13 TCs - SRS Compliant)', () => {
+  test('TC_BVA_BASE: All variables at Nominal (quantity=50, used_points=500, price=150000)', async () => {
+    const product = { id: 1, name: 'Sushi Cá Hồi', price: 150000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
     const createdOrder = { id: 10 };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
@@ -54,192 +57,192 @@ describe('1. STANDARD BVA TEST CASES (4n + 1 = 13 TCs)', () => {
     models.Order.findByPk.mockResolvedValue(createdOrder);
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 50 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(user.update).toHaveBeenCalledWith({ points: 50 }, expect.any(Object));
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 50, finalPrice: 450 }), expect.any(Object));
+    expect(user.update).toHaveBeenCalledWith({ points: 9500 }, expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 7500000, discountAmount: 500, finalPrice: 7499500 }), expect.any(Object));
   });
 
-  test('TC_BVA_Q_01: quantity = Min (1), used_points=50, price=100', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+  test('TC_BVA_Q_01: quantity = Min (1), used_points=500, price=150000', async () => {
+    const product = { id: 1, name: 'Sushi Cá Hồi', price: 150000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 1 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 1 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 100, discountAmount: 50, finalPrice: 50 }), expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 150000, discountAmount: 500, finalPrice: 149500 }), expect.any(Object));
   });
 
-  test('TC_BVA_Q_02: quantity = Min+ (2), used_points=50, price=100', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+  test('TC_BVA_Q_02: quantity = Min+ (2), used_points=500, price=150000', async () => {
+    const product = { id: 1, name: 'Sushi Cá Hồi', price: 150000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 2 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 2 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 200, discountAmount: 50, finalPrice: 150 }), expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 300000, discountAmount: 500, finalPrice: 299500 }), expect.any(Object));
   });
 
-  test('TC_BVA_Q_03: quantity = Max- (9), used_points=50, price=100', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+  test('TC_BVA_Q_03: quantity = Max- (98), used_points=500, price=150000', async () => {
+    const product = { id: 1, name: 'Sushi Cá Hồi', price: 150000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 9 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 98 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 900, discountAmount: 50, finalPrice: 850 }), expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 14700000, discountAmount: 500, finalPrice: 14699500 }), expect.any(Object));
   });
 
-  test('TC_BVA_Q_04: quantity = Max (10), used_points=50, price=100', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+  test('TC_BVA_Q_04: quantity = Max (99), used_points=500, price=150000', async () => {
+    const product = { id: 1, name: 'Sushi Cá Hồi', price: 150000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 10 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 99 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 1000, discountAmount: 50, finalPrice: 950 }), expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 14850000, discountAmount: 500, finalPrice: 14849500 }), expect.any(Object));
   });
 
-  test('TC_BVA_P_01: used_points = Min (0), quantity=5, price=100', async () => {
-    const product = { id: 1, price: 100 };
+  test('TC_BVA_P_01: used_points = Min (0), quantity=50, price=150000', async () => {
+    const product = { id: 1, price: 150000 };
     models.Product.findByPk.mockResolvedValue(product);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 0, items: [{ product_id: 1, quantity: 5 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 0, items: [{ product_id: 1, quantity: 50 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 0, finalPrice: 500 }), expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 7500000, discountAmount: 0, finalPrice: 7500000 }), expect.any(Object));
   });
 
-  test('TC_BVA_P_02: used_points = Min+ (1), quantity=5, price=100', async () => {
-    const product = { id: 1, price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 1, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(user.update).toHaveBeenCalledWith({ points: 99 }, expect.any(Object));
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 1, finalPrice: 499 }), expect.any(Object));
-  });
-
-  test('TC_BVA_P_03: used_points = Max- (99), quantity=5, price=100', async () => {
-    const product = { id: 1, price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+  test('TC_BVA_P_02: used_points = Min+ (1), quantity=50, price=150000', async () => {
+    const product = { id: 1, price: 150000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 99, items: [{ product_id: 1, quantity: 5 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 1, items: [{ product_id: 1, quantity: 50 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(user.update).toHaveBeenCalledWith({ points: 1 }, expect.any(Object));
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 99, finalPrice: 401 }), expect.any(Object));
+    expect(user.update).toHaveBeenCalledWith({ points: 9999 }, expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 7500000, discountAmount: 1, finalPrice: 7499999 }), expect.any(Object));
   });
 
-  test('TC_BVA_P_04: used_points = Max (100), quantity=5, price=100', async () => {
-    const product = { id: 1, price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+  test('TC_BVA_P_03: used_points = Max- (7499999), quantity=50, price=150000', async () => {
+    const product = { id: 1, price: 150000 };
+    const user = { id: 1, points: 10000000, update: jest.fn() };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 100, items: [{ product_id: 1, quantity: 5 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 7499999, items: [{ product_id: 1, quantity: 50 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(user.update).toHaveBeenCalledWith({ points: 0 }, expect.any(Object));
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 100, finalPrice: 400 }), expect.any(Object));
+    expect(user.update).toHaveBeenCalledWith({ points: 2500001 }, expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 7500000, discountAmount: 7499999, finalPrice: 1 }), expect.any(Object));
   });
 
-  test('TC_BVA_S_01: product price = Min (10), quantity=5, used_points=50', async () => {
-    const product = { id: 1, price: 10 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+  test('TC_BVA_P_04: used_points = Max (7500000), quantity=50, price=150000', async () => {
+    const product = { id: 1, price: 150000 };
+    const user = { id: 1, points: 10000000, update: jest.fn() };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 7500000, items: [{ product_id: 1, quantity: 50 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 50, discountAmount: 50, finalPrice: 0 }), expect.any(Object));
+    expect(user.update).toHaveBeenCalledWith({ points: 2500000 }, expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 7500000, discountAmount: 7500000, finalPrice: 0 }), expect.any(Object));
   });
 
-  test('TC_BVA_S_02: product price = Min+ (20), quantity=5, used_points=50', async () => {
-    const product = { id: 1, price: 20 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 100, discountAmount: 50, finalPrice: 50 }), expect.any(Object));
-  });
-
-  test('TC_BVA_S_03: product price = Max- (900), quantity=5, used_points=50', async () => {
-    const product = { id: 1, price: 900 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 4500, discountAmount: 50, finalPrice: 4450 }), expect.any(Object));
-  });
-
-  test('TC_BVA_S_04: product price = Max (1000), quantity=5, used_points=50', async () => {
+  test('TC_BVA_S_01: product price = Min (1000), quantity=50, used_points=500', async () => {
     const product = { id: 1, price: 1000 };
-    const user = { id: 1, points: 100, update: jest.fn() };
+    const user = { id: 1, points: 10000, update: jest.fn() };
     models.Product.findByPk.mockResolvedValue(product);
     models.User.findByPk.mockResolvedValue(user);
     models.Order.create.mockResolvedValue({ id: 10 });
     models.Order.findByPk.mockResolvedValue({ id: 10 });
 
     const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 50 }] } }, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 5000, discountAmount: 50, finalPrice: 4950 }), expect.any(Object));
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 50000, discountAmount: 500, finalPrice: 49500 }), expect.any(Object));
+  });
+
+  test('TC_BVA_S_02: product price = Min+ (2000), quantity=50, used_points=500', async () => {
+    const product = { id: 1, price: 2000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
+    models.Product.findByPk.mockResolvedValue(product);
+    models.User.findByPk.mockResolvedValue(user);
+    models.Order.create.mockResolvedValue({ id: 10 });
+    models.Order.findByPk.mockResolvedValue({ id: 10 });
+
+    const res = makeResponse();
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 50 }] } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 100000, discountAmount: 500, finalPrice: 99500 }), expect.any(Object));
+  });
+
+  test('TC_BVA_S_03: product price = Max- (99999000), quantity=50, used_points=500', async () => {
+    const product = { id: 1, price: 99999000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
+    models.Product.findByPk.mockResolvedValue(product);
+    models.User.findByPk.mockResolvedValue(user);
+    models.Order.create.mockResolvedValue({ id: 10 });
+    models.Order.findByPk.mockResolvedValue({ id: 10 });
+
+    const res = makeResponse();
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 50 }] } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 4999950000, discountAmount: 500, finalPrice: 4999949500 }), expect.any(Object));
+  });
+
+  test('TC_BVA_S_04: product price = Max (100000000), quantity=50, used_points=500', async () => {
+    const product = { id: 1, price: 100000000 };
+    const user = { id: 1, points: 10000, update: jest.fn() };
+    models.Product.findByPk.mockResolvedValue(product);
+    models.User.findByPk.mockResolvedValue(user);
+    models.Order.create.mockResolvedValue({ id: 10 });
+    models.Order.findByPk.mockResolvedValue({ id: 10 });
+
+    const res = makeResponse();
+    await controller.createOrder({ user: { id: 1 }, body: { used_points: 500, items: [{ product_id: 1, quantity: 50 }] } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 5000000000, discountAmount: 500, finalPrice: 4999999500 }), expect.any(Object));
   });
 });
 
