@@ -49,13 +49,13 @@ exports.createProduct = async (req, res) => {
       return res.status(400).json({ message: "Product name cannot exceed 150 characters" });
     }
 
-    // Validate Price (Min 0, Max 99,999,999.99)
+    // Validate Price (Phải lớn hơn 0, Max 99,999,999.99)
     if (price === undefined || price === null || price === '' || isNaN(Number(price))) {
       return res.status(400).json({ message: "Price is required and must be a valid number" });
     }
     const numPrice = Number(price);
-    if (numPrice < 0 || numPrice > 99999999.99) {
-      return res.status(400).json({ message: "Price must be between 0 and 99,999,999.99" });
+    if (numPrice <= 0 || numPrice > 99999999.99) {
+      return res.status(400).json({ message: "Price must be greater than 0 and up to 99,999,999.99" });
     }
 
     // Validate Stock (Integer, Min 0, Max 2,147,483,647)
@@ -123,8 +123,8 @@ exports.updateProduct = async (req, res) => {
         return res.status(400).json({ message: "Price must be a valid number" });
       }
       const numPrice = Number(price);
-      if (numPrice < 0 || numPrice > 99999999.99) {
-        return res.status(400).json({ message: "Price must be between 0 and 99,999,999.99" });
+      if (numPrice <= 0 || numPrice > 99999999.99) {
+        return res.status(400).json({ message: "Price must be greater than 0 and up to 99,999,999.99" });
       }
       updateData.price = numPrice;
     }
