@@ -1,4 +1,4 @@
-const { Product, Category } = require("../models");
+const { Product, Category, OrderItem, CartItem } = require("../models");
 const { Op } = require("sequelize");
 require("dotenv").config();
 
@@ -184,14 +184,32 @@ exports.deleteProduct = async (req, res) => {
       return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    const deleted = await Product.destroy({
-      where: { id }
-    });
-    if (!deleted) {
+    const product = await Product.findByPk(id);
+    if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    res.status(204).send();
+
+    const [orderItemCount, cartItemCount] = await Promise.all([
+      OrderItem.count({ where: { product_id: id } }),
+      CartItem.count({ where: { product_id: id } })
+    ]);
+
+    if (orderItemCount > 0 || cartItemCount > 0) {
+      return res.status(400).json({
+        message: "Món ăn đang có trong đơn hàng hoặc giỏ hàng, không thể xóa (Ràng buộc toàn vẹn dữ liệu)"
+      });
+    }
+
+    await Product.destroy({
+      where: { id }
+    });
+    return res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(400).json({
+        message: "Món ăn đang có trong đơn hàng hoặc giỏ hàng, không thể xóa (Ràng buộc toàn vẹn dữ liệu)"
+      });
+    }
+    return res.status(500).json({ message: error.message });
   }
 };
