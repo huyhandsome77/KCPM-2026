@@ -119,10 +119,19 @@ exports.deleteCategory = async (req, res) => {
             return res.status(400).json({ message: "Invalid category ID" });
         }
 
-        const deleted = await Category.destroy({
+        const category = await Category.findByPk(id);
+        if (!category) return res.status(404).json({ message: "Not found" });
+
+        const productCount = await Product.count({ where: { category_id: id } });
+        if (productCount > 0) {
+            return res.status(400).json({ 
+                message: "Không thể xóa danh mục đang có sản phẩm liên kết (Ràng buộc khóa ngoại)" 
+            });
+        }
+
+        await Category.destroy({
             where: { id }
         });
-        if (!deleted) return res.status(404).json({ message: "Not found" });
         res.status(204).send();
     } catch (error) {
         console.error("Delete Category Error:", error);

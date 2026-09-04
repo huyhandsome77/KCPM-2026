@@ -1,13 +1,14 @@
-const { Product } = require("../models");
+const { Product, Category } = require("../models");
 const { Op } = require("sequelize");
 require("dotenv").config();
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const { category_id, search } = req.query;
+    const { category_id, categoryId, search } = req.query;
     const where = {};
-    if (category_id !== undefined && category_id !== '') {
-      where.category_id = category_id;
+    const catId = category_id !== undefined ? category_id : categoryId;
+    if (catId !== undefined && catId !== '') {
+      where.category_id = catId;
     }
     if (search && typeof search === 'string' && search.trim() !== '') {
       where.name = { [Op.like]: `%${search.trim()}%` };
@@ -38,11 +39,11 @@ exports.getProductById = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
   try {
-    const { name, description, price, image, stock, isAvailable, category_id } = req.body || {};
+    const { name, description, price, image, stock, isAvailable, category_id, categoryId } = req.body || {};
 
-    // Validate Name (Min 1, Max 150 chars)
+    // Validate Name (Không được rỗng hoặc chỉ chứa khoảng trắng, Max 150 chars)
     if (name === undefined || name === null || typeof name !== 'string' || name.trim().length === 0) {
-      return res.status(400).json({ message: "Product name is required and cannot be empty" });
+      return res.status(400).json({ message: "Tên món ăn không được để trống" });
     }
     if (name.length > 150) {
       return res.status(400).json({ message: "Product name cannot exceed 150 characters" });
@@ -68,12 +69,18 @@ exports.createProduct = async (req, res) => {
     }
 
     // Validate Category ID (Integer >= 1)
-    if (category_id === undefined || category_id === null || isNaN(Number(category_id))) {
+    const catId = category_id !== undefined ? category_id : categoryId;
+    if (catId === undefined || catId === null || isNaN(Number(catId))) {
       return res.status(400).json({ message: "Category ID is required and must be a valid number" });
     }
-    const numCatId = Number(category_id);
+    const numCatId = Number(catId);
     if (numCatId <= 0 || !Number.isInteger(numCatId)) {
       return res.status(400).json({ message: "Category ID must be a positive integer" });
+    }
+
+    const categoryExists = await Category.findByPk(numCatId);
+    if (!categoryExists) {
+      return res.status(400).json({ message: "Category not found" });
     }
 
     const product = await Product.create({
@@ -98,12 +105,12 @@ exports.updateProduct = async (req, res) => {
       return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    const { name, description, price, image, stock, isAvailable, category_id } = req.body || {};
+    const { name, description, price, image, stock, isAvailable, category_id, categoryId } = req.body || {};
     const updateData = {};
 
     if (name !== undefined) {
       if (name === null || typeof name !== 'string' || name.trim().length === 0) {
-        return res.status(400).json({ message: "Product name cannot be empty" });
+        return res.status(400).json({ message: "Tên món ăn không được để trống" });
       }
       if (name.length > 150) {
         return res.status(400).json({ message: "Product name cannot exceed 150 characters" });
@@ -133,13 +140,18 @@ exports.updateProduct = async (req, res) => {
       updateData.stock = numStock;
     }
 
-    if (category_id !== undefined) {
-      if (category_id === null || isNaN(Number(category_id))) {
+    const catId = category_id !== undefined ? category_id : categoryId;
+    if (catId !== undefined) {
+      if (catId === null || isNaN(Number(catId))) {
         return res.status(400).json({ message: "Category ID must be a valid number" });
       }
-      const numCatId = Number(category_id);
+      const numCatId = Number(catId);
       if (numCatId <= 0 || !Number.isInteger(numCatId)) {
         return res.status(400).json({ message: "Category ID must be a positive integer" });
+      }
+      const categoryExists = await Category.findByPk(numCatId);
+      if (!categoryExists) {
+        return res.status(400).json({ message: "Category not found" });
       }
       updateData.category_id = numCatId;
     }
@@ -152,7 +164,11 @@ exports.updateProduct = async (req, res) => {
       where: { id }
     });
     if (!updated) {
-      return res.status(404).json({ message: "Product not found" });
+      const product = await Product.findByPk(id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      return res.status(200).json(product);
     }
     const updatedProduct = await Product.findByPk(id);
     res.status(200).json(updatedProduct);
