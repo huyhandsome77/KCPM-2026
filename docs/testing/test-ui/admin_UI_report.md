@@ -54,20 +54,26 @@ Kiểm thử bao phủ trọn vẹn 8 phân hệ chức năng theo đúng mô t�
 
 ## 4. HƯỚNG DẪN CHẠY KIỂM THỬ TỰ ĐỘNG (HOW TO RUN)
 
-### Bước 1: Khởi động Backend
+### Bước 1: Khởi động Backend API
+Mở Terminal 1 để khởi động Backend phục vụ Database và API:
 ```bash
-# Terminal 1 - Khởi động Backend API (Port 3000)
 cd backend
 npm run dev
+```
+(Chờ Terminal thông báo: `Server is running on port 3000` & `Database synced successfully`).
 
+### Bước 2: Khởi động Frontend Admin (Live Server / Five Server)
+Mở Live Server (hoặc Five Server) trong VS Code trên cổng **`5500`**:
+* **Cách 1:** Chuột phải vào file `admin/index.html` Chọn **Open with Live Server** (hoặc **Open with Five Server**).
+* **Cách 2:** Bấm vào nút **`Go Live`** ở góc dưới cùng bên phải thanh trạng thái của VS Code để kích hoạt `Port: 5500`.
 
-
-
-### Bước 2: Chạy kiểm thử tự động với CodeceptJS
+### Bước 3: Thực thi kiểm thử tự động với CodeceptJS
+Mở Terminal 2 để chạy toàn bộ kịch bản kiểm thử:
 ```bash
 cd test-ui
 npx codeceptjs run tests/admin/admin_test.js --steps
 ```
+(Trình duyệt Chromium sẽ tự động khởi chạy và thực hiện 17 kịch bản kiểm thử).
 
 ---
 
