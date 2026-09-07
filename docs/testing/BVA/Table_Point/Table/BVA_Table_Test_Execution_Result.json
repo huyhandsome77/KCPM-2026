@@ -1,542 +1,306 @@
 {
-  "id": "bva-table-execution-2026-08-23",
-  "name": "FutureSushi - BVA Table API Test Suite",
-  "timestamp": "2026-08-23T04:33:04.700631Z",
-  "collection_id": "bva-table-suite-2026",
+  "test_suite": "FutureSushi - BVA Table 4n+1 - REVIEWED",
+  "test_group": "1. BVA 4n+1 - EXACTLY 17 TEST CASES",
+  "execution_type": "Postman manual execution",
   "environment": "FutureSushi - Local Environment",
-  "status": "finished",
-  "totalRequests": 18,
-  "totalPass": 31,
-  "totalFail": 5,
-  "summary": {
-    "requestsPassed": 13,
-    "requestsFailed": 5,
-    "assertionsPassed": 31,
-    "assertionsFailed": 5,
-    "note": "Tổng hợp từ lần chạy Postman đã thực hiện; các FAIL được giữ nguyên để ghi nhận defect."
-  },
-  "results": [
+  "base_url": "http://localhost:3000",
+  "endpoint_tested": "POST /api/tables",
+  "executed_at": "2026-09-04",
+  "total_test_cases": 17,
+  "passed": 15,
+  "failed": 2,
+  "pass_rate_percent": 88.24,
+  "fail_rate_percent": 11.76,
+  "note": "Kết quả được ghi nhận đúng theo lần test thực tế.",
+  "test_cases": [
     {
-      "id": "TB-RUN-001",
-      "name": "AUTH - Đăng nhập Admin",
+      "id": "BVA-TB-001",
+      "name": "Baseline / Nominal",
       "method": "POST",
-      "url": "http://localhost:3000/api/auth/login",
-      "time": 188,
-      "responseCode": {
-        "code": 200,
-        "name": "OK"
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 600,
+        "capacity": 4,
+        "qrCode": "BVA-BASE-600",
+        "status": "AVAILABLE"
       },
-      "tests": {
-        "Status code is 200": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 200": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        188
-      ],
-      "status": "PASS"
+      "expected": "201 Created; payload có message và table object, các field table khớp input",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công. Response trả message và table object; tableNumber, capacity, qrCode, status khớp input."
     },
     {
-      "id": "TB-RUN-002",
-      "name": "TB-001 - Create Table Success",
+      "id": "BVA-TB-002",
+      "name": "tableNumber Min",
       "method": "POST",
-      "url": "http://localhost:3000/api/tables",
-      "time": 5,
-      "responseCode": {
-        "code": 400,
-        "name": "Bad Request"
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 1,
+        "capacity": 4,
+        "qrCode": "BVA-TN-1",
+        "status": "AVAILABLE"
       },
-      "tests": {
-        "Status code is 201": false,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 201": {
-          "pass": 0,
-          "fail": 1
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        5
-      ],
-      "status": "FAIL"
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 400,
+      "actual_result": "FAIL",
+      "assertions": "3/9 passed",
+      "note": "FAIL thực tế do dữ liệu bàn #1 đã tồn tại và đang có Order #3 chưa hoàn tất. Payload: \"Bàn #1 đang có đơn hàng #3 chưa hoàn tất!\". ."
     },
     {
-      "id": "TB-RUN-003",
-      "name": "TB-002 - Create Duplicate Table",
+      "id": "BVA-TB-003",
+      "name": "tableNumber Min+1",
       "method": "POST",
-      "url": "http://localhost:3000/api/tables",
-      "time": 4,
-      "responseCode": {
-        "code": 400,
-        "name": "Bad Request"
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 2,
+        "capacity": 4,
+        "qrCode": "BVA-TN-2",
+        "status": "AVAILABLE"
       },
-      "tests": {
-        "Status code is 400": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 400": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        4
-      ],
-      "status": "PASS"
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 400,
+      "actual_result": "FAIL",
+      "assertions": "3/9 passed",
+      "note": "FAIL thực tế do bàn #2 đã tồn tại trong hệ thống. Payload: \"Bàn #2 đã tồn tại trong hệ thống!\"."
     },
     {
-      "id": "TB-RUN-004",
-      "name": "TB-BVA-001 - tableNumber = 0",
+      "id": "BVA-TB-004",
+      "name": "tableNumber Max-1",
       "method": "POST",
-      "url": "http://localhost:3000/api/tables",
-      "time": 4,
-      "responseCode": {
-        "code": 400,
-        "name": "Bad Request"
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 999,
+        "capacity": 4,
+        "qrCode": "BVA-TN-999",
+        "status": "AVAILABLE"
       },
-      "tests": {
-        "Status code is 201": false,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 201": {
-          "pass": 0,
-          "fail": 1
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        4
-      ],
-      "status": "FAIL"
+      "expected": "201 Created; payload table hợp lệ và field khớp input",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công; response trả tableNumber=999 và dữ liệu table tương ứng."
     },
     {
-      "id": "TB-RUN-005",
-      "name": "TB-BVA-002 - capacity = 0",
+      "id": "BVA-TB-005",
+      "name": "tableNumber Max",
       "method": "POST",
-      "url": "http://localhost:3000/api/tables",
-      "time": 4,
-      "responseCode": {
-        "code": 400,
-        "name": "Bad Request"
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 1000,
+        "capacity": 4,
+        "qrCode": "BVA-TN-1000",
+        "status": "AVAILABLE"
       },
-      "tests": {
-        "Status code is 201": false,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 201": {
-          "pass": 0,
-          "fail": 1
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        4
-      ],
-      "status": "FAIL"
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công; response trả tableNumber=1000."
     },
     {
-      "id": "TB-RUN-006",
-      "name": "TB-WB-004 - Update Table Not Found",
-      "method": "PUT",
-      "url": "http://localhost:3000/api/tables/999999",
-      "time": 6,
-      "responseCode": {
-        "code": 404,
-        "name": "Not Found"
-      },
-      "tests": {
-        "Status code is 404": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 404": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        6
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-007",
-      "name": "TB-WB-005 - Update Table Success",
-      "method": "PUT",
-      "url": "http://localhost:3000/api/tables/1",
-      "time": 16,
-      "responseCode": {
-        "code": 200,
-        "name": "OK"
-      },
-      "tests": {
-        "Status code is 200": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 200": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        16
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-008",
-      "name": "TB-BVA-005 - Empty QR Code",
-      "method": "PUT",
-      "url": "http://localhost:3000/api/tables/1",
-      "time": 5,
-      "responseCode": {
-        "code": 200,
-        "name": "OK"
-      },
-      "tests": {
-        "Status code is 200": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 200": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        5
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-009",
-      "name": "TB-WB-009 - Status Table Not Found",
-      "method": "PUT",
-      "url": "http://localhost:3000/api/tables/999999/status",
-      "time": 7,
-      "responseCode": {
-        "code": 404,
-        "name": "Not Found"
-      },
-      "tests": {
-        "Status code is 404": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 404": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        7
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-010",
-      "name": "TB-WB-010 - Update OCCUPIED",
-      "method": "PUT",
-      "url": "http://localhost:3000/api/tables/status",
-      "time": 7,
-      "responseCode": {
-        "code": 404,
-        "name": "Not Found"
-      },
-      "tests": {
-        "Status code is 200": false,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 200": {
-          "pass": 0,
-          "fail": 1
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        7
-      ],
-      "status": "FAIL"
-    },
-    {
-      "id": "TB-RUN-011",
-      "name": "TB-WB-013 - Delete Table Not Found",
-      "method": "DELETE",
-      "url": "http://localhost:3000/api/tables/999999",
-      "time": 6,
-      "responseCode": {
-        "code": 404,
-        "name": "Not Found"
-      },
-      "tests": {
-        "Status code is 404": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 404": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        6
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-012",
-      "name": "TB-WB-015 - Delete Table Success",
-      "method": "DELETE",
-      "url": "http://localhost:3000/api/tables",
-      "time": 6,
-      "responseCode": {
-        "code": 404,
-        "name": "Not Found"
-      },
-      "tests": {
-        "Status code is 200": false,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 200": {
-          "pass": 0,
-          "fail": 1
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        6
-      ],
-      "status": "FAIL"
-    },
-    {
-      "id": "TB-RUN-013",
-      "name": "TB-WB-017 - QR Not Found",
-      "method": "GET",
-      "url": "http://localhost:3000/api/tables/qr/QR-NOT-EXIST",
-      "time": 3,
-      "responseCode": {
-        "code": 404,
-        "name": "Not Found"
-      },
-      "tests": {
-        "Status code is 404": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 404": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        3
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-014",
-      "name": "TB-WB-018 - Get Table By QR",
-      "method": "GET",
-      "url": "http://localhost:3000/api/tables/qr/QR-TB-901",
-      "time": 3,
-      "responseCode": {
-        "code": 200,
-        "name": "OK"
-      },
-      "tests": {
-        "Status code is 200": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 200": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        3
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-015",
-      "name": "TB-WB-022 - Get All Tables",
-      "method": "GET",
-      "url": "http://localhost:3000/api/tables",
-      "time": 64,
-      "responseCode": {
-        "code": 200,
-        "name": "OK"
-      },
-      "tests": {
-        "Status code is 200": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 200": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        64
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-016",
-      "name": "TB-BVA-007 - Active Order",
-      "method": "GET",
-      "url": "http://localhost:3000/api/tables",
-      "time": 46,
-      "responseCode": {
-        "code": 200,
-        "name": "OK"
-      },
-      "tests": {
-        "Status code is 200": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 200": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        46
-      ],
-      "status": "PASS"
-    },
-    {
-      "id": "TB-RUN-017",
-      "name": "TB-WB-019 - Body Not Array",
+      "id": "BVA-TB-006",
+      "name": "capacity Min",
       "method": "POST",
-      "url": "http://localhost:3000/api/tables/bulk",
-      "time": 3,
-      "responseCode": {
-        "code": 400,
-        "name": "Bad Request"
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 606,
+        "capacity": 1,
+        "qrCode": "BVA-CAP-6",
+        "status": "AVAILABLE"
       },
-      "tests": {
-        "Status code is 400": true,
-        "Response time < 1000ms": true
-      },
-      "testPassFailCounts": {
-        "Status code is 400": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
-      },
-      "times": [
-        3
-      ],
-      "status": "PASS"
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công; response trả capacity=1."
     },
     {
-      "id": "TB-RUN-018",
-      "name": "TB-WB-020 - Bulk Create Success",
+      "id": "BVA-TB-007",
+      "name": "capacity Min+1",
       "method": "POST",
-      "url": "http://localhost:3000/api/tables/bulk",
-      "time": 15,
-      "responseCode": {
-        "code": 201,
-        "name": "Created"
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 607,
+        "capacity": 2,
+        "qrCode": "BVA-CAP-7",
+        "status": "AVAILABLE"
       },
-      "tests": {
-        "Status code is 201": true,
-        "Response time < 1000ms": true
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công; response trả capacity=2."
+    },
+    {
+      "id": "BVA-TB-008",
+      "name": "capacity Max-1",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 608,
+        "capacity": 19,
+        "qrCode": "BVA-CAP-8",
+        "status": "AVAILABLE"
       },
-      "testPassFailCounts": {
-        "Status code is 201": {
-          "pass": 1,
-          "fail": 0
-        },
-        "Response time < 1000ms": {
-          "pass": 1,
-          "fail": 0
-        }
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công; response trả capacity=19."
+    },
+    {
+      "id": "BVA-TB-009",
+      "name": "capacity Max",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 609,
+        "capacity": 20,
+        "qrCode": "BVA-CAP-9",
+        "status": "AVAILABLE"
       },
-      "times": [
-        15
-      ],
-      "status": "PASS"
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công; response trả capacity=20."
+    },
+    {
+      "id": "BVA-TB-010",
+      "name": "qrCode length Min",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 610,
+        "capacity": 4,
+        "qrCode": "Q",
+        "status": "AVAILABLE"
+      },
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công với qrCode độ dài tối thiểu theo testcase."
+    },
+    {
+      "id": "BVA-TB-011",
+      "name": "qrCode length Min+1",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 611,
+        "capacity": 4,
+        "qrCode": "QR",
+        "status": "AVAILABLE"
+      },
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công với qrCode độ dài Min+1."
+    },
+    {
+      "id": "BVA-TB-012",
+      "name": "qrCode length Max-1",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 612,
+        "capacity": 4,
+        "qrCode": "QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ",
+        "status": "AVAILABLE"
+      },
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công với qrCode tại biên Max-1 theo testcase."
+    },
+    {
+      "id": "BVA-TB-013",
+      "name": "qrCode length Max",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 613,
+        "capacity": 4,
+        "qrCode": "QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ",
+        "status": "AVAILABLE"
+      },
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công với qrCode tại biên Max theo testcase."
+    },
+    {
+      "id": "BVA-TB-014",
+      "name": "status Min",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 614,
+        "capacity": 4,
+        "qrCode": "BVA-STATUS-14",
+        "status": "AVAILABLE"
+      },
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công với status=AVAILABLE."
+    },
+    {
+      "id": "BVA-TB-015",
+      "name": "status Min+1",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 615,
+        "capacity": 4,
+        "qrCode": "BVA-STATUS-15",
+        "status": "BOOKED"
+      },
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công với status=BOOKED."
+    },
+    {
+      "id": "BVA-TB-016",
+      "name": "status Max-1",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 616,
+        "capacity": 4,
+        "qrCode": "BVA-STATUS-16",
+        "status": "OCCUPIED"
+      },
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công với status=OCCUPIED."
+    },
+    {
+      "id": "BVA-TB-017",
+      "name": "status Max",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/tables",
+      "input": {
+        "tableNumber": 617,
+        "capacity": 4,
+        "qrCode": "BVA-STATUS-17",
+        "status": "CLEANING"
+      },
+      "expected": "201 Created; payload table hợp lệ",
+      "actual_status": 201,
+      "actual_result": "PASS",
+      "assertions": "9/9 passed",
+      "note": "Tạo bàn thành công với status=CLEANING."
     }
   ]
 }
