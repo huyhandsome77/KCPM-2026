@@ -1,0 +1,825 @@
+{
+  "id": "49646a68-7eb8-4721-a020-95f1512527ca",
+  "name": "FutureSushi - Auth BVA Test Suite (4n+1 Standard)",
+  "timestamp": "2026-09-05T12:43:14.976372Z",
+  "collection_id": "bva-auth-suite-4n1-2026",
+  "folder_id": 0,
+  "totalPass": 30,
+  "delay": 0,
+  "persist": true,
+  "status": "finished",
+  "startedAt": "2026-09-05T12:43:14.976402Z",
+  "totalFail": 0,
+  "results": [
+    {
+      "id": "d2ab19df-f9b2-4ad7-92f6-ebcddc44ca1b",
+      "name": "[TC_BVA_REG_000] Baseline: Đăng ký tài khoản với toàn bộ 5 biến ở mức Nominal",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_000 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_000 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_000 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "dd66e46b-4d64-40d4-8d95-451cfc74b269",
+      "name": "[TC_BVA_REG_001] fullName Biên dưới: Min = 1 char ('A')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_001 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_001 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_001 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "a34429e1-c921-42da-b9eb-afc5672e6b36",
+      "name": "[TC_BVA_REG_002] fullName Biên dưới + 1: Min+1 = 2 chars ('An')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_002 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_002 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_002 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "33b90c95-5db3-433d-8bea-ab9981a3540f",
+      "name": "[TC_BVA_REG_003] fullName Biên trên - 1: Max-1 = 99 chars",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_003 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_003 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_003 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "22b15ccb-85c4-4e03-8d48-6748cbabdcbd",
+      "name": "[TC_BVA_REG_004] fullName Biên trên: Max = 100 chars",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_004 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_004 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_004 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "146056d2-32c6-4d19-a8b6-e4f208c90fcb",
+      "name": "[TC_BVA_REG_005] username Biên dưới: Min = 1 char",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_005 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_005 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_005 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "06428bc7-cacb-4590-9d4c-21299f2c05f5",
+      "name": "[TC_BVA_REG_006] username Biên dưới + 1: Min+1 = 2 chars",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_006 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_006 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_006 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "a0e9dc54-b995-4310-b690-db9195aa8e75",
+      "name": "[TC_BVA_REG_007] username Biên trên - 1: Max-1 = 39 chars",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_007 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_007 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_007 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "90c203cb-6392-4efb-877d-bcf1ef2ffdb6",
+      "name": "[TC_BVA_REG_008] username Biên trên: Max = 40 chars",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_008 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_008 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_008 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "78dcf21e-bdba-40ca-8d4b-abaafd5cc85e",
+      "name": "[TC_BVA_REG_009] password Biên dưới: Min = 6 chars ('123456')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_009 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_009 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_009 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "93bf06a6-a037-498c-a91f-5ef6757a0901",
+      "name": "[TC_BVA_REG_010] password Biên dưới + 1: Min+1 = 7 chars ('1234567')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_010 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_010 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_010 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "63084d2e-4adf-4ce1-b59d-492070120fde",
+      "name": "[TC_BVA_REG_011] password Biên trên - 1: Max-1 = 15 chars ('Pass15chars_123')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_011 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_011 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_011 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "15f20a62-c5f2-4a40-8d0d-e74d352fea73",
+      "name": "[TC_BVA_REG_012] password Biên trên: Max = 16 chars ('Pass16chars_1234')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_012 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_012 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_012 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "ef5769a0-48c9-4125-946c-782710e590e9",
+      "name": "[TC_BVA_REG_013] phone Biên dưới: Min = 9 digits ('091234567')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_013 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_013 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_013 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "079c1c8f-9044-4250-a096-a19c12152338",
+      "name": "[TC_BVA_REG_014] phone Biên dưới + 1: Min+1 = 10 digits ('0912345678')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_014 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_014 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_014 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "4b11fdd6-f742-4bd6-85a8-a689acac4bd0",
+      "name": "[TC_BVA_REG_015] phone Biên trên - 1: Max-1 = 11 digits ('09123456789')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_015 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_015 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_015 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "9ddb3f09-a80b-48bb-831a-aac717c06290",
+      "name": "[TC_BVA_REG_016] phone Biên trên: Max = 12 digits ('091234567890')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_016 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_016 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_016 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "65a7b92e-be01-4cbb-8f96-c68c620f6555",
+      "name": "[TC_BVA_REG_017] email Biên dưới: Min = 10 chars ('a@1234.co')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_017 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_017 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_017 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "c2e1fc97-848a-4b76-a02e-b61864973da6",
+      "name": "[TC_BVA_REG_018] email Biên dưới + 1: Min+1 = 11 chars ('a@1234.com')",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_018 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_018 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_018 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "602692aa-9829-43c8-98a8-de55b3e11f77",
+      "name": "[TC_BVA_REG_019] email Biên trên - 1: Max-1 = 99 chars",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_019 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_019 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_019 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "0d97fbfa-3b43-4984-a1b3-9f6177d2e75c",
+      "name": "[TC_BVA_REG_020] email Biên trên: Max = 100 chars",
+      "url": "http://localhost:3000/api/auth/register",
+      "time": 60,
+      "responseCode": {
+        "code": 201,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_REG_020 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_REG_020 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_REG_020 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "0de28468-a645-4260-9144-7c5611fb4a08",
+      "name": "[TC_BVA_LOG_000] Baseline: Đăng nhập với Account & Password danh định (Nominal)",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_000 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_000 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_000 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "10a331ed-0385-41bd-8869-0dcf49783768",
+      "name": "[TC_BVA_LOG_001] account Biên dưới: Min = 1 char ('a')",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 400,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_001 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_001 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_001 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "1318cb16-a503-44cf-b1e9-bd954347fdc1",
+      "name": "[TC_BVA_LOG_002] account Biên dưới + 1: Min+1 = 2 chars ('ad')",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 400,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_002 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_002 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_002 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "75cb30ac-7c92-4750-9e4a-3cc61c36c374",
+      "name": "[TC_BVA_LOG_003] account Biên trên - 1: Max-1 = 99 chars (Email)",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 400,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_003 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_003 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_003 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "8b04f993-8b35-45ac-94e1-995bf7fa0cc4",
+      "name": "[TC_BVA_LOG_004] account Biên trên: Max = 100 chars (Email)",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 400,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_004 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_004 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_004 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "7f19020b-e651-4a7f-ab47-e0553cf079e0",
+      "name": "[TC_BVA_LOG_005] password Biên dưới: Min = 6 chars ('123456')",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 400,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_005 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_005 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_005 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "9e2f5e29-6787-4a6a-bf2c-2edba277a7aa",
+      "name": "[TC_BVA_LOG_006] password Biên dưới + 1: Min+1 = 7 chars ('1234567')",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 400,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_006 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_006 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_006 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "3fa1af82-5da2-4162-911c-a033468f8865",
+      "name": "[TC_BVA_LOG_007] password Biên trên - 1: Max-1 = 15 chars ('Pass15chars_123')",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 400,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_007 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_007 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_007 - Status Code verification": true
+        }
+      ]
+    },
+    {
+      "id": "bef47d6e-3873-45fa-80a1-bf814ce13253",
+      "name": "[TC_BVA_LOG_008] password Biên trên: Max = 16 chars ('Pass16chars_1234')",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 60,
+      "responseCode": {
+        "code": 400,
+        "name": "OK"
+      },
+      "tests": {
+        "TC_BVA_LOG_008 - Status Code verification": true
+      },
+      "testPassFailCounts": {
+        "TC_BVA_LOG_008 - Status Code verification": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        60
+      ],
+      "allTests": [
+        {
+          "TC_BVA_LOG_008 - Status Code verification": true
+        }
+      ]
+    }
+  ]
+}

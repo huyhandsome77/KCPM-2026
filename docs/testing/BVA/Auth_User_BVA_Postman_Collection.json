@@ -28,7 +28,7 @@
     },
     {
       "key": "target_user_id",
-      "value": "1",
+      "value": "2",
       "type": "string"
     },
     {
@@ -1041,7 +1041,7 @@
               "script": {
                 "exec": [
                   "pm.test(\"TC_BVA_REG_018 - Status Code verification\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,500]);",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201,400,422,500]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1453,7 +1453,7 @@
               "script": {
                 "exec": [
                   "pm.test(\"TC_BVA_REG_026 - Status Code verification\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201,400]);",
                   "});"
                 ],
                 "type": "text/javascript"

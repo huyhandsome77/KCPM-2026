@@ -1,0 +1,558 @@
+{
+  "title": "FutureSushi Automated API Test Execution Report",
+  "timestamp": "2026-09-03T16:43:08.118Z",
+  "environment": "Local Test Server (http://localhost:3000)",
+  "summary": {
+    "totalCollections": 16,
+    "collectionsPassed": 9,
+    "collectionsFailed": 7,
+    "totalRequests": 412,
+    "totalAssertions": 541,
+    "assertionsPassed": 497,
+    "assertionsFailed": 44,
+    "overallPassRate": "91.87%",
+    "totalDurationMs": 45489,
+    "formattedDuration": "45.49s"
+  },
+  "suites": [
+    {
+      "category": "Authentication",
+      "collectionName": "FutureSushi - Authentication & User API Test Suite",
+      "collectionPath": "docs\\testing\\API\\authetic\\Authentication_API_Postman_Collection.json",
+      "status": "PASSED",
+      "durationMs": 6433,
+      "requests": {
+        "total": 54,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 56,
+        "passed": 56,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    },
+    {
+      "category": "Category",
+      "collectionName": "FutureSushi - Category CRUD API Test Suite",
+      "collectionPath": "docs\\testing\\API\\category\\Category_API_Postman_Collection.json",
+      "status": "FAILED",
+      "durationMs": 4889,
+      "requests": {
+        "total": 50,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 53,
+        "passed": 52,
+        "failed": 1
+      },
+      "passRate": "98.11%",
+      "failures": [
+        {
+          "test": "TC_API_CAT_040 - Ràng buộc khóa ngoại khi xóa danh mục có sản phẩm (400 / 409 / 500)",
+          "message": "expected 204 to be one of [ 400, 404, 409, 500 ]"
+        }
+      ]
+    },
+    {
+      "category": "Product",
+      "collectionName": "FutureSushi - Product & Upload API Test Suite",
+      "collectionPath": "docs\\testing\\API\\product\\Product_and_Upload_API_Postman_Collection.json",
+      "status": "FAILED",
+      "durationMs": 6585,
+      "requests": {
+        "total": 70,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 70,
+        "passed": 54,
+        "failed": 16
+      },
+      "passRate": "77.14%",
+      "failures": [
+        {
+          "test": "TC_API_PRD_001: Tạo món ăn mới thành công với đầy đủ các trường hợp lệ (name, description, price, image, stock, isAvailable, category_id)",
+          "message": "expected response to have status code 201 but got 400"
+        },
+        {
+          "test": "TC_API_PRD_002: Tạo món ăn thành công chỉ với các trường bắt buộc (name, price, category_id)",
+          "message": "expected response to have status code 201 but got 400"
+        },
+        {
+          "test": "TC_API_PRD_003: Tạo món ăn với tên đạt độ dài biên tối đa 150 ký tự (STRING(150) Boundary Max)",
+          "message": "expected response to have status code 201 but got 400"
+        },
+        {
+          "test": "TC_API_PRD_004: Tạo món ăn với Tên chứa tiếng Việt có dấu, ký tự đặc biệt & Emoji",
+          "message": "expected response to have status code 201 but got 400"
+        },
+        {
+          "test": "TC_API_PRD_005: Tạo món ăn với giá trị price số thập phân (DECIMAL(10,2))",
+          "message": "expected response to have status code 201 but got 400"
+        },
+        {
+          "test": "TC_API_PRD_006: Tạo món ăn gán URL hình ảnh từ API Upload nội bộ (/uploads/image-...)",
+          "message": "expected response to have status code 201 but got 400"
+        },
+        {
+          "test": "TC_API_PRD_018: Kiểm tra an toàn bảo mật SQL Injection & XSS Payload trong thông tin món ăn",
+          "message": "expected response to have status code 201 but got 400"
+        },
+        {
+          "test": "TC_API_PRD_028: Lấy chi tiết món ăn với ID hợp lệ (GET /api/products/{{createdProductId}})",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_PRD_033: Cập nhật đầy đủ tất cả thông tin món ăn thành công",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_PRD_034: Cập nhật chỉ riêng tên món ăn (name)",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_PRD_035: Cập nhật chỉ riêng giá tiền (price)",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_PRD_036: Cập nhật chuyển món ăn sang danh mục khác (category_id)",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_PRD_037: Cập nhật trạng thái tạm ngưng phục vụ (isAvailable: false)",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_PRD_038: Cập nhật gỡ bỏ hình ảnh món ăn (image: null)",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_PRD_039: Cập nhật số lượng tồn kho (stock: 120)",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_PRD_047: Xóa món ăn hợp lệ không có ràng buộc đơn hàng hoặc giỏ hàng",
+          "message": "expected response to have status code 204 but got 404"
+        }
+      ]
+    },
+    {
+      "category": "Restaurant Table",
+      "collectionName": "Restaurant Table API Test Suite",
+      "collectionPath": "docs\\testing\\API\\table\\Restaurant_Table_API_Postman_Collection.json",
+      "status": "FAILED",
+      "durationMs": 1123,
+      "requests": {
+        "total": 11,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 11,
+        "passed": 7,
+        "failed": 4
+      },
+      "passRate": "63.64%",
+      "failures": [
+        {
+          "test": "TC_API_TBL_002 - Tạo bàn mới thành công",
+          "message": "expected 400 to be one of [ 200, 201 ]"
+        },
+        {
+          "test": "TC_API_TBL_006 - Cập nhật trạng thái bàn",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_TBL_007 - Cập nhật thông tin cấu hình bàn",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_TBL_009 - Xóa bàn thành công",
+          "message": "expected 404 to be one of [ 200, 204 ]"
+        }
+      ]
+    },
+    {
+      "category": "Reservation",
+      "collectionName": "Reservation API Test Suite",
+      "collectionPath": "docs\\testing\\API\\reservation\\Reservation_API_Postman_Collection.json",
+      "status": "PASSED",
+      "durationMs": 941,
+      "requests": {
+        "total": 9,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 9,
+        "passed": 9,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    },
+    {
+      "category": "Cart & Order",
+      "collectionName": "Cart and Order API Test Suite",
+      "collectionPath": "docs\\testing\\API\\cart_order\\Cart_and_Order_API_Postman_Collection.json",
+      "status": "FAILED",
+      "durationMs": 767,
+      "requests": {
+        "total": 8,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 8,
+        "passed": 5,
+        "failed": 3
+      },
+      "passRate": "62.50%",
+      "failures": [
+        {
+          "test": "TC_API_ORD_001 - Tạo đơn hàng đặt món thành công",
+          "message": "expected 400 to be one of [ 200, 201 ]"
+        },
+        {
+          "test": "TC_API_ORD_004 - Cập nhật trạng thái đơn hàng (PREPARING)",
+          "message": "expected response to have status code 200 but got 404"
+        },
+        {
+          "test": "TC_API_ORD_005 - Thanh toán đơn hàng lẻ",
+          "message": "expected 404 to be one of [ 200, 400 ]"
+        }
+      ]
+    },
+    {
+      "category": "Payment",
+      "collectionName": "Payment API Test Suite",
+      "collectionPath": "docs\\testing\\API\\payment\\Payment_API_Postman_Collection.json",
+      "status": "PASSED",
+      "durationMs": 1195,
+      "requests": {
+        "total": 5,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 5,
+        "passed": 5,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    },
+    {
+      "category": "Review",
+      "collectionName": "Review API Test Suite",
+      "collectionPath": "docs\\testing\\API\\review\\Review_API_Postman_Collection.json",
+      "status": "PASSED",
+      "durationMs": 861,
+      "requests": {
+        "total": 7,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 7,
+        "passed": 7,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    },
+    {
+      "category": "Point",
+      "collectionName": "Point API Test Suite",
+      "collectionPath": "docs\\testing\\API\\point\\Point_API_Postman_Collection.json",
+      "status": "FAILED",
+      "durationMs": 519,
+      "requests": {
+        "total": 5,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 5,
+        "passed": 4,
+        "failed": 1
+      },
+      "passRate": "80.00%",
+      "failures": [
+        {
+          "test": "TC_API_PNT_001 - Tích điểm thành công cho khách hàng qua số điện thoại",
+          "message": "expected 404 to be one of [ 200, 400 ]"
+        }
+      ]
+    },
+    {
+      "category": "Authorization / RBAC",
+      "collectionName": "SCRUM-26 phân quyền API",
+      "collectionPath": "docs\\testing\\API\\API_Authorization\\SCRUM-26_PhanQuyenAPI_TestCaseAuto.json",
+      "status": "PASSED",
+      "durationMs": 1778,
+      "requests": {
+        "total": 14,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 14,
+        "passed": 14,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    },
+    {
+      "category": "JWT Verification",
+      "collectionName": "SCRUM-25 - JWT Testcase",
+      "collectionPath": "docs\\testing\\API\\Token_JWT\\SCRUM-25_JWT_TestCaseAuto.json",
+      "status": "PASSED",
+      "durationMs": 1148,
+      "requests": {
+        "total": 11,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 26,
+        "passed": 26,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    },
+    {
+      "category": "BVA - Auth & User",
+      "collectionName": "FutureSushi - Auth & User BVA Test Suite",
+      "collectionPath": "docs\\testing\\BVA\\Auth_User_BVA_Postman_Collection.json",
+      "status": "PASSED",
+      "durationMs": 8744,
+      "requests": {
+        "total": 69,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 80,
+        "passed": 80,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    },
+    {
+      "category": "BVA - Category & Product",
+      "collectionName": "FutureSushi - BVA Category & Product API Test Suite",
+      "collectionPath": "docs\\testing\\BVA\\Category_Product\\BVA_Category_Product_Postman_Collection.json",
+      "status": "FAILED",
+      "durationMs": 3040,
+      "requests": {
+        "total": 31,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 90,
+        "passed": 88,
+        "failed": 2
+      },
+      "passRate": "97.78%",
+      "failures": [
+        {
+          "test": "TC_BVA_PRD_011 - Price: Max (100.000.000 VNĐ)",
+          "message": "expected response to have status code 201 but got 400"
+        },
+        {
+          "test": "TC_BVA_PRD_011 - Price: Max (100.000.000 VNĐ)",
+          "message": "expected NaN to deeply equal 100000000"
+        }
+      ]
+    },
+    {
+      "category": "BVA - Order & Payment",
+      "collectionName": "FutureSushi - Order & Payment BVA Test Suite",
+      "collectionPath": "docs\\testing\\BVA\\order & payment\\FutureSushi - Order & Payment BVA.json",
+      "status": "PASSED",
+      "durationMs": 4584,
+      "requests": {
+        "total": 40,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 79,
+        "passed": 79,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    },
+    {
+      "category": "BVA - Table",
+      "collectionName": "FutureSuShi - BVA Table API Test Suite",
+      "collectionPath": "docs\\testing\\BVA\\Table_Point\\Table\\BVA_Table_Postman_Collection.json",
+      "status": "FAILED",
+      "durationMs": 1840,
+      "requests": {
+        "total": 18,
+        "failed": 17
+      },
+      "assertions": {
+        "total": 18,
+        "passed": 1,
+        "failed": 17
+      },
+      "passRate": "5.56%",
+      "failures": [
+        {
+          "test": "TB-001 - Create Table Success",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-001 - Create Table Success",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-002 - Create Duplicate Table",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-002 - Create Duplicate Table",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-BVA-001 - tableNumber = 0",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-BVA-001 - tableNumber = 0",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-BVA-002 - capacity = 0",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-BVA-002 - capacity = 0",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-004 - Update Table Not Found",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-004 - Update Table Not Found",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-005 - Update Table Success",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-005 - Update Table Success",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-BVA-005 - Empty QR Code",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-BVA-005 - Empty QR Code",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-009 - Status Table Not Found",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-009 - Status Table Not Found",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-010 - Update OCCUPIED",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-010 - Update OCCUPIED",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-013 - Delete Table Not Found",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-013 - Delete Table Not Found",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-015 - Delete Table Success",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-015 - Delete Table Success",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-017 - QR Not Found",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-017 - QR Not Found",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-018 - Get Table By QR",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-018 - Get Table By QR",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-022 - Get All Tables",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-022 - Get All Tables",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-BVA-007 - Active Order",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-BVA-007 - Active Order",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-019 - Body Not Array",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-019 - Body Not Array",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        },
+        {
+          "test": "TB-WB-020 - Bulk Create Success",
+          "message": "runtime:extensions~request: request url is empty"
+        },
+        {
+          "test": "TB-WB-020 - Bulk Create Success",
+          "message": "expected undefined to be one of [ 200, 201, 204, 400, 404, 500 ]"
+        }
+      ]
+    },
+    {
+      "category": "BVA - Point",
+      "collectionName": "FutureSushi - BVA Point API Test Suite",
+      "collectionPath": "docs\\testing\\BVA\\Table_Point\\Point\\BVA_Point_Postman_Collection.json",
+      "status": "PASSED",
+      "durationMs": 1031,
+      "requests": {
+        "total": 10,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 10,
+        "passed": 10,
+        "failed": 0
+      },
+      "passRate": "100.00%",
+      "failures": []
+    }
+  ]
+}
