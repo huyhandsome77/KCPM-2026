@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "api-reservation-collection-2026",
     "name": "Reservation API Test Suite",
-    "description": "Bộ kiểm thử tự động toàn diện cho Module Reservation API (/api/reservations).",
+    "description": "Bộ kiểm thử tự động toàn diện cho Module Reservation API (/api/reservations). Kiểm thử đầy đủ quy trình đặt bàn, phân phối bàn theo sức chứa, khung giờ nhận bàn check-in (±30 phút), quy trình xác nhận/hủy và sinh thời gian động chống trùng bàn.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -25,6 +25,88 @@
       "key": "createdReservationId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "createdReservationForCheckInId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdReservationForCancelId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dynamicReservationTime",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "nowReservationTime",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Sinh thời gian động để kiểm thử",
+          "const now = new Date();",
+          "pm.collectionVariables.set('nowReservationTime', now.toISOString());",
+          "",
+          "const randomFutureHours = Math.floor(Math.random() * 500) + 48;",
+          "const futureDate = new Date(now.getTime() + randomFutureHours * 3600 * 1000);",
+          "pm.collectionVariables.set('dynamicReservationTime', futureDate.toISOString());",
+          "",
+          "// Auto-Auth Script",
+          "const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+          "const reqName = pm.info.requestName || '';",
+          "",
+          "if (!reqName.includes('Login')) {",
+          "    const adminToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token') || pm.globals.get('admin_token');",
+          "    const customerToken = pm.collectionVariables.get('customer_token') || pm.environment.get('customer_token') || pm.globals.get('customer_token');",
+          "",
+          "    if (!adminToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'admin', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('admin_token', data.token);",
+          "                    pm.environment.set('admin_token', data.token);",
+          "                    pm.globals.set('admin_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "",
+          "    if (!customerToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'customer', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('customer_token', data.token);",
+          "                    pm.environment.set('customer_token', data.token);",
+          "                    pm.globals.set('customer_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
     }
   ],
   "item": [
@@ -41,7 +123,10 @@
                   "pm.test('Customer login success', function () {",
                   "    pm.response.to.have.status(200);",
                   "    var res = pm.response.json();",
+                  "    pm.expect(res.token).to.be.a('string');",
                   "    pm.collectionVariables.set('customer_token', res.token);",
+                  "    pm.environment.set('customer_token', res.token);",
+                  "    pm.globals.set('customer_token', res.token);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -83,7 +168,10 @@
                   "pm.test('Admin login success', function () {",
                   "    pm.response.to.have.status(200);",
                   "    var res = pm.response.json();",
+                  "    pm.expect(res.token).to.be.a('string');",
                   "    pm.collectionVariables.set('admin_token', res.token);",
+                  "    pm.environment.set('admin_token', res.token);",
+                  "    pm.globals.set('admin_token', res.token);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -118,10 +206,10 @@
       ]
     },
     {
-      "name": "01. Reservation Operations",
+      "name": "01. Reservation Lifecycle Flow",
       "item": [
         {
-          "name": "TC_API_RES_001 - Khách đặt bàn thành công",
+          "name": "TC_API_RES_001 - Khách đặt bàn thành công (Status: PENDING)",
           "event": [
             {
               "listen": "test",
@@ -129,9 +217,16 @@
                 "exec": [
                   "pm.test('Status code is 201 Created or 200 OK', function () {",
                   "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "pm.test('Reservation created with PENDING status and table allocated', function () {",
                   "    var res = pm.response.json();",
                   "    var data = res.data || res;",
-                  "    if (data.id) pm.collectionVariables.set('createdReservationId', String(data.id));",
+                  "    pm.expect(data).to.have.property('id');",
+                  "    pm.expect(data.status).to.eql('PENDING');",
+                  "    pm.expect(data).to.have.property('table_id');",
+                  "    pm.collectionVariables.set('createdReservationId', String(data.id));",
+                  "    pm.environment.set('createdReservationId', String(data.id));",
+                  "    pm.globals.set('createdReservationId', String(data.id));",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -152,7 +247,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"guestName\":\"Nguyễn Văn Test\",\"guestPhone\":\"0901234567\",\"reservationTime\":\"2026-09-04T04:19:52.093Z\",\"numberOfGuests\":2,\"note\":\"Bàn gần cửa sổ\"}"
+              "raw": "{\n  \"guestName\": \"Nguyễn Văn Test\",\n  \"guestPhone\": \"0901234567\",\n  \"reservationTime\": \"{{dynamicReservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"Bàn gần cửa sổ\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/reservations",
@@ -167,50 +262,7 @@
           }
         },
         {
-          "name": "TC_API_RES_002 - Đặt bàn vượt quá số lượng bàn cho phép trả về lỗi",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 400 Bad Request', function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{customer_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"guestName\":\"Đoàn Khách Siêu Lớn\",\"guestPhone\":\"0901234567\",\"reservationTime\":\"2026-09-04T04:19:52.094Z\",\"numberOfGuests\":9999,\"note\":\"Đại tiệc\"}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/reservations",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "reservations"
-              ]
-            }
-          }
-        },
-        {
-          "name": "TC_API_RES_003 - Admin lấy danh sách toàn bộ đặt bàn",
+          "name": "TC_API_RES_002 - Khách hàng xem lịch sử đặt bàn của mình (/my-reservations)",
           "event": [
             {
               "listen": "test",
@@ -218,41 +270,8 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/reservations",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "reservations"
-              ]
-            }
-          }
-        },
-        {
-          "name": "TC_API_RES_004 - Khách hàng xem lịch sử đặt bàn của mình",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
+                  "    var list = pm.response.json();",
+                  "    pm.expect(list).to.be.an('array');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -281,7 +300,7 @@
           }
         },
         {
-          "name": "TC_API_RES_005 - Xác nhận đặt bàn (Confirm Reservation)",
+          "name": "TC_API_RES_003 - Admin xem danh sách toàn bộ đặt bàn",
           "event": [
             {
               "listen": "test",
@@ -289,6 +308,48 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_RES_004 - Admin xác nhận lịch đặt bàn (PENDING -> CONFIRMED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Reservation status updated to CONFIRMED', function () {",
+                  "    var res = pm.response.json();",
+                  "    var data = res.data || res;",
+                  "    pm.expect(data.status).to.eql('CONFIRMED');",
+                  "    pm.expect(res.message).to.include('Xác nhận đặt bàn thành công');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -318,7 +379,94 @@
           }
         },
         {
-          "name": "TC_API_RES_006 - Cập nhật trạng thái đặt bàn",
+          "name": "TC_API_RES_005 - Thử xác nhận lại đơn đặt bàn đã CONFIRMED (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message informs only PENDING can be confirmed', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Chỉ có thể xác nhận lịch đặt bàn ở trạng thái');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{createdReservationId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{createdReservationId}}",
+                "confirm"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_RES_006 - Setup đơn đặt bàn đúng thời điểm hiện tại (now) để test Nhận bàn (Check-in)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var res = pm.response.json();",
+                  "    var data = res.data || res;",
+                  "    pm.collectionVariables.set('createdReservationForCheckInId', String(data.id));",
+                  "    pm.environment.set('createdReservationForCheckInId', String(data.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"Khách Test CheckIn\",\n  \"guestPhone\": \"0909999888\",\n  \"reservationTime\": \"{{nowReservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"Test check in đúng giờ\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_RES_007 - Nhận bàn (Check-in) thành công trong khung giờ ±30 phút (Status -> CHECKED_IN)",
           "event": [
             {
               "listen": "test",
@@ -326,6 +474,86 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Xác nhận nhận bàn thành công');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{createdReservationForCheckInId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{createdReservationForCheckInId}}",
+                "check-in"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_RES_008 - Thử Nhận bàn ngoài khung giờ ±30 phút (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('30 phút');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{createdReservationId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{createdReservationId}}",
+                "check-in"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_RES_009 - Cập nhật trạng thái đặt bàn bằng Admin (/status)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.data.status).to.eql('ARRIVED');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -346,7 +574,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"status\":\"CONFIRMED\"}"
+              "raw": "{\n  \"status\": \"ARRIVED\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/reservations/{{createdReservationId}}/status",
@@ -363,7 +591,53 @@
           }
         },
         {
-          "name": "TC_API_RES_007 - Hủy đặt bàn (Cancel Reservation)",
+          "name": "TC_API_RES_010 - Setup đơn đặt bàn để kiểm thử Hủy lịch đặt bàn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var res = pm.response.json();",
+                  "    var data = res.data || res;",
+                  "    pm.collectionVariables.set('createdReservationForCancelId', String(data.id));",
+                  "    pm.environment.set('createdReservationForCancelId', String(data.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"Khách Test Hủy Đơn\",\n  \"guestPhone\": \"0901111222\",\n  \"reservationTime\": \"{{dynamicReservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"Test cancel\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_RES_011 - Hủy lịch đặt bàn thành công khi ở trạng thái PENDING/CONFIRMED",
           "event": [
             {
               "listen": "test",
@@ -371,6 +645,8 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Đã hủy đặt bàn thành công');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -386,15 +662,143 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reservations/{{createdReservationId}}/cancel",
+              "raw": "{{baseUrl}}/api/reservations/{{createdReservationForCancelId}}/cancel",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "reservations",
-                "{{createdReservationId}}",
+                "{{createdReservationForCancelId}}",
                 "cancel"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_RES_012 - Thử hủy lại lịch đặt bàn đã CANCELLED (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Chỉ có thể hủy lịch đặt bàn ở trạng thái');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{createdReservationForCancelId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{createdReservationForCancelId}}",
+                "cancel"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Table Allocation & Capacity Constraints",
+      "item": [
+        {
+          "name": "TC_API_RES_013 - Đặt bàn vượt quá số lượng khách cho phép (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('không còn bàn trống phù hợp');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"Đoàn Khách Siêu Lớn\",\n  \"guestPhone\": \"0901234567\",\n  \"reservationTime\": \"{{dynamicReservationTime}}\",\n  \"numberOfGuests\": 9999,\n  \"note\": \"Đại tiệc siêu đông\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_RES_014 - Xác nhận / Hủy đặt bàn với ID không tồn tại trả về 404 Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Không tìm thấy thông tin đặt bàn');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/999999/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "999999",
+                "confirm"
               ]
             }
           }

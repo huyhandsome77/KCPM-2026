@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "api-table-collection-2026",
     "name": "Restaurant Table API Test Suite",
-    "description": "Bộ kiểm thử tự động toàn diện cho Module Restaurant Table API (/api/tables).",
+    "description": "Bộ kiểm thử tự động toàn diện cho Module Restaurant Table API (/api/tables). Kiểm thử CRUD bàn ăn, quét QR Code đa định dạng, các trường tính toán trạng thái động theo thời gian thực (Live Table Status), bulk create và các quy tắc nghiệp vụ an toàn.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -22,9 +22,53 @@
       "type": "string"
     },
     {
-      "key": "createdTableQR",
-      "value": "QR_TEST_AUTO_01",
+      "key": "dynamicTableNumber",
+      "value": "150",
       "type": "string"
+    },
+    {
+      "key": "dynamicQrCode",
+      "value": "QR_TBL_150",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Sinh số bàn động để không bị trùng lặp khi chạy lại nhiều lần",
+          "const randomNum = Math.floor(Math.random() * 800) + 100;",
+          "pm.collectionVariables.set('dynamicTableNumber', String(randomNum));",
+          "pm.collectionVariables.set('dynamicQrCode', 'QR_TBL_' + randomNum);",
+          "",
+          "// Auto-Auth Script",
+          "const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+          "const reqName = pm.info.requestName || '';",
+          "",
+          "if (!reqName.includes('Login')) {",
+          "    const adminToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token') || pm.globals.get('admin_token');",
+          "    if (!adminToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'admin', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('admin_token', data.token);",
+          "                    pm.environment.set('admin_token', data.token);",
+          "                    pm.globals.set('admin_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
     }
   ],
   "item": [
@@ -38,10 +82,13 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Login admin success', function () {",
+                  "pm.test('Admin login success', function () {",
                   "    pm.response.to.have.status(200);",
                   "    var res = pm.response.json();",
+                  "    pm.expect(res.token).to.be.a('string');",
                   "    pm.collectionVariables.set('admin_token', res.token);",
+                  "    pm.environment.set('admin_token', res.token);",
+                  "    pm.globals.set('admin_token', res.token);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -76,10 +123,10 @@
       ]
     },
     {
-      "name": "01. Table Operations",
+      "name": "01. Table CRUD & Status Management",
       "item": [
         {
-          "name": "TC_API_TBL_001 - Lấy danh sách tất cả các bàn",
+          "name": "TC_API_TBL_001 - Lấy danh sách tất cả các bàn & Kiểm tra các trường tính toán thời gian thực",
           "event": [
             {
               "listen": "test",
@@ -87,7 +134,14 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
-                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "    var tables = pm.response.json();",
+                  "    pm.expect(tables).to.be.an('array');",
+                  "    if (tables.length > 0) {",
+                  "        var first = tables[0];",
+                  "        pm.expect(first).to.have.property('tableNumber');",
+                  "        pm.expect(first).to.have.property('capacity');",
+                  "        pm.expect(first).to.have.property('calculatedStatus');",
+                  "    }",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -121,11 +175,14 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 201 Created', function () {",
+                  "pm.test('Status code is 201 Created or 200 OK', function () {",
                   "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
                   "    var res = pm.response.json();",
-                  "    var table = res.data || res;",
-                  "    if (table.id) pm.collectionVariables.set('createdTableId', String(table.id));",
+                  "    var table = res.table || res.data || res;",
+                  "    pm.expect(table).to.have.property('id');",
+                  "    pm.collectionVariables.set('createdTableId', String(table.id));",
+                  "    pm.environment.set('createdTableId', String(table.id));",
+                  "    pm.globals.set('createdTableId', String(table.id));",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -146,7 +203,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"tableNumber\":99,\"capacity\":4,\"qrCode\":\"QR_TEST_AUTO_99\"}"
+              "raw": "{\n  \"tableNumber\": {{dynamicTableNumber}},\n  \"capacity\": 4,\n  \"qrCode\": \"{{dynamicQrCode}}\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/tables",
@@ -161,7 +218,7 @@
           }
         },
         {
-          "name": "TC_API_TBL_003 - Tạo bàn trùng tableNumber báo lỗi",
+          "name": "TC_API_TBL_003 - Thử tạo bàn với số bàn (tableNumber) đã tồn tại (trả về 400 Bad Request)",
           "event": [
             {
               "listen": "test",
@@ -169,6 +226,8 @@
                 "exec": [
                   "pm.test('Status code is 400 Bad Request', function () {",
                   "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('đã tồn tại trong hệ thống');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -189,7 +248,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"tableNumber\":99,\"capacity\":4,\"qrCode\":\"QR_TEST_AUTO_99_DUP\"}"
+              "raw": "{\n  \"tableNumber\": {{dynamicTableNumber}},\n  \"capacity\": 4,\n  \"qrCode\": \"{{dynamicQrCode}}_DUP\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/tables",
@@ -204,7 +263,7 @@
           }
         },
         {
-          "name": "TC_API_TBL_004 - Lấy thông tin bàn bằng mã QR Code",
+          "name": "TC_API_TBL_004 - Lấy thông tin bàn bằng mã QR Code linh hoạt",
           "event": [
             {
               "listen": "test",
@@ -212,6 +271,8 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res).to.have.property('id');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -222,7 +283,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/tables/qr/QR_TEST_AUTO_99",
+              "raw": "{{baseUrl}}/api/tables/qr/{{dynamicQrCode}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -230,13 +291,13 @@
                 "api",
                 "tables",
                 "qr",
-                "QR_TEST_AUTO_99"
+                "{{dynamicQrCode}}"
               ]
             }
           }
         },
         {
-          "name": "TC_API_TBL_005 - Lấy thông tin bàn với QR không tồn tại trả về 404",
+          "name": "TC_API_TBL_005 - Lấy thông tin bàn với QR không tồn tại trả về 404 Not Found",
           "event": [
             {
               "listen": "test",
@@ -244,6 +305,8 @@
                 "exec": [
                   "pm.test('Status code is 404 Not Found', function () {",
                   "    pm.response.to.have.status(404);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Không tìm thấy bàn');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -254,7 +317,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/tables/qr/NON_EXISTENT_QR_999",
+              "raw": "{{baseUrl}}/api/tables/qr/NON_EXISTENT_QR_999999",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -262,13 +325,13 @@
                 "api",
                 "tables",
                 "qr",
-                "NON_EXISTENT_QR_999"
+                "NON_EXISTENT_QR_999999"
               ]
             }
           }
         },
         {
-          "name": "TC_API_TBL_006 - Cập nhật trạng thái bàn",
+          "name": "TC_API_TBL_006 - Cập nhật thông tin cấu hình bàn (capacity, qrCode)",
           "event": [
             {
               "listen": "test",
@@ -276,6 +339,9 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    var table = res.table || res.data || res;",
+                  "    pm.expect(table.capacity).to.eql(8);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -296,7 +362,53 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"status\":\"OCCUPIED\"}"
+              "raw": "{\n  \"capacity\": 8\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/{{createdTableId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables",
+                "{{createdTableId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_TBL_007 - Cập nhật trạng thái bàn sang OCCUPIED hoặc CLEANING (/status)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.status).to.eql('CLEANING');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CLEANING\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/tables/{{createdTableId}}/status",
@@ -313,14 +425,16 @@
           }
         },
         {
-          "name": "TC_API_TBL_007 - Cập nhật thông tin cấu hình bàn",
+          "name": "TC_API_TBL_008 - Cập nhật bàn không tồn tại trả về 404 Not Found",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test('Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Không tìm thấy bàn');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -341,23 +455,23 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"capacity\":8}"
+              "raw": "{\n  \"capacity\": 6\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables/{{createdTableId}}",
+              "raw": "{{baseUrl}}/api/tables/999999",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "tables",
-                "{{createdTableId}}"
+                "999999"
               ]
             }
           }
         },
         {
-          "name": "TC_API_TBL_008 - Bulk create bàn tự động",
+          "name": "TC_API_TBL_009 - Bulk create nạp danh sách nhiều bàn cùng lúc",
           "event": [
             {
               "listen": "test",
@@ -365,6 +479,8 @@
                 "exec": [
                   "pm.test('Status code is 201 Created or 200 OK', function () {",
                   "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('xử lý thành công');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -385,7 +501,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "[{\"tableNumber\":101,\"capacity\":4,\"qrCode\":\"QR_TB_101\"},{\"tableNumber\":102,\"capacity\":6,\"qrCode\":\"QR_TB_102\"}]"
+              "raw": "[\n  {\n    \"tableNumber\": 901,\n    \"capacity\": 4,\n    \"qrCode\": \"QR_TBL_901\",\n    \"status\": \"AVAILABLE\"\n  },\n  {\n    \"tableNumber\": 902,\n    \"capacity\": 6,\n    \"qrCode\": \"QR_TBL_902\",\n    \"status\": \"AVAILABLE\"\n  }\n]"
             },
             "url": {
               "raw": "{{baseUrl}}/api/tables/bulk",
@@ -401,14 +517,67 @@
           }
         },
         {
-          "name": "TC_API_TBL_009 - Xóa bàn thành công",
+          "name": "TC_API_TBL_010 - Bulk create thất bại khi dữ liệu không phải là mảng (trả về 400 Bad Request)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200 OK or 204', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('phải là một mảng');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 903,\n  \"capacity\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/bulk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables",
+                "bulk"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Business Constraints & Safety Rules",
+      "item": [
+        {
+          "name": "TC_API_TBL_011 - Xóa bàn thành công khi bàn rỗng và không có đơn đang chạy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('thành công');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -437,7 +606,7 @@
           }
         },
         {
-          "name": "TC_API_TBL_010 - Xóa bàn không tồn tại trả về 404",
+          "name": "TC_API_TBL_012 - Xóa bàn không tồn tại trả về 404 Not Found",
           "event": [
             {
               "listen": "test",
@@ -445,6 +614,8 @@
                 "exec": [
                   "pm.test('Status code is 404 Not Found', function () {",
                   "    pm.response.to.have.status(404);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Không tìm thấy bàn');",
                   "});"
                 ],
                 "type": "text/javascript"

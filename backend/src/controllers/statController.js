@@ -7,16 +7,24 @@ exports.getStats = async (req, res, next) => {
         const { type = 'day', date } = req.query;
         let startDate, endDate;
 
-        const targetDate = date ? new Date(date) : new Date();
+        const normalizedType = ['day', 'month', 'year'].includes(type) ? type : 'day';
 
-        if (type === 'day') {
-            startDate = new Date(targetDate.setHours(0, 0, 0, 0));
-            endDate = new Date(targetDate.setHours(23, 59, 59, 999));
-        } else if (type === 'month') {
-            startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+        let targetDate = new Date();
+        if (date) {
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime())) {
+                targetDate = parsedDate;
+            }
+        }
+
+        if (normalizedType === 'day') {
+            startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0);
+            endDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
+        } else if (normalizedType === 'month') {
+            startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1, 0, 0, 0, 0);
             endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0, 23, 59, 59, 999);
-        } else if (type === 'year') {
-            startDate = new Date(targetDate.getFullYear(), 0, 1);
+        } else if (normalizedType === 'year') {
+            startDate = new Date(targetDate.getFullYear(), 0, 1, 0, 0, 0, 0);
             endDate = new Date(targetDate.getFullYear(), 11, 31, 23, 59, 59, 999);
         }
 
@@ -35,7 +43,7 @@ exports.getStats = async (req, res, next) => {
         });
 
         res.json({
-            type,
+            type: normalizedType,
             startDate,
             endDate,
             totalOrders: parseInt(stats.getDataValue('totalOrders')) || 0,

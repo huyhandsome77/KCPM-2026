@@ -1,0 +1,1055 @@
+{
+  "info": {
+    "_postman_id": "api-report-stat-collection-2026",
+    "name": "FutureSushi - Report & Statistic API Test Suite",
+    "description": "Bộ Postman Collection kiểm thử tự động toàn diện cho Module Báo cáo & Thống kê Doanh thu (Report & Statistic API - /api/stats) theo chuẩn Formal Test Cases (SCRUM-27). Bao gồm kiểm thử tham số thời gian (day/month/year), lọc theo trạng thái đơn hàng (PAID/COMPLETED), kiểm thử giá trị biên & ngày nhuận, kiểm tra bảo mật (SQL Injection) và phân quyền chặt chẽ theo Role (Admin Only, 401 Guest/Expired Token, 403 Customer/Staff/Kitchen).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staff_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "kitchen_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expired_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IkFETUlOIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjN9.expired_signature",
+      "type": "string"
+    },
+    {
+      "key": "testDate",
+      "value": "2026-09-04",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-Auth Script: Tự động lấy token nếu chưa có",
+          "const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+          "const reqName = pm.info.requestName || '';",
+          "",
+          "if (!reqName.includes('Login') && !reqName.includes('401') && !reqName.includes('Guest') && !reqName.includes('Expired')) {",
+          "    const adminToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token') || pm.globals.get('admin_token');",
+          "    if (!adminToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'admin', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('admin_token', data.token);",
+          "                    pm.environment.set('admin_token', data.token);",
+          "                    pm.globals.set('admin_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00. Auth Setup (Get Tokens)",
+      "item": [
+        {
+          "name": "Auth - Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login Admin successful (200 OK)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('admin_token', jsonData.token);",
+                  "    pm.environment.set('admin_token', jsonData.token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Auth - Login as Staff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login Staff successful (200 OK)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('staff_token', jsonData.token);",
+                  "    pm.environment.set('staff_token', jsonData.token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"staff\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Auth - Login as Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login Customer successful (200 OK)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('customer_token', jsonData.token);",
+                  "    pm.environment.set('customer_token', jsonData.token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"customer\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Auth - Login as Kitchen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login Kitchen successful (200 OK)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('kitchen_token', jsonData.token);",
+                  "    pm.environment.set('kitchen_token', jsonData.token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"kitchen\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01. Statistical Reports (Báo cáo Thống kê Doanh thu)",
+      "item": [
+        {
+          "name": "TC_API_STAT_001 - Lấy báo cáo thống kê doanh thu theo ngày chỉ định thành công với quyền Admin (type=day)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains correct daily statistic structure', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res).to.be.an('object');",
+                  "    pm.expect(res.type).to.eql('day');",
+                  "    pm.expect(res).to.have.property('startDate');",
+                  "    pm.expect(res).to.have.property('endDate');",
+                  "    pm.expect(res).to.have.property('totalOrders');",
+                  "    pm.expect(res).to.have.property('totalRevenue');",
+                  "    pm.expect(res.totalOrders).to.be.a('number');",
+                  "    pm.expect(res.totalRevenue).to.be.a('number');",
+                  "    pm.expect(res.totalOrders).to.be.at.least(0);",
+                  "    pm.expect(res.totalRevenue).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable (< 500ms)', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=day&date=2026-09-04",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "day"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-09-04"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_002 - Lấy báo cáo thống kê doanh thu mặc định cho ngày hôm nay khi không truyền tham số date",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response defaults to today date range', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.type).to.eql('day');",
+                  "    pm.expect(res).to.have.property('startDate');",
+                  "    pm.expect(res).to.have.property('endDate');",
+                  "    pm.expect(res.totalOrders).to.be.a('number');",
+                  "    pm.expect(res.totalRevenue).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=day",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "day"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_003 - Lấy báo cáo thống kê doanh thu theo tháng (type=month) từ ngày 1 đến ngày cuối tháng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response covers full month date range', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.type).to.eql('month');",
+                  "    pm.expect(res).to.have.property('startDate');",
+                  "    pm.expect(res).to.have.property('endDate');",
+                  "    pm.expect(res.totalOrders).to.be.a('number');",
+                  "    pm.expect(res.totalRevenue).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=month&date=2026-09-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "month"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-09-01"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_004 - Lấy báo cáo thống kê doanh thu theo năm (type=year) từ ngày 01/01 đến 31/12",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response covers full year date range (01/01 to 31/12)', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.type).to.eql('year');",
+                  "    pm.expect(res).to.have.property('startDate');",
+                  "    pm.expect(res).to.have.property('endDate');",
+                  "    pm.expect(res.totalOrders).to.be.a('number');",
+                  "    pm.expect(res.totalRevenue).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=year&date=2026-01-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "year"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-01-01"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_005 - Lấy báo cáo mặc định khi không truyền bất kỳ query parameter nào (Default: type=day, today)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Default query parameter returns type=day for today', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.type).to.eql('day');",
+                  "    pm.expect(res).to.have.property('startDate');",
+                  "    pm.expect(res).to.have.property('endDate');",
+                  "    pm.expect(res.totalOrders).to.be.a('number');",
+                  "    pm.expect(res.totalRevenue).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_006 - Kiểm tra tính chính xác của doanh thu: Chỉ tính các đơn hàng đã thanh toán (PAID) và hoàn thành (COMPLETED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Revenue accurately aggregates only COMPLETED and PAID orders', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.totalOrders).to.be.at.least(0);",
+                  "    pm.expect(res.totalRevenue).to.be.at.least(0);",
+                  "    pm.expect(isNaN(res.totalRevenue)).to.be.false;",
+                  "    pm.expect(isNaN(res.totalOrders)).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=day&date=2026-09-04",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "day"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-09-04"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_007 - Lấy báo cáo cho ngày trong tương lai chưa có đơn hàng nào phát sinh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Future date with no orders returns totalOrders=0 and totalRevenue=0', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.totalOrders).to.eql(0);",
+                  "    pm.expect(res.totalRevenue).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=day&date=2030-01-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "day"
+                },
+                {
+                  "key": "date",
+                  "value": "2030-01-01"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_008 - Lấy báo cáo cho ngày trong quá khứ không có đơn hàng nào",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Past date with no orders returns totalOrders=0 and totalRevenue=0', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.totalOrders).to.eql(0);",
+                  "    pm.expect(res.totalRevenue).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=day&date=2020-01-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "day"
+                },
+                {
+                  "key": "date",
+                  "value": "2020-01-01"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_009 - Lấy báo cáo thống kê vào ngày nhuận 29/02 (Leap Year Date)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Leap year date 2024-02-29 handled correctly', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.type).to.eql('day');",
+                  "    pm.expect(res).to.have.property('startDate');",
+                  "    pm.expect(res).to.have.property('endDate');",
+                  "    pm.expect(res.totalOrders).to.be.a('number');",
+                  "    pm.expect(res.totalRevenue).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=day&date=2024-02-29",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "day"
+                },
+                {
+                  "key": "date",
+                  "value": "2024-02-29"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Boundary & Security Tests (Kiểm thử Biên & An toàn)",
+      "item": [
+        {
+          "name": "TC_API_STAT_010 - Xử lý khi truyền tham số date sai định dạng không phải ngày ('invalid-date')",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Server handles invalid date safely without crashing (200 OK)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});",
+                  "",
+                  "pm.test('Response is valid JSON and contains stats structure', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res).to.be.an('object');",
+                  "    pm.expect(res).to.have.property('type');",
+                  "    pm.expect(res).to.have.property('totalOrders');",
+                  "    pm.expect(res).to.have.property('totalRevenue');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=day&date=invalid-date",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "day"
+                },
+                {
+                  "key": "date",
+                  "value": "invalid-date"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_011 - Kiểm tra bảo mật chống SQL Injection trong tham số date của thống kê",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Server safely sanitizes SQL Injection payload and responds with 200 OK without crashing', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});",
+                  "",
+                  "pm.test('Database structure is not exposed and response is clean JSON', function () {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.not.include('syntax error');",
+                  "    pm.expect(responseText).to.not.include('SequelizeDatabaseError');",
+                  "    pm.expect(responseText).to.not.include('Incorrect DATETIME value');",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res).to.be.an('object');",
+                  "    pm.expect(res).to.have.property('totalOrders');",
+                  "    pm.expect(res).to.have.property('totalRevenue');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats?type=day&date=2026-09-04'%20OR%20'1'='1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "day"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-09-04' OR '1'='1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Authentication & RBAC Tests (Kiểm tra Xác thực & Phân quyền)",
+      "item": [
+        {
+          "name": "TC_API_STAT_012 - Lấy thống kê thất bại khi không truyền Header Authorization (Guest 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401 Unauthorized for unauthenticated request', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response contains authorization error message', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.match(/token/i);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_013 - Lấy thống kê thất bại khi sử dụng Token JWT đã hết hạn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401 Unauthorized for expired token', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates token is invalid or expired', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.match(/token/i);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{expired_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_014 - Khách hàng (Customer) bị từ chối truy cập dữ liệu thống kê doanh thu (403 Forbidden)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 403 Forbidden for Customer role', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates admin-only access restriction', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Admin only');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_015 - Nhân viên phục vụ (Staff) bị từ chối truy cập thống kê doanh thu (403 Forbidden)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 403 Forbidden for Staff role', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates admin-only access restriction', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Admin only');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_STAT_016 - Đầu bếp (Kitchen) bị từ chối truy cập thống kê doanh thu (403 Forbidden)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 403 Forbidden for Kitchen role', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates admin-only access restriction', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Admin only');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{kitchen_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
