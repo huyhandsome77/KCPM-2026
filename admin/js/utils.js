@@ -85,3 +85,14 @@ export function reservationStatusClass(status) {
     default: return 'badge-warning';
   }
 }
+
+export function removeVietnameseTones(str) {
+  if (!str) return '';
+  return String(str)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase()
+    .trim();
+}

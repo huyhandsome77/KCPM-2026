@@ -1,0 +1,658 @@
+{
+  "id": "705375a3-3329-41fd-b543-f99189aeeaf3",
+  "name": "FutureSushi - Report & Statistic API Test Suite",
+  "timestamp": "2026-09-04T10:15:30.000Z",
+  "collection_id": "api-report-stat-collection-2026",
+  "folder_id": 0,
+  "environment_id": "env-futuresushi-local-3000",
+  "totalPass": 37,
+  "delay": 0,
+  "persist": true,
+  "status": "finished",
+  "startedAt": "2026-09-04T10:15:28.120Z",
+  "totalFail": 0,
+  "results": [
+    {
+      "id": "7baf16e1-c6f1-4cb7-be81-ea871b740119",
+      "name": "Auth - Login as Admin",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 45,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Login Admin successful (200 OK)": true
+      },
+      "testPassFailCounts": {
+        "Login Admin successful (200 OK)": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        45
+      ],
+      "allTests": [
+        {
+          "Login Admin successful (200 OK)": true
+        }
+      ]
+    },
+    {
+      "id": "5a1fd047-79a3-48e1-8127-c0dd6895a2ef",
+      "name": "Auth - Login as Staff",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 38,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Login Staff successful (200 OK)": true
+      },
+      "testPassFailCounts": {
+        "Login Staff successful (200 OK)": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        38
+      ],
+      "allTests": [
+        {
+          "Login Staff successful (200 OK)": true
+        }
+      ]
+    },
+    {
+      "id": "5bd67956-94ab-4297-92fd-08b14c9ee5f1",
+      "name": "Auth - Login as Customer",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 35,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Login Customer successful (200 OK)": true
+      },
+      "testPassFailCounts": {
+        "Login Customer successful (200 OK)": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        35
+      ],
+      "allTests": [
+        {
+          "Login Customer successful (200 OK)": true
+        }
+      ]
+    },
+    {
+      "id": "c2f414e0-c55a-4365-9d9b-5ca569688872",
+      "name": "Auth - Login as Kitchen",
+      "url": "http://localhost:3000/api/auth/login",
+      "time": 36,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Login Kitchen successful (200 OK)": true
+      },
+      "testPassFailCounts": {
+        "Login Kitchen successful (200 OK)": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        36
+      ],
+      "allTests": [
+        {
+          "Login Kitchen successful (200 OK)": true
+        }
+      ]
+    },
+    {
+      "id": "64822284-1bf7-40f1-b823-4cab7a6fe1e7",
+      "name": "TC_API_STAT_001 - Lấy báo cáo thống kê doanh thu theo ngày chỉ định thành công với quyền Admin (type=day)",
+      "url": "http://localhost:3000/api/stats?type=day&date=2026-09-04",
+      "time": 20,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Response contains correct daily statistic structure": true,
+        "Response time is acceptable (< 500ms)": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response contains correct daily statistic structure": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response time is acceptable (< 500ms)": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        20
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Response contains correct daily statistic structure": true,
+          "Response time is acceptable (< 500ms)": true
+        }
+      ]
+    },
+    {
+      "id": "9f5ffaf1-316f-489e-b1cb-baacf7afd778",
+      "name": "TC_API_STAT_002 - Lấy báo cáo thống kê doanh thu mặc định cho ngày hôm nay khi không truyền tham số date",
+      "url": "http://localhost:3000/api/stats?type=day",
+      "time": 15,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Response defaults to today date range": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response defaults to today date range": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        15
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Response defaults to today date range": true
+        }
+      ]
+    },
+    {
+      "id": "6350f81f-85ee-4c8d-bb8b-7b03b6d957e2",
+      "name": "TC_API_STAT_003 - Lấy báo cáo thống kê doanh thu theo tháng (type=month) từ ngày 1 đến ngày cuối tháng",
+      "url": "http://localhost:3000/api/stats?type=month&date=2026-09-01",
+      "time": 25,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Response covers full month date range": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response covers full month date range": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        25
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Response covers full month date range": true
+        }
+      ]
+    },
+    {
+      "id": "1361852d-c9ff-4f74-923d-4689bc1e4a32",
+      "name": "TC_API_STAT_004 - Lấy báo cáo thống kê doanh thu theo năm (type=year) từ ngày 01/01 đến 31/12",
+      "url": "http://localhost:3000/api/stats?type=year&date=2026-01-01",
+      "time": 30,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Response covers full year date range (01/01 to 31/12)": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response covers full year date range (01/01 to 31/12)": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        30
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Response covers full year date range (01/01 to 31/12)": true
+        }
+      ]
+    },
+    {
+      "id": "ab771823-d1f0-4336-9934-81fe8cfaef17",
+      "name": "TC_API_STAT_005 - Lấy báo cáo mặc định khi không truyền bất kỳ query parameter nào (Default: type=day, today)",
+      "url": "http://localhost:3000/api/stats",
+      "time": 16,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Default query parameter returns type=day for today": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Default query parameter returns type=day for today": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        16
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Default query parameter returns type=day for today": true
+        }
+      ]
+    },
+    {
+      "id": "540f57af-96c5-4a2c-b715-9f1e97574ea4",
+      "name": "TC_API_STAT_006 - Kiểm tra tính chính xác của doanh thu: Chỉ tính các đơn hàng đã thanh toán (PAID) và hoàn thành (COMPLETED)",
+      "url": "http://localhost:3000/api/stats?type=day&date=2026-09-04",
+      "time": 22,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Revenue accurately aggregates only COMPLETED and PAID orders": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Revenue accurately aggregates only COMPLETED and PAID orders": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        22
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Revenue accurately aggregates only COMPLETED and PAID orders": true
+        }
+      ]
+    },
+    {
+      "id": "09a7be40-5db4-4475-a6c4-14d6fbb73ec9",
+      "name": "TC_API_STAT_007 - Lấy báo cáo cho ngày trong tương lai chưa có đơn hàng nào phát sinh",
+      "url": "http://localhost:3000/api/stats?type=day&date=2030-01-01",
+      "time": 12,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Future date with no orders returns totalOrders=0 and totalRevenue=0": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Future date with no orders returns totalOrders=0 and totalRevenue=0": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        12
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Future date with no orders returns totalOrders=0 and totalRevenue=0": true
+        }
+      ]
+    },
+    {
+      "id": "a52bb868-67a0-413d-9fb6-b828f0d501c8",
+      "name": "TC_API_STAT_008 - Lấy báo cáo cho ngày trong quá khứ không có đơn hàng nào",
+      "url": "http://localhost:3000/api/stats?type=day&date=2020-01-01",
+      "time": 11,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Past date with no orders returns totalOrders=0 and totalRevenue=0": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Past date with no orders returns totalOrders=0 and totalRevenue=0": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        11
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Past date with no orders returns totalOrders=0 and totalRevenue=0": true
+        }
+      ]
+    },
+    {
+      "id": "016cf962-5f69-40c9-af70-e0842f6a054a",
+      "name": "TC_API_STAT_009 - Lấy báo cáo thống kê vào ngày nhuận 29/02 (Leap Year Date)",
+      "url": "http://localhost:3000/api/stats?type=day&date=2024-02-29",
+      "time": 14,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Status code is 200 OK": true,
+        "Leap year date 2024-02-29 handled correctly": true
+      },
+      "testPassFailCounts": {
+        "Status code is 200 OK": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Leap year date 2024-02-29 handled correctly": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        14
+      ],
+      "allTests": [
+        {
+          "Status code is 200 OK": true,
+          "Leap year date 2024-02-29 handled correctly": true
+        }
+      ]
+    },
+    {
+      "id": "2b6d1e4d-a751-4f97-bb33-538ef09c42cd",
+      "name": "TC_API_STAT_010 - Xử lý khi truyền tham số date sai định dạng không phải ngày ('invalid-date')",
+      "url": "http://localhost:3000/api/stats?type=day&date=invalid-date",
+      "time": 10,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Server handles invalid date safely without crashing (200 or 400)": true,
+        "Response is valid JSON and contains stats structure": true
+      },
+      "testPassFailCounts": {
+        "Server handles invalid date safely without crashing (200 or 400)": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response is valid JSON and contains stats structure": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        10
+      ],
+      "allTests": [
+        {
+          "Server handles invalid date safely without crashing (200 or 400)": true,
+          "Response is valid JSON and contains stats structure": true
+        }
+      ]
+    },
+    {
+      "id": "3c0387aa-c9d0-4cd9-8f23-15bc60f9c951",
+      "name": "TC_API_STAT_011 - Kiểm tra bảo mật chống SQL Injection trong tham số date của thống kê",
+      "url": "http://localhost:3000/api/stats?type=day&date=2026-09-04'%20OR%20'1'='1",
+      "time": 15,
+      "responseCode": {
+        "code": 200,
+        "name": "OK"
+      },
+      "tests": {
+        "Server is protected against SQL Injection in query params (200 or 400/500 safe)": true,
+        "Database structure is not exposed or damaged": true
+      },
+      "testPassFailCounts": {
+        "Server is protected against SQL Injection in query params (200 or 400/500 safe)": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Database structure is not exposed or damaged": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        15
+      ],
+      "allTests": [
+        {
+          "Server is protected against SQL Injection in query params (200 or 400/500 safe)": true,
+          "Database structure is not exposed or damaged": true
+        }
+      ]
+    },
+    {
+      "id": "a1181bd7-aeb1-4230-a7d5-2b1ca96861d2",
+      "name": "TC_API_STAT_012 - Lấy thống kê thất bại khi không truyền Header Authorization (Guest 401)",
+      "url": "http://localhost:3000/api/stats",
+      "time": 2,
+      "responseCode": {
+        "code": 401,
+        "name": "Unauthorized"
+      },
+      "tests": {
+        "Status code is 401 Unauthorized for unauthenticated request": true,
+        "Response contains authorization error message": true
+      },
+      "testPassFailCounts": {
+        "Status code is 401 Unauthorized for unauthenticated request": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response contains authorization error message": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        2
+      ],
+      "allTests": [
+        {
+          "Status code is 401 Unauthorized for unauthenticated request": true,
+          "Response contains authorization error message": true
+        }
+      ]
+    },
+    {
+      "id": "0ba0fea8-82ad-4ac8-a236-31d7b8d8380b",
+      "name": "TC_API_STAT_013 - Lấy thống kê thất bại khi sử dụng Token JWT đã hết hạn",
+      "url": "http://localhost:3000/api/stats",
+      "time": 3,
+      "responseCode": {
+        "code": 401,
+        "name": "Unauthorized"
+      },
+      "tests": {
+        "Status code is 401 Unauthorized for expired token": true,
+        "Response indicates token is invalid or expired": true
+      },
+      "testPassFailCounts": {
+        "Status code is 401 Unauthorized for expired token": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response indicates token is invalid or expired": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        3
+      ],
+      "allTests": [
+        {
+          "Status code is 401 Unauthorized for expired token": true,
+          "Response indicates token is invalid or expired": true
+        }
+      ]
+    },
+    {
+      "id": "a4e24329-39ad-4292-ba5a-c8771c6df044",
+      "name": "TC_API_STAT_014 - Khách hàng (Customer) bị từ chối truy cập dữ liệu thống kê doanh thu (403 Forbidden)",
+      "url": "http://localhost:3000/api/stats",
+      "time": 3,
+      "responseCode": {
+        "code": 403,
+        "name": "Forbidden"
+      },
+      "tests": {
+        "Status code is 403 Forbidden for Customer role": true,
+        "Response indicates admin-only access restriction": true
+      },
+      "testPassFailCounts": {
+        "Status code is 403 Forbidden for Customer role": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response indicates admin-only access restriction": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        3
+      ],
+      "allTests": [
+        {
+          "Status code is 403 Forbidden for Customer role": true,
+          "Response indicates admin-only access restriction": true
+        }
+      ]
+    },
+    {
+      "id": "e353a9c2-75ed-44a1-8f68-14d897a8c310",
+      "name": "TC_API_STAT_015 - Nhân viên phục vụ (Staff) bị từ chối truy cập thống kê doanh thu (403 Forbidden)",
+      "url": "http://localhost:3000/api/stats",
+      "time": 3,
+      "responseCode": {
+        "code": 403,
+        "name": "Forbidden"
+      },
+      "tests": {
+        "Status code is 403 Forbidden for Staff role": true,
+        "Response indicates admin-only access restriction": true
+      },
+      "testPassFailCounts": {
+        "Status code is 403 Forbidden for Staff role": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response indicates admin-only access restriction": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        3
+      ],
+      "allTests": [
+        {
+          "Status code is 403 Forbidden for Staff role": true,
+          "Response indicates admin-only access restriction": true
+        }
+      ]
+    },
+    {
+      "id": "afc1d69a-0c52-4d1e-a30d-010193fee3fe",
+      "name": "TC_API_STAT_016 - Đầu bếp (Kitchen) bị từ chối truy cập thống kê doanh thu (403 Forbidden)",
+      "url": "http://localhost:3000/api/stats",
+      "time": 3,
+      "responseCode": {
+        "code": 403,
+        "name": "Forbidden"
+      },
+      "tests": {
+        "Status code is 403 Forbidden for Kitchen role": true,
+        "Response indicates admin-only access restriction": true
+      },
+      "testPassFailCounts": {
+        "Status code is 403 Forbidden for Kitchen role": {
+          "pass": 1,
+          "fail": 0
+        },
+        "Response indicates admin-only access restriction": {
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "times": [
+        3
+      ],
+      "allTests": [
+        {
+          "Status code is 403 Forbidden for Kitchen role": true,
+          "Response indicates admin-only access restriction": true
+        }
+      ]
+    }
+  ]
+}
