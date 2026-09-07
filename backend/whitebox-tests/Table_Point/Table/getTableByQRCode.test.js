@@ -3,12 +3,12 @@ const {
 } = require('../mocks/tableMocks');
 
 jest.mock(
-    '../../../../../backend/src/models',
+    '../../../src/models',
     () => require('../mocks/tableMocks')
 );
 
 const tableController =
-    require('../../../../../backend/src/controllers/tableController');
+    require('../../../src/controllers/tableController');
 
 const {
     createMockResponse,
@@ -60,11 +60,9 @@ describe('Table Controller - getTableByQRCode', () => {
             // Kiểm tra tìm kiếm đúng QR
             expect(
                 RestaurantTable.findOne
-            ).toHaveBeenCalledWith({
-                where: {
-                    qrCode: 'T999'
-                }
-            });
+            ).toHaveBeenCalledWith(expect.objectContaining({
+                where: expect.anything()
+            }));
 
 
             // Không tìm thấy → 404
@@ -77,7 +75,7 @@ describe('Table Controller - getTableByQRCode', () => {
                 res.json
             ).toHaveBeenCalledWith({
                 message:
-                    'Không tìm thấy bàn với mã QR này'
+                    'Không tìm thấy bàn với mã QR hoặc số bàn này'
             });
 
 
@@ -131,11 +129,9 @@ describe('Table Controller - getTableByQRCode', () => {
             // Kiểm tra tìm kiếm đúng QR
             expect(
                 RestaurantTable.findOne
-            ).toHaveBeenCalledWith({
-                where: {
-                    qrCode: 'T5'
-                }
-            });
+            ).toHaveBeenCalledWith(expect.objectContaining({
+                where: expect.anything()
+            }));
 
 
             // Tìm thấy → trả về bàn

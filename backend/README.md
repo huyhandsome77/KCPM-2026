@@ -79,3 +79,31 @@ Với endpoint cần xác thực, chọn **Authorize** trong Swagger UI và nh�
 ```text
 Bearer <JWT_TOKEN>
 ```
+
+## Testing (Kiểm thử Tự động)
+
+Hệ thống được trang bị bộ kiểm thử tự động với Jest:
+
+- **Chạy toàn bộ kiểm thử:**
+  ```bash
+  npm test
+  ```
+- **Chạy kiểm thử Hộp trắng (White-box Testing):**
+  ```bash
+  npm run test:whitebox
+  ```
+- **Chạy kiểm thử Giá trị biên (BVA):**
+  ```bash
+  npm run test:bva
+  ```
+- **Chạy kiểm thử Chuyển đổi trạng thái (State Transition):**
+  ```bash
+  npm run test:state
+  ```
+- **Xuất báo cáo Độ bao phủ mã nguồn (Coverage Report):**
+  ```bash
+  npm run test:coverage
+  ```
+
+> 📖 Xem tài liệu chi tiết tại: [Hướng dẫn Kiểm thử Hộp trắng](./whitebox-tests/README.md)
+

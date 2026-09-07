@@ -5,12 +5,12 @@ const {
 } = require('../mocks/tableMocks');
 
 jest.mock(
-    '../../../../../backend/src/models',
+    '../../../src/models',
     () => require('../mocks/tableMocks')
 );
 
 const tableController =
-    require('../../../../../backend/src/controllers/tableController');
+    require('../../../src/controllers/tableController');
 
 const {
     createMockResponse,

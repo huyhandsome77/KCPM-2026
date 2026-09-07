@@ -5,9 +5,11 @@ jest.mock('../src/models', () => ({
   Order: { create: jest.fn(), findByPk: jest.fn(), findAll: jest.fn(), update: jest.fn(), destroy: jest.fn() },
   OrderItem: { bulkCreate: jest.fn() },
   Product: { findByPk: jest.fn() },
-  RestaurantTable: { update: jest.fn() },
+  RestaurantTable: { update: jest.fn(), findByPk: jest.fn() },
   User: { findByPk: jest.fn() },
   Reservation: { update: jest.fn() },
+  Payment: { findOrCreate: jest.fn() },
+  PointHistory: { create: jest.fn() },
   sequelize: { transaction: jest.fn() }
 }));
 
@@ -20,15 +22,16 @@ const makeResponse = () => {
 
 const makeTransaction = () => ({ commit: jest.fn(), rollback: jest.fn() });
 
+let logSpy, errorSpy;
 beforeAll(() => {
   // Silence console logs and errors during test execution
-  jest.spyOn(console, 'log').mockImplementation(() => {});
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+  logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterAll(() => {
-  console.log.mockRestore();
-  console.error.mockRestore();
+  if (logSpy && typeof logSpy.mockRestore === 'function') logSpy.mockRestore();
+  if (errorSpy && typeof errorSpy.mockRestore === 'function') errorSpy.mockRestore();
 });
 
 beforeEach(() => {
@@ -37,6 +40,7 @@ beforeEach(() => {
   models.OrderItem.bulkCreate.mockResolvedValue([]);
   models.RestaurantTable.update.mockResolvedValue([1]);
   models.Reservation.update.mockResolvedValue([1]);
+  models.Payment.findOrCreate.mockResolvedValue([{ update: jest.fn().mockResolvedValue() }, true]);
 });
 
 // ==========================================
@@ -623,7 +627,7 @@ describe('3. WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
     const res = makeResponse();
     await controller.updateOrderStatus({ params: { id: 1 }, body: { status: 'CONFIRMED' } }, res);
 
-    expect(order.update).toHaveBeenCalledWith({ status: 'CONFIRMED' });
+    expect(order.update).toHaveBeenCalledWith({ status: 'CONFIRMED' }, expect.any(Object));
     expect(res.json).toHaveBeenCalledWith({ message: "Cập nhật trạng thái thành công", data: order });
   });
 
@@ -795,6 +799,7 @@ describe('3. WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
       { status: 'COMPLETED' },
       expect.objectContaining({ where: { table_id: 3, status: 'CHECKED_IN' } })
     );
+    expect(res.json).toHaveBeenCalledWith({ message: "Thanh toán thành công. Bàn hiện đã sẵn sàng." });
   });
 
   test('WB-ORD-35: payOrder database exception rolls back and forwards to next', async () => {
@@ -821,4 +826,188 @@ describe('3. WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
     await controller.getMyOrders({ user: { id: 5 } }, makeResponse(), next);
     expect(next).toHaveBeenCalledWith(err);
   });
+
+  test('WB-ORD-38: createOrder throws error when product is unavailable (isAvailable === false)', async () => {
+    const fakeProduct = { id: 1, name: 'Cà phê', price: 25000, isAvailable: false, stock: 10 };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+
+    const req = {
+      body: {
+        table_id: 1,
+        items: [{ product_id: 1, quantity: 1 }]
+      }
+    };
+    const res = makeResponse();
+    const next = jest.fn();
+
+    await controller.createOrder(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Món "Cà phê" hiện đang tạm ngưng phục vụ!'
+    }));
+  });
+
+  test('WB-ORD-39: createOrder throws error when product stock is insufficient (stock < quantity)', async () => {
+    const fakeProduct = { id: 1, name: 'Trà đào', price: 30000, isAvailable: true, stock: 2 };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+
+    const req = {
+      body: {
+        table_id: 1,
+        items: [{ product_id: 1, quantity: 5 }]
+      }
+    };
+    const res = makeResponse();
+    const next = jest.fn();
+
+    await controller.createOrder(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Món "Trà đào" chỉ còn 2 suất trong kho, không đủ phục vụ (5 suất)!'
+    }));
+  });
+
+  test('WB-ORD-40: createOrder deducts stock and sets isAvailable=false when newStock === 0', async () => {
+    const fakeProduct = {
+      id: 1,
+      name: 'Bánh ngọt',
+      price: 20000,
+      isAvailable: true,
+      stock: 2,
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+    models.RestaurantTable.update.mockResolvedValue([1]);
+    const createdOrder = { id: 99, table_id: 1 };
+    models.Order.create.mockResolvedValue(createdOrder);
+    models.Order.findByPk.mockResolvedValue(createdOrder);
+    models.OrderItem.bulkCreate.mockResolvedValue([]);
+
+    const req = {
+      body: {
+        table_id: 1,
+        items: [{ product_id: 1, quantity: 2 }]
+      }
+    };
+    const res = makeResponse();
+    const next = jest.fn();
+
+    await controller.createOrder(req, res, next);
+
+    expect(fakeProduct.update).toHaveBeenCalledWith(
+      expect.objectContaining({ stock: 0, isAvailable: false }),
+      expect.any(Object)
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  test('WB-ORD-41: deleteOrder restores product stock when order is not CANCELLED', async () => {
+    const fakeProduct = {
+      id: 10,
+      stock: 5,
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+    const mockOrder = {
+      id: 1,
+      status: 'PENDING',
+      OrderItems: [{ product_id: 10, quantity: 3 }],
+      destroy: jest.fn().mockResolvedValue(true)
+    };
+    models.Order.findByPk.mockResolvedValue(mockOrder);
+
+    const res = makeResponse();
+    await controller.deleteOrder({ params: { id: 1 } }, res);
+
+    expect(fakeProduct.update).toHaveBeenCalledWith(
+      { stock: 8, isAvailable: true },
+      expect.any(Object)
+    );
+    expect(mockOrder.destroy).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ message: "Xóa đơn hàng thành công" });
+  });
+
+  test('WB-ORD-42: payAllOrdersByTable updates existing payment record when created is false', async () => {
+    const mockPaymentRecord = { update: jest.fn().mockResolvedValue(true) };
+    models.Payment.findOrCreate.mockResolvedValue([mockPaymentRecord, false]);
+    models.Order.findAll.mockResolvedValue([
+      { id: 1, status: 'READY', finalPrice: 100000, update: jest.fn().mockResolvedValue(true) }
+    ]);
+    models.Order.update.mockResolvedValue([1]);
+    models.RestaurantTable.update.mockResolvedValue([1]);
+    models.Reservation.update.mockResolvedValue([0]);
+
+    const res = makeResponse();
+    await controller.payAllOrdersByTable({ params: { tableId: 1 }, body: { paymentMethod: 'CASH' } }, res);
+
+    expect(mockPaymentRecord.update).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 100000, status: 'SUCCESS' }),
+      expect.any(Object)
+    );
+    expect(res.json).toHaveBeenCalledWith({ message: "Đã thanh toán thành công 1 đơn hàng." });
+  });
+
+  test('WB-ORD-43: payOrder updates existing payment record when created is false', async () => {
+    const mockPaymentRecord = { update: jest.fn().mockResolvedValue(true) };
+    models.Payment.findOrCreate.mockResolvedValue([mockPaymentRecord, false]);
+    const mockOrder = {
+      id: 1,
+      status: 'READY',
+      paymentStatus: 'UNPAID',
+      finalPrice: 50000,
+      table_id: 1,
+      user_id: 2,
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Order.findByPk.mockResolvedValue(mockOrder);
+    models.RestaurantTable.update.mockResolvedValue([1]);
+    models.Reservation.update.mockResolvedValue([0]);
+    models.PointHistory.create.mockResolvedValue({});
+    models.User.findByPk.mockResolvedValue({ id: 2, point: 0, update: jest.fn().mockResolvedValue(true) });
+
+    const res = makeResponse();
+    await controller.payOrder({ params: { id: 1 }, body: { paymentMethod: 'CASH' } }, res);
+
+    expect(mockPaymentRecord.update).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 50000, status: 'SUCCESS' }),
+      expect.any(Object)
+    );
+    expect(res.json).toHaveBeenCalledWith({ message: "Thanh toán thành công. Bàn hiện đã sẵn sàng." });
+  });
+
+  test('WB-ORD-44: updateOrderStatus with CANCELLED restores stock of OrderItems', async () => {
+    const fakeProduct = {
+      id: 5,
+      name: 'Bún bò',
+      stock: 4,
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+
+    const mockOrder = {
+      id: 10,
+      status: 'PENDING',
+      OrderItems: [{ product_id: 5, quantity: 2 }],
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Order.findByPk.mockResolvedValue(mockOrder);
+
+    const res = makeResponse();
+    await controller.updateOrderStatus({ params: { id: 10 }, body: { status: 'CANCELLED' } }, res);
+
+    expect(fakeProduct.update).toHaveBeenCalledWith(
+      { stock: 6, isAvailable: true },
+      expect.any(Object)
+    );
+    expect(mockOrder.update).toHaveBeenCalledWith(
+      { status: 'CANCELLED' },
+      expect.any(Object)
+    );
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Cập nhật trạng thái thành công",
+      data: mockOrder
+    });
+  });
 });
+
+
