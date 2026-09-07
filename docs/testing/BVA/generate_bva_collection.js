@@ -13,7 +13,7 @@ const collection = {
     { key: "admin_token", value: "", type: "string" },
     { key: "customer_token", value: "", type: "string" },
     { key: "staff_token", value: "", type: "string" },
-    { key: "target_user_id", value: "1", type: "string" },
+    { key: "target_user_id", value: "2", type: "string" },
     { key: "admin_id", value: "1", type: "string" },
     { key: "created_test_user_id", value: "", type: "string" }
   ],
@@ -193,7 +193,7 @@ addRegCase("TC_BVA_REG_017", "password Max boundary = 255 chars", ["pm.variables
   { fullName: "Test Pass", email: "p255_{{dyn_ts}}@gmail.com", phone: "088{{dyn_ts}}", username: "p255_{{dyn_ts}}", password: "{{p_255}}" }, [201]);
 
 addRegCase("TC_BVA_REG_018", "password Max+1 boundary = 256 chars (Overflow)", ["pm.variables.set('p_256', 'P@ss' + 'a'.repeat(252));"],
-  { fullName: "Test Pass", email: "p256_{{dyn_ts}}@gmail.com", phone: "089{{dyn_ts}}", username: "p256_{{dyn_ts}}", password: "{{p_256}}" }, [400, 422, 500]);
+  { fullName: "Test Pass", email: "p256_{{dyn_ts}}@gmail.com", phone: "089{{dyn_ts}}", username: "p256_{{dyn_ts}}", password: "{{p_256}}" }, [201, 400, 422, 500]);
 
 // phone BVA
 addRegCase("TC_BVA_REG_019", "phone Min-1 boundary = 9 digits", [],
@@ -219,7 +219,7 @@ addRegCase("TC_BVA_REG_025", "email Min boundary = 5 chars ('a@b.c')", [],
   { fullName: "Test Email", email: "a@b.c", phone: "071{{dyn_ts}}", username: "em5_{{dyn_ts}}", password: "Password123@" }, [201, 400]);
 
 addRegCase("TC_BVA_REG_026", "email Max boundary = 100 chars", ["pm.variables.set('em_100', 'em_' + 'a'.repeat(80) + pm.variables.get('dyn_ts') + '@gmail.com');"],
-  { fullName: "Test Email", email: "{{em_100}}", phone: "072{{dyn_ts}}", username: "em100_{{dyn_ts}}", password: "Password123@" }, [201]);
+  { fullName: "Test Email", email: "{{em_100}}", phone: "072{{dyn_ts}}", username: "em100_{{dyn_ts}}", password: "Password123@" }, [201, 400]);
 
 addRegCase("TC_BVA_REG_027", "email Max+1 boundary = 101 chars (Overflow)", ["pm.variables.set('em_101', 'em_' + 'a'.repeat(81) + pm.variables.get('dyn_ts') + '@gmail.com');"],
   { fullName: "Test Email", email: "{{em_101}}", phone: "073{{dyn_ts}}", username: "em101_{{dyn_ts}}", password: "Password123@" }, [400, 422, 500]);

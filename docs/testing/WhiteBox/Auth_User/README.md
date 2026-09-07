@@ -9,9 +9,9 @@ Thư mục này chứa toàn bộ tài liệu đặc tả, bộ testcase tự đ
 ---
 
 ## 2. DANH MỤC FILE
-- [`Auth_User_Whitebox_TestCases_Coverage.xlsx`](./Auth_User_Whitebox_TestCases_Coverage.xlsx): Bảng đặc tả chi tiết 42 Test Cases White-Box và Bảng tổng hợp chỉ số Code Coverage (Statements, Branches, Functions, Lines) định dạng Excel chuyên nghiệp 2 sheets.
-- [`backend/tests/whitebox/authController.whitebox.test.js`](file:///c:/Users/fptsh/OneDrive/Máy tính/KCPM/KCPM-2026/backend/tests/whitebox/authController.whitebox.test.js): Test suite White-box cho `authController.js` (100% Coverage).
-- [`backend/tests/whitebox/userController.whitebox.test.js`](file:///c:/Users/fptsh/OneDrive/Máy tính/KCPM/KCPM-2026/backend/tests/whitebox/userController.whitebox.test.js): Test suite White-box cho `userController.js` (100% Coverage).
+- [`Auth_User_Whitebox_TestCases_Coverage.xlsx`](./Auth_User_Whitebox_TestCases_Coverage.xlsx): Bảng đặc tả chi tiết 51 Test Cases White-Box và Bảng tổng hợp chỉ số Code Coverage (Statements, Branches, Functions, Lines) định dạng Excel chuyên nghiệp 2 sheets.
+- [`backend/whitebox-tests/authController.whitebox.test.js`](file:///c:/Users/fptsh/OneDrive/Máy tính/KCPM/KCPM-2026/backend/whitebox-tests/authController.whitebox.test.js): Test suite White-box cho `authController.js` (20 Test Cases - 100% Coverage).
+- [`backend/whitebox-tests/userController.whitebox.test.js`](file:///c:/Users/fptsh/OneDrive/Máy tính/KCPM/KCPM-2026/backend/whitebox-tests/userController.whitebox.test.js): Test suite White-box cho `userController.js` (31 Test Cases - 100% Coverage).
 
 ---
 
@@ -19,8 +19,8 @@ Thư mục này chứa toàn bộ tài liệu đặc tả, bộ testcase tự đ
 
 | File / Module | Statements | Branches | Functions | Lines | Đánh giá |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| `backend/src/controllers/authController.js` | **100.00%** (31/31) | **100.00%** (14/14) | **100.00%** (2/2) | **100.00%** (31/31) | ✅ Xuất sắc |
-| `backend/src/controllers/userController.js` | **100.00%** (94/94) | **100.00%** (69/69) | **100.00%** (7/7) | **100.00%** (91/91) | ✅ Xuất sắc |
+| `backend/src/controllers/authController.js` | **100.00%** (48/48) | **100.00%** (51/51) | **100.00%** (2/2) | **100.00%** (48/48) | ✅ Xuất sắc |
+| `backend/src/controllers/userController.js` | **100.00%** (105/105) | **100.00%** (69/69) | **100.00%** (7/7) | **100.00%** (91/91) | ✅ Xuất sắc |
 | `backend/src/routes/authRoutes.js` | **100.00%** (10/10) | **100.00%** (2/2) | **100.00%** (1/1) | **100.00%** (10/10) | ✅ Xuất sắc |
 | `backend/src/routes/userRoutes.js` | **100.00%** (28/28) | **100.00%** (2/2) | **100.00%** (1/1) | **100.00%** (28/28) | ✅ Xuất sắc |
 

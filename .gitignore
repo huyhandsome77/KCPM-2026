@@ -12,4 +12,8 @@ output/
 
 # Environment variables
 .env
+.env.*
 *.env
+**/.env
+backend/.env
+admin/.env

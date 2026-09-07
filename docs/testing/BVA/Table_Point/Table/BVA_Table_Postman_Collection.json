@@ -27,6 +27,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -55,7 +59,6 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
                   "pm.test('Response is JSON',()=>pm.response.to.be.json);",
@@ -81,6 +84,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -94,6 +101,10 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/tables"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tableNumber\":10,\"capacity\":4,\"qrCode\":\"QR_TB_10\"}"
             }
           },
           "event": [
@@ -135,6 +146,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -148,6 +163,10 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/tables"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tableNumber\":10,\"capacity\":4,\"qrCode\":\"QR_TB_10\"}"
             }
           },
           "event": [
@@ -189,6 +208,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -202,6 +225,10 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/tables"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tableNumber\":10,\"capacity\":4,\"qrCode\":\"QR_TB_10\"}"
             }
           },
           "event": [
@@ -243,6 +270,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -256,6 +287,10 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/tables"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tableNumber\":10,\"capacity\":4,\"qrCode\":\"QR_TB_10\"}"
             }
           },
           "event": [
@@ -297,6 +332,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -351,6 +390,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -405,6 +448,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -459,6 +506,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -513,6 +564,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -567,6 +622,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -621,6 +680,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -675,6 +738,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -729,6 +796,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -783,6 +854,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -837,6 +912,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -891,6 +970,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
@@ -950,6 +1033,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {

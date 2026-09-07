@@ -554,18 +554,6 @@
   ],
   "variable": [
     {
-      "key": "supabase_service_role_api_key_0x3a",
-      "secret": true
-    },
-    {
-      "key": "supabase_service_role_api_key_10l4",
-      "secret": true
-    },
-    {
-      "key": "supabase_service_role_api_key_1blp",
-      "secret": true
-    },
-    {
       "key": "jwt_token",
       "value": "",
       "type": "string"

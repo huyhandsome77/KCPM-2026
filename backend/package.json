@@ -28,21 +28,7 @@
   },
   "devDependencies": {
     "jest": "^30.4.2",
+    "newman": "^6.2.2",
     "nodemon": "^3.1.14"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/controllers/orderController.js",
-      "src/controllers/payosController.js"
-    ],
-    "coverageDirectory": "coverage",
-    "coverageReporters": [
-      "text",
-      "text-summary",
-      "lcov",
-      "html"
-    ]
   }
 }

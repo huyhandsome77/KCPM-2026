@@ -411,7 +411,7 @@ window.API_DATA = {
               description: "Đăng nhập thành công, trả về token",
               example: {
                 message: "Đăng nhập thành công!",
-                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IkNVU1RPTUVSIiwiaWF0IjoxNzg2NjU1Nzg5LCJleHAiOjE3ODcyNjA1ODl9...",
+                token: "sample.jwt.token.example",
                 user: {
                   id: 1,
                   fullName: "Nguyễn Văn A",
