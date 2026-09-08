@@ -1,10 +1,7 @@
 Feature("Customer - Xem lịch sử Order");
 
-const LOGIN_URL =
-  "http://127.0.0.1:5500/customer/login.html";
-
-const SETTING_URL =
-  "http://127.0.0.1:5500/customer/setting.html";
+const LOGIN_URL = "/customer/login.html";
+const SETTING_URL = "/customer/setting.html";
 
 const ACCOUNT = "thinh";
 const PASSWORD = "123";

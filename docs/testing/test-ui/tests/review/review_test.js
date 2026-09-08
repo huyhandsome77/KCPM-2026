@@ -1,7 +1,6 @@
 Feature("Customer - Đánh giá");
 
-const REVIEW_URL =
-  "http://127.0.0.1:5500/KCPM-2026/customer/review.html";
+const REVIEW_URL = "/customer/review.html";
 
 Scenario("TC01 - Kiểm tra giao diện trang đánh giá", async ({ I }) => {
   I.amOnPage(REVIEW_URL);

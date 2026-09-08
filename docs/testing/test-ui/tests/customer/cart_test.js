@@ -1,7 +1,6 @@
 Feature("Customer - Thêm / Sửa / Xóa Cart");
 
-const INDEX_URL =
-  "http://127.0.0.1:5500/customer/index.html";
+const INDEX_URL = "/customer/index.html";
 
 Before(({ I }) => {
   // ============================================
@@ -22,7 +21,7 @@ Before(({ I }) => {
   // ============================================
   I.fillField(
     "#qrLinkInput",
-    "http://127.0.0.1:5500/KCPM-2026/customer/table/T5"
+    "/customer/table/T5"
   );
 
   I.click("#qrLinkBtn");

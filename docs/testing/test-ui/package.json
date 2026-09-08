@@ -1,12 +1,25 @@
 {
   "name": "test-ui",
   "version": "1.0.0",
-  "description": "",
+  "description": "CodeceptJS & Playwright UI Automated Testing Suite for FutureSushi",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "codeceptjs run",
+    "test:steps": "codeceptjs run --steps",
+    "test:auth": "codeceptjs run \"tests/auth/*.js\" --steps",
+    "test:customer": "codeceptjs run \"tests/customer/*.js\" --steps",
+    "test:kitchen": "codeceptjs run \"tests/kitchen/*.js\" --steps",
+    "test:staff": "codeceptjs run \"tests/staff/*.js\" --steps",
+    "test:reservation": "codeceptjs run \"tests/reservation/*.js\" --steps",
+    "test:review": "codeceptjs run \"tests/review/*.js\" --steps"
   },
-  "keywords": [],
+  "keywords": [
+    "testing",
+    "codeceptjs",
+    "playwright",
+    "e2e",
+    "ui"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {

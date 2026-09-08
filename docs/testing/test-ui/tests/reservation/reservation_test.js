@@ -1,7 +1,6 @@
 Feature("Customer - Đặt bàn");
 
-const BOOKING_URL =
-  "http://127.0.0.1:5500/KCPM-2026/customer/booking.html";
+const BOOKING_URL = "/customer/booking.html";
 
 Scenario("TC01 - Kiểm tra giao diện trang đặt bàn", async ({ I }) => {
   I.amOnPage(BOOKING_URL);

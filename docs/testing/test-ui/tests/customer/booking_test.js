@@ -1,7 +1,6 @@
 Feature("Customer - Booking");
 
-const BOOKING_URL =
-  "http://127.0.0.1:5500/customer/booking.html";
+const BOOKING_URL = "/customer/booking.html";
 
 Before(({ I }) => {
   I.amOnPage(BOOKING_URL);

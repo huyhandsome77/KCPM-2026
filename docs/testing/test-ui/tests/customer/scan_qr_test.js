@@ -1,8 +1,7 @@
 Feature("Customer - Đặt món qua QR");
 
-const INDEX_URL = "http://127.0.0.1:5500/customer/index.html";
-const QR_LINK =
-  "http://127.0.0.1:5500/KCPM-2026/customer/table/T5";
+const INDEX_URL = "/customer/index.html";
+const QR_LINK = "http://127.0.0.1:5500/customer/table/T5";
 
 Before(({ I }) => {
   I.amOnPage(INDEX_URL);
@@ -35,7 +34,7 @@ Scenario("TC02 - Nhập đường dẫn QR không hợp lệ", async ({ I }) => 
 
   I.fillField(
     "#qrLinkInput",
-    "http://127.0.0.1:5500/KCPM-2026/customer/table/ABC"
+    "http://127.0.0.1:5500/customer/table/ABC"
   );
 
   I.click("#qrLinkBtn");

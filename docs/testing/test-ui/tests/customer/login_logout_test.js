@@ -5,9 +5,7 @@ Feature("Customer - Login / Logout");
 // ==================================================
 Scenario("TC01 - Đăng nhập thành công bằng Username", async ({ I }) => {
 
-    I.amOnPage(
-        "http://127.0.0.1:5500/KCPM-2026/customer/login.html"
-    );
+    I.amOnPage("/customer/login.html");
 
     I.fillField("#account", "thinh");
     I.fillField("#password", "123");
@@ -26,9 +24,7 @@ Scenario("TC01 - Đăng nhập thành công bằng Username", async ({ I }) => {
 // ==================================================
 Scenario("TC02 - Đăng nhập bằng Email", async ({ I }) => {
 
-    I.amOnPage(
-        "http://127.0.0.1:5500/KCPM-2026/customer/login.html"
-    );
+    I.amOnPage("/customer/login.html");
 
     I.fillField("#account", "thinh@gmail.com");
     I.fillField("#password", "123");
@@ -47,9 +43,7 @@ Scenario("TC02 - Đăng nhập bằng Email", async ({ I }) => {
 // ==================================================
 Scenario("TC03 - Đăng nhập bằng số điện thoại", async ({ I }) => {
 
-    I.amOnPage(
-        "http://127.0.0.1:5500/KCPM-2026/customer/login.html"
-    );
+    I.amOnPage("/customer/login.html");
 
     I.fillField("#account", "01231231222");
     I.fillField("#password", "123");
@@ -68,9 +62,7 @@ Scenario("TC03 - Đăng nhập bằng số điện thoại", async ({ I }) => {
 // ==================================================
 Scenario("TC04 - Đăng nhập với mật khẩu sai", async ({ I }) => {
 
-    I.amOnPage(
-        "http://127.0.0.1:5500/KCPM-2026/customer/login.html"
-    );
+    I.amOnPage("/customer/login.html");
 
     I.fillField("#account", "thinh");
     I.fillField("#password", "sai123");
@@ -89,9 +81,7 @@ Scenario("TC04 - Đăng nhập với mật khẩu sai", async ({ I }) => {
 // ==================================================
 Scenario('TC05 - Bỏ trống tài khoản', async ({ I }) => {
 
-    I.amOnPage(
-        'http://127.0.0.1:5500/KCPM-2026/customer/login.html'
-    );
+    I.amOnPage("/customer/login.html");
 
     I.fillField('#password', '123');
 
@@ -109,9 +99,7 @@ Scenario('TC05 - Bỏ trống tài khoản', async ({ I }) => {
 // ==================================================
 Scenario('TC06 - Bỏ trống mật khẩu', async ({ I }) => {
 
-    I.amOnPage(
-        'http://127.0.0.1:5500/KCPM-2026/customer/login.html'
-    );
+    I.amOnPage("/customer/login.html");
 
     I.fillField('#account', 'thinh');
 
@@ -129,9 +117,7 @@ Scenario('TC06 - Bỏ trống mật khẩu', async ({ I }) => {
 // ==================================================
 Scenario('TC07 - Bỏ trống toàn bộ thông tin', async ({ I }) => {
 
-    I.amOnPage(
-        'http://127.0.0.1:5500/KCPM-2026/customer/login.html'
-    );
+    I.amOnPage("/customer/login.html");
 
     I.click('#loginForm button[type="submit"]');
 
@@ -148,9 +134,7 @@ Scenario('TC07 - Bỏ trống toàn bộ thông tin', async ({ I }) => {
 // ==================================================
 Scenario('TC08 - Đăng xuất thành công', async ({ I }) => {
 
-    I.amOnPage(
-        'http://127.0.0.1:5500/KCPM-2026/customer/login.html'
-    );
+    I.amOnPage("/customer/login.html");
 
     I.fillField('#account', 'thinh');
     I.fillField('#password', '123');

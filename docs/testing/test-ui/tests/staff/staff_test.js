@@ -761,4 +761,3 @@ Scenario('TC36 - Kiểm tra hủy lịch đặt bàn', async ({ I }) => {
 
   I.see('Đã hủy');
 });
-

@@ -1,16 +1,14 @@
 /** @type {CodeceptJS.MainConfig} */
 
 export const config = {
-  tests: "./tests/**/*_test.js",
+  tests: "./tests/**/*.js",
 
   output: "./output",
 
   helpers: {
     Playwright: {
       browser: "chromium",
-
-      url: "http://127.0.0.1:5500/KCPM-2026/customer",
-
+      url: process.env.BASE_URL || "http://localhost:3000",
       show: true
     }
   },

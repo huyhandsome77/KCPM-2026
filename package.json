@@ -1,0 +1,24 @@
+{
+  "name": "kcpm-2026",
+  "version": "1.0.0",
+  "description": "FutureSushi - Quan ly nha hang & App Dat mon",
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend run dev",
+    "test": "npm --prefix backend test",
+    "test:coverage": "npm --prefix backend run test:coverage",
+    "test:whitebox": "npm --prefix backend run test:whitebox",
+    "test:bva": "npm --prefix backend run test:bva",
+    "test:state": "npm --prefix backend run test:state",
+    "test:ui": "npm --prefix docs/testing/test-ui test",
+    "test:customer": "npm --prefix docs/testing/test-ui run test:customer",
+    "test:kitchen": "npm --prefix docs/testing/test-ui run test:kitchen",
+    "test:staff": "npm --prefix docs/testing/test-ui run test:staff",
+    "test:reservation": "npm --prefix docs/testing/test-ui run test:reservation",
+    "test:review": "npm --prefix docs/testing/test-ui run test:review",
+    "test:auth": "npm --prefix docs/testing/test-ui run test:auth"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,6 +1,6 @@
 Feature("Customer - Tìm kiếm và lọc Menu");
 
-const INDEX_URL = "http://127.0.0.1:5500/customer/index.html";
+const INDEX_URL = "/customer/index.html";
 
 Before(({ I }) => {
   // Vào trang Customer
