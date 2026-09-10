@@ -414,6 +414,27 @@
           "name": "[TC_BVA_P_03] used_points = Max- (7.499.999), quantity=50",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.variables.get('baseUrl') + '/api/users/1',",
+                  "    method: 'PUT',",
+                  "    header: {",
+                  "        'Content-Type': 'application/json',",
+                  "        'Authorization': 'Bearer ' + pm.variables.get('admin_token')",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({ points: 10000000 })",
+                  "    }",
+                  "}, function (err, res) {",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -462,6 +483,27 @@
         {
           "name": "[TC_BVA_P_04] used_points = Max (7.500.000), quantity=50",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.variables.get('baseUrl') + '/api/users/1',",
+                  "    method: 'PUT',",
+                  "    header: {",
+                  "        'Content-Type': 'application/json',",
+                  "        'Authorization': 'Bearer ' + pm.variables.get('admin_token')",
+                  "    },",
+                  "    body: {",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify({ points: 10000000 })",
+                  "    }",
+                  "}, function (err, res) {",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
             {
               "listen": "test",
               "script": {

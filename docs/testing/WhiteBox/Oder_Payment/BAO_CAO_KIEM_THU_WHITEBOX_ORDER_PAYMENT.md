@@ -18,6 +18,14 @@
 
 ## 2. KẾT QUẢ ĐO LƯỜNG ĐỘ BAO PHỦ MÃ NGUỒN (CODE COVERAGE)
 
+Chạy test tự động bằng lệnh:
+
+```powershell
+
+cd D:\KCPM-2026\backend
+npx jest whitebox-tests/orderController.test.js --forceExit
+```
+
 ```text
 --------------------|---------|----------|---------|---------|
 File                | % Stmts | % Branch | % Funcs | % Lines |
