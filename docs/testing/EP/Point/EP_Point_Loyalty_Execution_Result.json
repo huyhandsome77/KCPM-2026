@@ -1,0 +1,128 @@
+{
+  "project": "FutureSuShi",
+  "module": "Point & Loyalty",
+  "method": "Equivalence Partitioning (EP)",
+  "environment": "Local backend http://localhost:3000",
+  "source_evidence": "Live Newman run of existing Point API collection + White-box Point run + live execution of 2 additional EP cases",
+  "summary": {
+    "designed": 16,
+    "executed": 16,
+    "pass": 14,
+    "fail": 2,
+    "not_run": 0,
+    "pass_rate": "87.5%"
+  },
+  "live_api_suite": {
+    "requests": 18,
+    "failed_requests": 0,
+    "assertions": 17,
+    "failed_assertions": 0
+  },
+  "extra_ep_run": {
+    "requests": 3,
+    "failed_requests": 0,
+    "assertions": 3,
+    "failed_assertions": 2,
+    "cases": {
+      "EP-POINT-007": {
+        "expected_status": 400,
+        "actual_status": 404,
+        "result": "FAIL",
+        "note": "Phone chứa chữ không được chặn ở lớp format; request đi tiếp tới bước tìm khách hàng và nhận 404."
+      },
+      "EP-POINT-009": {
+        "expected_status": 400,
+        "actual_status": 404,
+        "result": "FAIL",
+        "note": "Request orderId=1.5 không bị chặn ở lớp integer validation; lần chạy dùng phone mặc định và nhận 404, nên cần dùng customer phone tồn tại để cô lập hoàn toàn lỗi orderId thập phân."
+      }
+    }
+  },
+  "whitebox_point": {
+    "tests": 8,
+    "passed": 8,
+    "failed": 0
+  },
+  "cases": [
+    {
+      "id": "EP-POINT-001",
+      "result": "PASS",
+      "evidence": "Live Point API suite: login staff PASS và request Point dùng staff token PASS."
+    },
+    {
+      "id": "EP-POINT-002",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_002: 401 Unauthorized."
+    },
+    {
+      "id": "EP-POINT-003",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_001: 403 Forbidden."
+    },
+    {
+      "id": "EP-POINT-004",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_003: 400 Bad Request."
+    },
+    {
+      "id": "EP-POINT-005",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_004: 400 Bad Request."
+    },
+    {
+      "id": "EP-POINT-006",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_007: 404 Not Found."
+    },
+    {
+      "id": "EP-POINT-007",
+      "result": "FAIL",
+      "evidence": "Extra collection chạy live: expected 400 nhưng actual 404; assertion FAIL."
+    },
+    {
+      "id": "EP-POINT-008",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_005: 400 Bad Request."
+    },
+    {
+      "id": "EP-POINT-009",
+      "result": "FAIL",
+      "evidence": "Extra collection chạy live: expected 400 nhưng actual 404; assertion FAIL."
+    },
+    {
+      "id": "EP-POINT-010",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_006: 400 Bad Request."
+    },
+    {
+      "id": "EP-POINT-011",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_008: 404 Not Found."
+    },
+    {
+      "id": "EP-POINT-012",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_010: 400 Bad Request."
+    },
+    {
+      "id": "EP-POINT-013",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_014: 400 Bad Request."
+    },
+    {
+      "id": "EP-POINT-014",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_013: 200 OK."
+    },
+    {
+      "id": "EP-POINT-015",
+      "result": "PASS",
+      "evidence": "TC_API_PNT_013 có assertion kiểm tra earnedPoints và công thức 5%, PASS."
+    },
+    {
+      "id": "EP-POINT-016",
+      "result": "PASS",
+      "evidence": "Authorization/JWT flow của Point API: request không token 401; quyền Staff/Admin được kiểm tra trong live suite."
+    }
+  ]
+}
