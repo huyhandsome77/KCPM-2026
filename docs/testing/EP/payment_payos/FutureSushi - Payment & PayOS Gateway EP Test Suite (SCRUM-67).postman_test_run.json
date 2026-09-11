@@ -1,0 +1,429 @@
+{
+	"id": "50801f0a-eaa0-4f32-92ea-cafc751c9ad0",
+	"name": "FutureSushi - Payment & PayOS Gateway EP Test Suite (SCRUM-67)",
+	"timestamp": "2026-09-11T22:47:13.339Z",
+	"collection_id": "56967522-93b85d0a-d2ea-4cf5-98be-a7dd5172799d",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 22,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2026-09-11T22:47:01.335Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "9a2dd053-c2eb-4d1a-91fe-777fb10c7e7b",
+			"name": "0.1 Setup - Admin Login (Get Token)",
+			"url": "http://localhost:3000/api/auth/login",
+			"time": 1111,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Admin Login successful": true
+			},
+			"testPassFailCounts": {
+				"Admin Login successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1111
+			],
+			"allTests": [
+				{
+					"Admin Login successful": true
+				}
+			]
+		},
+		{
+			"id": "f781e7df-1fde-4064-bc9f-9d3bdbade2ae",
+			"name": "0.2 Setup - Tạo đơn hàng mẫu phục vụ Test Payment",
+			"url": "http://localhost:3000/api/orders",
+			"time": 886,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Setup Order created": true
+			},
+			"testPassFailCounts": {
+				"Setup Order created": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				886
+			],
+			"allTests": [
+				{
+					"Setup Order created": true
+				}
+			]
+		},
+		{
+			"id": "e824872a-a346-4f01-bf11-1abf1cf01b0d",
+			"name": "[TC_EP_PAY_01] Valid EP (EQ_MTH1, EQ_OST1, EQ_PST1): Thanh toán đơn bằng CASH thành công khi đơn READY",
+			"url": "http://localhost:3000/api/orders/165/pay",
+			"time": 1825,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"[TC_EP_PAY_01] Status 200 OK": true,
+				"[TC_EP_PAY_01] Xác nhận thanh toán thành công": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_01] Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_01] Xác nhận thanh toán thành công": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1825
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_01] Status 200 OK": true,
+					"[TC_EP_PAY_01] Xác nhận thanh toán thành công": true
+				}
+			]
+		},
+		{
+			"id": "f47e2e03-0e55-4689-907b-342e7127fc3f",
+			"name": "[TC_EP_PAY_02] Valid EP (EQ_AMT1): Tạo link thanh toán PayOS thành công cho đơn hàng hợp lệ",
+			"url": "http://localhost:3000/api/payos/create-payment-link",
+			"time": 904,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"[TC_EP_PAY_02] Status 200 OK": true,
+				"[TC_EP_PAY_02] Trả về link checkoutUrl hoặc qrCode": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_02] Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_02] Trả về link checkoutUrl hoặc qrCode": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				904
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_02] Status 200 OK": true,
+					"[TC_EP_PAY_02] Trả về link checkoutUrl hoặc qrCode": true
+				}
+			]
+		},
+		{
+			"id": "d08e668a-3303-4b2f-9595-4e0cc9df0fcb",
+			"name": "[TC_EP_PAY_03] Valid EP (EQ_WB1): Xử lý Webhook PayOS thành công (code = '00'), kiểm tra đơn chuyển PAID và COMPLETED",
+			"url": "http://localhost:3000/api/payos/webhook",
+			"time": 112,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"[TC_EP_PAY_03] Status 200 OK": true,
+				"[TC_EP_PAY_03] Webhook phản hồi Success": true,
+				"[TC_EP_PAY_03] Kiểm tra đơn hàng chuyển PAID/COMPLETED và bàn AVAILABLE": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_03] Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_03] Webhook phản hồi Success": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_03] Kiểm tra đơn hàng chuyển PAID/COMPLETED và bàn AVAILABLE": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				112
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_03] Status 200 OK": true,
+					"[TC_EP_PAY_03] Webhook phản hồi Success": true,
+					"[TC_EP_PAY_03] Kiểm tra đơn hàng chuyển PAID/COMPLETED và bàn AVAILABLE": true
+				}
+			]
+		},
+		{
+			"id": "a568d03d-0a2b-456a-a5b5-88ac623057d4",
+			"name": "[TC_EP_PAY_04] Invalid EP (EQ_OST2): Từ chối thanh toán khi đơn hàng chưa hoàn thành (status = PREPARING)",
+			"url": "http://localhost:3000/api/orders/166/pay",
+			"time": 222,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_PAY_04] Status 400 Bad Request": true,
+				"[TC_EP_PAY_04] Báo lỗi trạng thái đơn không hợp lệ": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_04] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_04] Báo lỗi trạng thái đơn không hợp lệ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				222
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_04] Status 400 Bad Request": true,
+					"[TC_EP_PAY_04] Báo lỗi trạng thái đơn không hợp lệ": true
+				}
+			]
+		},
+		{
+			"id": "4b7cd6a3-9738-49ce-ba6c-0d93eab0b305",
+			"name": "[TC_EP_PAY_05] Invalid EP (EQ_PST2): Từ chối thanh toán lại cho đơn hàng đã PAID",
+			"url": "http://localhost:3000/api/orders/165/pay",
+			"time": 1040,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_PAY_05] Status 400 Bad Request": true,
+				"[TC_EP_PAY_05] Báo lỗi đơn đã thanh toán": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_05] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_05] Báo lỗi đơn đã thanh toán": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1040
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_05] Status 400 Bad Request": true,
+					"[TC_EP_PAY_05] Báo lỗi đơn đã thanh toán": true
+				}
+			]
+		},
+		{
+			"id": "bcad8af3-fd42-41c5-9bb0-9b7efbc8b766",
+			"name": "[TC_EP_PAY_06] Invalid EP (EQ_WB2): Xử lý Webhook PayOS khi giao dịch bị hủy (code = '01'), kiểm tra đơn giữ UNPAID",
+			"url": "http://localhost:3000/api/payos/webhook",
+			"time": 4,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"[TC_EP_PAY_06] Status 200 OK": true,
+				"[TC_EP_PAY_06] Webhook phản hồi Success": true,
+				"[TC_EP_PAY_06] Xác nhận đơn hàng không bị chuyển sang PAID (vẫn UNPAID)": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_06] Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_06] Webhook phản hồi Success": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_06] Xác nhận đơn hàng không bị chuyển sang PAID (vẫn UNPAID)": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_06] Status 200 OK": true,
+					"[TC_EP_PAY_06] Webhook phản hồi Success": true,
+					"[TC_EP_PAY_06] Xác nhận đơn hàng không bị chuyển sang PAID (vẫn UNPAID)": true
+				}
+			]
+		},
+		{
+			"id": "eb60a4e5-41a4-4e03-9075-1a6ba9dfbc0c",
+			"name": "[TC_EP_PAY_07] Invalid EP (EQ_AMT2): Từ chối tạo link thanh toán khi số tiền dưới mức tối thiểu (amount < 1.000 VNĐ)",
+			"url": "http://localhost:3000/api/payos/create-payment-link",
+			"time": 9,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_PAY_07] Status 400 Bad Request": true,
+				"[TC_EP_PAY_07] Báo lỗi số tiền thanh toán dưới mức tối thiểu": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_07] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_07] Báo lỗi số tiền thanh toán dưới mức tối thiểu": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_07] Status 400 Bad Request": true,
+					"[TC_EP_PAY_07] Báo lỗi số tiền thanh toán dưới mức tối thiểu": true
+				}
+			]
+		},
+		{
+			"id": "3c5f490e-4cab-4834-8f2d-50332f6fab1e",
+			"name": "[TC_EP_PAY_08] Invalid EP (EQ_AMT3): Từ chối tạo link thanh toán khi số tiền vượt hạn mức tối đa (amount > 500.000.000 VNĐ)",
+			"url": "http://localhost:3000/api/payos/create-payment-link",
+			"time": 3,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_PAY_08] Status 400 Bad Request": true,
+				"[TC_EP_PAY_08] Báo lỗi số tiền vượt trần tối đa": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_08] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_08] Báo lỗi số tiền vượt trần tối đa": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				3
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_08] Status 400 Bad Request": true,
+					"[TC_EP_PAY_08] Báo lỗi số tiền vượt trần tối đa": true
+				}
+			]
+		},
+		{
+			"id": "6d7b041a-aad0-488d-943c-6da7bb2d5924",
+			"name": "[TC_EP_PAY_09] Invalid EP (EQ_MTH2): Từ chối thanh toán với phương thức không được hỗ trợ (paymentMethod = 'BITCOIN')",
+			"url": "http://localhost:3000/api/orders/165/pay",
+			"time": 981,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_PAY_09] Status 400 Bad Request": true,
+				"[TC_EP_PAY_09] Báo lỗi phương thức không hợp lệ": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_PAY_09] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_PAY_09] Báo lỗi phương thức không hợp lệ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				981
+			],
+			"allTests": [
+				{
+					"[TC_EP_PAY_09] Status 400 Bad Request": true,
+					"[TC_EP_PAY_09] Báo lỗi phương thức không hợp lệ": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 7097,
+	"collection": {
+		"requests": [
+			{
+				"id": "9a2dd053-c2eb-4d1a-91fe-777fb10c7e7b",
+				"method": "POST"
+			},
+			{
+				"id": "f781e7df-1fde-4064-bc9f-9d3bdbade2ae",
+				"method": "POST"
+			},
+			{
+				"id": "e824872a-a346-4f01-bf11-1abf1cf01b0d",
+				"method": "PUT"
+			},
+			{
+				"id": "f47e2e03-0e55-4689-907b-342e7127fc3f",
+				"method": "POST"
+			},
+			{
+				"id": "d08e668a-3303-4b2f-9595-4e0cc9df0fcb",
+				"method": "POST"
+			},
+			{
+				"id": "a568d03d-0a2b-456a-a5b5-88ac623057d4",
+				"method": "PUT"
+			},
+			{
+				"id": "4b7cd6a3-9738-49ce-ba6c-0d93eab0b305",
+				"method": "PUT"
+			},
+			{
+				"id": "bcad8af3-fd42-41c5-9bb0-9b7efbc8b766",
+				"method": "POST"
+			},
+			{
+				"id": "eb60a4e5-41a4-4e03-9075-1a6ba9dfbc0c",
+				"method": "POST"
+			},
+			{
+				"id": "3c5f490e-4cab-4834-8f2d-50332f6fab1e",
+				"method": "POST"
+			},
+			{
+				"id": "6d7b041a-aad0-488d-943c-6da7bb2d5924",
+				"method": "PUT"
+			}
+		]
+	}
+}

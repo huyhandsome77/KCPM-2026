@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "ep-cart-order-suite-2026",
+    "_postman_id": "ep-cart-order-full-suite-2026",
     "name": "FutureSushi - Cart & Order EP Test Suite (SCRUM-66)",
     "description": "Bộ kiểm thử tự động Phân hoạch tương đương (Equivalence Partitioning - EP) cho Module Cart & Order Management (SCRUM-66) theo đặc tả SRS Mục 2.6.1.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -68,16 +68,15 @@
       ]
     },
     {
-      "name": "1. Equivalence Partitioning (EP) - Cart & Order (7 Test Cases)",
+      "name": "1. Equivalence Partitioning (EP) - Cart & Order (10 Test Cases)",
       "item": [
         {
-          "name": "[TC_EP_01] Valid EP: Tạo đơn hàng thành công với giỏ hàng hợp lệ đầy đủ tham số",
+          "name": "[TC_EP_01] Valid EP (EQ_CRT1, EQ_Q1, EQ_P1, EQ_NOT1, EQ_S1): Tạo đơn hàng thành công với giỏ hàng hợp lệ đầy đủ tham số",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Ensure Product 1 has stock and User 1 has points",
                   "pm.sendRequest({",
                   "    url: pm.variables.get('baseUrl') + '/api/users/1',",
                   "    method: 'PUT',",
@@ -142,7 +141,7 @@
           }
         },
         {
-          "name": "[TC_EP_02] Invalid EP: Đặt hàng thất bại khi giỏ hàng rỗng (items = [])",
+          "name": "[TC_EP_02] Invalid EP (EQ_CRT2): Đặt hàng thất bại khi giỏ hàng rỗng (items = [])",
           "event": [
             {
               "listen": "test",
@@ -189,13 +188,12 @@
           }
         },
         {
-          "name": "[TC_EP_03] Invalid EP: Đặt hàng thất bại khi món trong giỏ bị tạm ngưng phục vụ (isAvailable = false)",
+          "name": "[TC_EP_03] Invalid EP (EQ_AV2): Đặt hàng thất bại khi món trong giỏ bị tạm ngưng phục vụ (isAvailable = false)",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Set Product 2 to isAvailable = false before test",
                   "pm.sendRequest({",
                   "    url: pm.variables.get('baseUrl') + '/api/products/2',",
                   "    method: 'PUT',",
@@ -251,14 +249,18 @@
           }
         },
         {
-          "name": "[TC_EP_04] Invalid EP: Đặt hàng khi ghi chú dài hơn mức cho phép (> 200 ký tự)",
+          "name": "[TC_EP_04] Invalid EP (EQ_NOT2): Đặt hàng thất bại khi ghi chú dài hơn mức cho phép (> 200 ký tự)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"[TC_EP_04] Status Code verification\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+                  "pm.test(\"[TC_EP_04] Status 400 Bad Request\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "});",
+                  "pm.test(\"[TC_EP_04] Message bắt lỗi ghi chú vượt quá 200 ký tự\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('không được vượt quá 200 ký tự');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -294,13 +296,12 @@
           }
         },
         {
-          "name": "[TC_EP_05] Invalid EP: Đặt hàng thất bại khi số lượng món vượt quá tồn kho (quantity: 10 > stock: 3)",
+          "name": "[TC_EP_05] Invalid EP (EQ_Q4): Đặt hàng thất bại khi số lượng món vượt quá tồn kho (quantity: 10 > stock: 3)",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Set Product 3 stock to 3 and isAvailable = true",
                   "pm.sendRequest({",
                   "    url: pm.variables.get('baseUrl') + '/api/products/3',",
                   "    method: 'PUT',",
@@ -356,14 +357,18 @@
           }
         },
         {
-          "name": "[TC_EP_06] Invalid EP: Đặt hàng khi số lượng món dưới mức tối thiểu (quantity = 0)",
+          "name": "[TC_EP_06] Invalid EP (EQ_Q2): Đặt hàng thất bại khi số lượng món dưới mức tối thiểu (quantity = 0)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"[TC_EP_06] Status Code verification\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+                  "pm.test(\"[TC_EP_06] Status 400 Bad Request\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "});",
+                  "pm.test(\"[TC_EP_06] Message bắt lỗi số lượng không hợp lệ\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('phải lớn hơn 0');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -399,13 +404,12 @@
           }
         },
         {
-          "name": "[TC_EP_07] Invalid EP: Đặt hàng thất bại khi điểm sử dụng vượt quá số dư (used_points: 500 > balance: 100)",
+          "name": "[TC_EP_07] Invalid EP (EQ_P3): Đặt hàng thất bại khi điểm sử dụng vượt quá số dư (used_points: 500 > balance: 100)",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Set User 1 points to 100",
                   "pm.sendRequest({",
                   "    url: pm.variables.get('baseUrl') + '/api/users/1',",
                   "    method: 'PUT',",
@@ -447,6 +451,135 @@
             "body": {
               "mode": "raw",
               "raw": "{\"table_id\": 1, \"used_points\": 500, \"items\": [{\"product_id\": 1, \"quantity\": 2}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_08] Invalid EP (EQ_CRT3): Đặt hàng thất bại khi số loại món vượt quá giới hạn giỏ hàng (> 50 món)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"[TC_EP_08] Status 400 Bad Request\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"table_id\": 1, \"items\": [{\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}, {\"product_id\": 1, \"quantity\": 1}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_09] Invalid EP (EQ_Q3): Đặt hàng thất bại khi số lượng món vượt mức tối đa cho phép (> 99 phần)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"[TC_EP_09] Status 400 Bad Request\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"table_id\": 1, \"items\": [{\"product_id\": 1, \"quantity\": 150}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_10] Invalid EP (EQ_P2): Đặt hàng thất bại khi điểm sử dụng là số âm (used_points < 0)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"[TC_EP_10] Status 400 Bad Request\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"table_id\": 1, \"used_points\": -100, \"items\": [{\"product_id\": 1, \"quantity\": 1}]}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/orders",
