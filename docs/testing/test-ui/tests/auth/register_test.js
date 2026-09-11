@@ -1,5 +1,7 @@
 Feature("Register");
 
+const DEFAULT_TEST_PASSWORD = "test_password_123";
+
 Scenario("Đăng ký thành công", async ({ I }) => {
   const random = Date.now();
 
@@ -15,7 +17,7 @@ Scenario("Đăng ký thành công", async ({ I }) => {
 
   I.fillField("#username", `thinh${random}`);
 
-  I.fillField("#registerPassword", "123456");
+  I.fillField("#registerPassword", DEFAULT_TEST_PASSWORD);
 
   I.click("#registerForm button");
 
@@ -43,7 +45,7 @@ Scenario("Bỏ trống họ tên", async ({ I }) => {
 
   I.fillField("#username", "testuser");
 
-  I.fillField("#registerPassword", "123456");
+  I.fillField("#registerPassword", DEFAULT_TEST_PASSWORD);
 
   I.click("#registerForm button");
 
@@ -61,7 +63,7 @@ Scenario("Bỏ trống số điện thoại", async ({ I }) => {
 
   I.fillField("#username", "testuser");
 
-  I.fillField("#registerPassword", "123456");
+  I.fillField("#registerPassword", DEFAULT_TEST_PASSWORD);
 
   I.click("#registerForm button");
 
@@ -79,7 +81,7 @@ Scenario("Bỏ trống username", async ({ I }) => {
 
   I.fillField("#phone", "0987654321");
 
-  I.fillField("#registerPassword", "123456");
+  I.fillField("#registerPassword", DEFAULT_TEST_PASSWORD);
 
   I.click("#registerForm button");
 
@@ -119,7 +121,7 @@ Scenario("Đăng ký với username đã tồn tại", async ({ I }) => {
 
   I.fillField("#username", "thinh");
 
-  I.fillField("#registerPassword", "123456");
+  I.fillField("#registerPassword", DEFAULT_TEST_PASSWORD);
 
   I.click("#registerForm button");
 
@@ -141,7 +143,7 @@ Scenario("Đăng ký với số điện thoại đã tồn tại", async ({ I })
 
   I.fillField("#username", `user${Date.now()}`);
 
-  I.fillField("#registerPassword", "123456");
+  I.fillField("#registerPassword", DEFAULT_TEST_PASSWORD);
 
   I.click("#registerForm button");
 

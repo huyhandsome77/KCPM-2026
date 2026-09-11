@@ -1,5 +1,13 @@
 Feature("Customer - Login / Logout");
 
+const TEST_CONFIG = {
+    username: "thinh",
+    email: "thinh@gmail.com",
+    phone: "01231231222",
+    validPassword: "123",
+    invalidPassword: "wrong_test_password"
+};
+
 // ==================================================
 // TC01 - Đăng nhập thành công bằng Username
 // ==================================================
@@ -7,8 +15,8 @@ Scenario("TC01 - Đăng nhập thành công bằng Username", async ({ I }) => {
 
     I.amOnPage("/customer/login.html");
 
-    I.fillField("#account", "thinh");
-    I.fillField("#password", "123");
+    I.fillField("#account", TEST_CONFIG.username);
+    I.fillField("#password", TEST_CONFIG.validPassword);
 
     I.click('#loginForm button[type="submit"]');
 
@@ -26,8 +34,8 @@ Scenario("TC02 - Đăng nhập bằng Email", async ({ I }) => {
 
     I.amOnPage("/customer/login.html");
 
-    I.fillField("#account", "thinh@gmail.com");
-    I.fillField("#password", "123");
+    I.fillField("#account", TEST_CONFIG.email);
+    I.fillField("#password", TEST_CONFIG.validPassword);
 
     I.click('#loginForm button[type="submit"]');
 
@@ -45,8 +53,8 @@ Scenario("TC03 - Đăng nhập bằng số điện thoại", async ({ I }) => {
 
     I.amOnPage("/customer/login.html");
 
-    I.fillField("#account", "01231231222");
-    I.fillField("#password", "123");
+    I.fillField("#account", TEST_CONFIG.phone);
+    I.fillField("#password", TEST_CONFIG.validPassword);
 
     I.click('#loginForm button[type="submit"]');
 
@@ -64,8 +72,8 @@ Scenario("TC04 - Đăng nhập với mật khẩu sai", async ({ I }) => {
 
     I.amOnPage("/customer/login.html");
 
-    I.fillField("#account", "thinh");
-    I.fillField("#password", "sai123");
+    I.fillField("#account", TEST_CONFIG.username);
+    I.fillField("#password", TEST_CONFIG.invalidPassword);
 
     I.click('#loginForm button[type="submit"]');
 
@@ -83,7 +91,7 @@ Scenario('TC05 - Bỏ trống tài khoản', async ({ I }) => {
 
     I.amOnPage("/customer/login.html");
 
-    I.fillField('#password', '123');
+    I.fillField('#password', TEST_CONFIG.validPassword);
 
     I.click('#loginForm button[type="submit"]');
 
@@ -101,7 +109,7 @@ Scenario('TC06 - Bỏ trống mật khẩu', async ({ I }) => {
 
     I.amOnPage("/customer/login.html");
 
-    I.fillField('#account', 'thinh');
+    I.fillField('#account', TEST_CONFIG.username);
 
     I.click('#loginForm button[type="submit"]');
 
@@ -136,8 +144,8 @@ Scenario('TC08 - Đăng xuất thành công', async ({ I }) => {
 
     I.amOnPage("/customer/login.html");
 
-    I.fillField('#account', 'thinh');
-    I.fillField('#password', '123');
+    I.fillField('#account', TEST_CONFIG.username);
+    I.fillField('#password', TEST_CONFIG.validPassword);
 
     I.click('#loginForm button[type="submit"]');
 
