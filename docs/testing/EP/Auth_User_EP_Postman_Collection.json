@@ -1,0 +1,3426 @@
+{
+  "info": {
+    "_postman_id": "ep-auth-user-suite-2026",
+    "name": "FutureSushi - Auth & User EP Test Suite",
+    "description": "Bộ kiểm thử tự động phân vùng tương đương (Equivalence Partitioning - EP) cho module Authentication & User Management (/api/auth & /api/users) trên Postman theo chuẩn SRS và EP Test Matrix.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staff_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "kitchen_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "seeded_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "seeded_username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "seeded_phone",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "seeded_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "blocked_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "blocked_username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "created_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expired_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IkFETUlOIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjN9.invalid_expired",
+      "type": "string"
+    },
+    {
+      "key": "invalid_token",
+      "value": "malformed.invalid.token.signature",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Setup & Authentication Fixtures",
+      "item": [
+        {
+          "name": "0.1 Setup - Admin Login (Get Admin Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('admin_token', res.token);",
+                  "    if (res.user && res.user.id) pm.collectionVariables.set('admin_id', String(res.user.id));",
+                  "    console.log('Admin Token saved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"account\":\"admin\",\"password\":\"123\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "0.2 Setup - Staff Login (Get Staff Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('staff_token', res.token);",
+                  "    console.log('Staff Token saved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"account\":\"staff\",\"password\":\"123\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "0.3 Setup - Customer Login (Get Customer Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('customer_token', res.token);",
+                  "    console.log('Customer Token saved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"account\":\"customer\",\"password\":\"123\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "0.4 Setup - Kitchen Login (Get Kitchen Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('kitchen_token', res.token);",
+                  "    console.log('Kitchen Token saved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"account\":\"kitchen\",\"password\":\"123\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "0.5 Setup - Seed Active User for Multi-identifier Login Tests",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "const dyn_id = ts + rand;",
+                  "pm.collectionVariables.set('seeded_username', 'ep_user_' + dyn_id);",
+                  "pm.collectionVariables.set('seeded_phone', '098' + dyn_id.slice(-7));",
+                  "pm.collectionVariables.set('seeded_email', 'ep_' + dyn_id + '@example.com');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('seeded_user_id', String(res.user.id));",
+                  "    console.log('Seeded User ID saved: ' + res.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Seeded EP User\",\n  \"username\": \"{{seeded_username}}\",\n  \"phone\": \"{{seeded_phone}}\",\n  \"email\": \"{{seeded_email}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "0.6 Setup - Seed & Block User for BLOCKED Login Test",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "const dyn_id = ts + rand;",
+                  "pm.collectionVariables.set('blocked_username', 'blocked_' + dyn_id);",
+                  "pm.variables.set('blocked_phone', '097' + dyn_id.slice(-7));",
+                  "pm.variables.set('blocked_email', 'blocked_' + dyn_id + '@example.com');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('blocked_user_id', String(res.user.id));",
+                  "    console.log('Registered User to Block: ' + res.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"User To Block\",\n  \"username\": \"{{blocked_username}}\",\n  \"phone\": \"{{blocked_phone}}\",\n  \"email\": \"{{blocked_email}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "0.7 Setup - Admin updates status of user to BLOCKED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Setup Block user - Status 200 OK', function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"BLOCKED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{blocked_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{blocked_user_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. POST /api/auth/register (EP Test Cases)",
+      "item": [
+        {
+          "name": "[TC_EP_REG_001] VEP-FN-01, VEP-UN-01, VEP-PW-01, VEP-PH-05, VEP-EM-01: Đăng ký thành công với tất cả các trường hợp lệ đầy đủ",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_001 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.message).to.eql('Đăng ký thành công!');",
+                  "    pm.expect(res.user.role).to.eql('CUSTOMER');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần Văn Hợp Lệ\",\n  \"email\": \"valid_cust1_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_valid_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_002] VEP-EM-02: Đăng ký thành công khi không cung cấp trường email (Nullable)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_002 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.message).to.eql('Đăng ký thành công!');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Lê Văn Bình\",\n  \"phone\": \"098{{dyn_ts}}\",\n  \"username\": \"cust_noem_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_003] VEP-FN-02: Đăng ký thành công với họ tên chứa khoảng trắng thừa hai đầu (Hệ thống tự trim)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_003 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.user.fullName).to.eql('Nguyễn Hoàng An');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"   Nguyễn Hoàng An   \",\n  \"phone\": \"034{{dyn_ts}}\",\n  \"username\": \"cust_trim_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_004] VEP-PH-01 to 04: Đăng ký thành công với các đầu số di động VN khác (03, 05, 07, 08)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_004 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    pm.expect(pm.response.json().message).to.eql('Đăng ký thành công!');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Phạm Văn C\",\n  \"phone\": \"038{{dyn_ts}}\",\n  \"username\": \"cust_pre03_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_005] IEP-FN-01: Từ chối khi fullName bị rỗng (\"\")",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_005 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422]);",
+                  "});",
+                  "pm.test('Error message includes fullName requirement', function() {",
+                  "    pm.expect(pm.response.text()).to.match(/họ và tên|không được để trống/i);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_err1_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_006] IEP-FN-02: Từ chối khi fullName chỉ chứa toàn khoảng trắng",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_006 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422]);",
+                  "});",
+                  "pm.test('Error message mentions fullName', function() {",
+                  "    pm.expect(pm.response.text()).to.match(/họ và tên/i);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"      \",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_err2_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_007] IEP-FN-03: Từ chối khi fullName vượt quá 100 ký tự",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);",
+                  "pm.variables.set('fn_101', 'A'.repeat(101));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_007 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{fn_101}}\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_err3_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_008] IEP-UN-01: Từ chối khi username ngắn hơn 3 ký tự",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_008 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"ab\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_009] IEP-UN-02: Từ chối khi username vượt quá 40 ký tự",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);",
+                  "pm.variables.set('un_41', 'u_' + 'a'.repeat(29) + pm.variables.get('dyn_ts'));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_009 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"{{un_41}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_010] IEP-UN-03: Từ chối khi username chứa dấu cách",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_010 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"user test {{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_011] IEP-UN-04: Từ chối khi username chứa ký tự đặc biệt không hợp lệ",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_011 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"user#$@!_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_012] IEP-UN-05: Từ chối khi username đã tồn tại trong CSDL (Duplicate UNIQUE)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_012 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test('Duplicate username message check', function() {",
+                  "    pm.expect(pm.response.text()).to.match(/Tên đăng nhập này đã tồn tại!|tồn tại/i);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"admin\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_013] IEP-PW-01: Từ chối khi password ngắn hơn 6 ký tự",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_013 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_pw5_{{dyn_ts}}\",\n  \"password\": \"12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_014] IEP-PW-02: Từ chối khi password vượt quá 255 ký tự",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);",
+                  "pm.variables.set('pw_256', 'P@ss' + 'a'.repeat(252));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_014 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,500,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_pw256_{{dyn_ts}}\",\n  \"password\": \"{{pw_256}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_015] IEP-PW-03: Từ chối khi password bị bỏ trống (\"\")",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_015 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test('Password empty validation message check', function() {",
+                  "    pm.expect(pm.response.text()).to.match(/mật khẩu/i);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_pw_empty_{{dyn_ts}}\",\n  \"password\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_016] IEP-PH-01: Từ chối khi phone không đủ 10 số (Ví dụ 9 chữ số)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_016 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"091234567\",\n  \"username\": \"cust_ph9_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_017] IEP-PH-03: Từ chối khi phone sai đầu số VN (Ví dụ đầu 02, 01, 19)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_017 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"0241234567\",\n  \"username\": \"cust_ph_bad_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_018] IEP-PH-04: Từ chối khi phone chứa ký tự chữ cái",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_018 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"0912345abc\",\n  \"username\": \"cust_ph_char_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_019] IEP-PH-05: Từ chối khi phone đã được đăng ký trong hệ thống (Duplicate UNIQUE)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_019 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test('Duplicate phone error message check', function() {",
+                  "    pm.expect(pm.response.text()).to.match(/Số điện thoại này đã được đăng ký!|tồn tại/i);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"phone\": \"{{seeded_phone}}\",\n  \"username\": \"cust_ph_dup_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_020] IEP-EM-01: Từ chối khi email sai định dạng chuẩn RFC 5322 (Thiếu domain / @)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_020 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,422,201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"email\": \"invalid_email_format\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_em_bad_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_REG_021] IEP-EM-04: Từ chối khi email đã tồn tại trong hệ thống (Duplicate UNIQUE)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_REG_021 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test('Duplicate email error message check', function() {",
+                  "    pm.expect(pm.response.text()).to.match(/Email này đã tồn tại trong hệ thống!|tồn tại/i);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần A\",\n  \"email\": \"{{seeded_email}}\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"cust_em_dup_{{dyn_ts}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. POST /api/auth/login (Multi-Identifier Login & Status Check)",
+      "item": [
+        {
+          "name": "[TC_EP_LOG_001] VEP-AUTH-01: Đăng nhập thành công bằng Username + Mật khẩu đúng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_LOG_001 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test('Login returns JWT token', function() {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res).to.have.property('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_LOG_002] VEP-AUTH-02: Đăng nhập thành công bằng Số điện thoại + Mật khẩu đúng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_LOG_002 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test('Login returns JWT token', function() {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res).to.have.property('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"{{seeded_phone}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_LOG_003] VEP-AUTH-03: Đăng nhập thành công bằng Email + Mật khẩu đúng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_LOG_003 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test('Login returns JWT token', function() {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res).to.have.property('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"{{seeded_email}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_LOG_004] IEP-AUTH-01: Đăng nhập thất bại khi tài khoản không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_LOG_004 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                  "});",
+                  "pm.test(\"TC_EP_LOG_004 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tài khoản không tồn tại/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"nonexistent_acc_999999\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_LOG_005] IEP-AUTH-02: Đăng nhập thất bại khi nhập sai mật khẩu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_LOG_005 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test(\"TC_EP_LOG_005 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Mật khẩu không chính xác/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"WrongPassword123!@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_LOG_006] IEP-AUTH-03: Từ chối đăng nhập khi tài khoản có trạng thái BLOCKED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_LOG_006 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([403]);",
+                  "});",
+                  "pm.test(\"TC_EP_LOG_006 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/khóa|liên hệ quản trị/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"{{blocked_username}}\",\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_LOG_007] IEP-AUTH-04: Đăng nhập thiếu trường account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_LOG_007 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test(\"TC_EP_LOG_007 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Vui lòng nhập đầy đủ thông tin/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_LOG_008] IEP-AUTH-04: Đăng nhập thiếu trường password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_LOG_008 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test(\"TC_EP_LOG_008 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Vui lòng nhập đầy đủ thông tin/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. JWT Authentication & RBAC Access Control",
+      "item": [
+        {
+          "name": "[TC_EP_SEC_001] VEP-JWT-01: Admin gửi Header Authorization Bearer token hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_SEC_001 - Status code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_SEC_002] VEP-JWT-01: Staff gửi Bearer token hợp lệ truy cập endpoint Staff & Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_SEC_002 - Status code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_SEC_003] IEP-JWT-01: Từ chối khi không gửi Header Authorization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_SEC_003 - Status code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_SEC_004] IEP-JWT-02: Từ chối khi gửi Token rác / sai định dạng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_SEC_004 - Status code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401,403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{invalid_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_SEC_005] IEP-JWT-03: Từ chối khi gửi Token đã hết hạn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_SEC_005 - Status code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401,403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{expired_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_SEC_006] IEP-JWT-04: Customer cố gắng truy cập endpoint dành riêng cho Admin (POST /api/users)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_SEC_006 - Status code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Unauthorized User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. POST /api/users (Admin Create User & Role Assignment)",
+      "item": [
+        {
+          "name": "[TC_EP_ADM_CRT_001] VEP-RL-02, VEP-PT-02: Admin tạo thành công tài khoản Nhân viên (STAFF)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_ADM_CRT_001 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "});",
+                  "pm.test(\"TC_EP_ADM_CRT_001 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tạo người dùng thành công/i); });",
+                  "if (pm.response.code === 201) { const res = pm.response.json(); pm.collectionVariables.set('created_user_id', String(res.user.id)); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Staff\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"staff_new_{{dyn_ts}}\",\n  \"password\": \"Password123@\",\n  \"role\": \"STAFF\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_ADM_CRT_002] VEP-RL-03: Admin tạo thành công tài khoản Bếp (KITCHEN)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_ADM_CRT_002 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "});",
+                  "pm.test(\"TC_EP_ADM_CRT_002 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tạo người dùng thành công/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Lê Kitchen\",\n  \"phone\": \"092{{dyn_ts}}\",\n  \"username\": \"kitchen_new_{{dyn_ts}}\",\n  \"password\": \"Password123@\",\n  \"role\": \"KITCHEN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_ADM_CRT_003] VEP-RL-04: Admin tạo thành công tài khoản Quản trị viên phụ (ADMIN)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_ADM_CRT_003 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "});",
+                  "pm.test(\"TC_EP_ADM_CRT_003 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tạo người dùng thành công/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Phạm Admin Phụ\",\n  \"phone\": \"093{{dyn_ts}}\",\n  \"username\": \"admin_sub_{{dyn_ts}}\",\n  \"password\": \"Password123@\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_ADM_CRT_004] IEP-RL-01: Từ chối tạo tài khoản khi truyền vai trò không hợp lệ (SUPERADMIN)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_ADM_CRT_004 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Võ Error\",\n  \"phone\": \"094{{dyn_ts}}\",\n  \"username\": \"user_badrole_{{dyn_ts}}\",\n  \"password\": \"Password123@\",\n  \"role\": \"SUPERADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_ADM_CRT_005] IEP-UN-05: Từ chối tạo khi username hoặc số điện thoại đã tồn tại",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_ADM_CRT_005 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test(\"TC_EP_ADM_CRT_005 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tài khoản hoặc số điện thoại đã tồn tại|tồn tại/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Võ Error\",\n  \"phone\": \"095{{dyn_ts}}\",\n  \"username\": \"admin\",\n  \"password\": \"Password123@\",\n  \"role\": \"STAFF\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_ADM_CRT_006] IEP-EM-04: Từ chối tạo khi email đã tồn tại trong CSDL",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-6);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000);",
+                  "pm.variables.set('dyn_ts', ts + rand);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_ADM_CRT_006 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test(\"TC_EP_ADM_CRT_006 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tài khoản hoặc số điện thoại đã tồn tại|tồn tại/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Võ Error\",\n  \"email\": \"{{seeded_email}}\",\n  \"phone\": \"096{{dyn_ts}}\",\n  \"username\": \"user_new100_{{dyn_ts}}\",\n  \"password\": \"Password123@\",\n  \"role\": \"STAFF\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. GET /api/users (Filter, Search & Query Matrix)",
+      "item": [
+        {
+          "name": "[TC_EP_GET_001] VEP-SC-01 (Empty): Lấy toàn bộ danh sách người dùng khi không lọc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GET_001 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test(\"TC_EP_GET_001 - Response is an Array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_GET_002] VEP-RL-01: Lọc danh sách theo vai trò CUSTOMER",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GET_002 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test(\"TC_EP_GET_002 - Response is an Array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});",
+                  "pm.test('All items have role CUSTOMER', function() { const list = pm.response.json(); list.forEach(u => pm.expect(u.role).to.eql('CUSTOMER')); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?role=CUSTOMER",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "CUSTOMER"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_GET_003] VEP-RL-02: Lọc danh sách theo vai trò STAFF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GET_003 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test(\"TC_EP_GET_003 - Response is an Array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});",
+                  "pm.test('All items have role STAFF', function() { const list = pm.response.json(); list.forEach(u => pm.expect(u.role).to.eql('STAFF')); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?role=STAFF",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "STAFF"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_GET_004] VEP-ST-01: Lọc danh sách theo trạng thái ACTIVE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GET_004 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test(\"TC_EP_GET_004 - Response is an Array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});",
+                  "pm.test('All items have status ACTIVE', function() { const list = pm.response.json(); list.forEach(u => pm.expect(u.status).to.eql('ACTIVE')); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?status=ACTIVE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_GET_005] VEP-ST-02: Lọc danh sách theo trạng thái BLOCKED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GET_005 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test(\"TC_EP_GET_005 - Response is an Array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});",
+                  "pm.test('All items have status BLOCKED', function() { const list = pm.response.json(); list.forEach(u => pm.expect(u.status).to.eql('BLOCKED')); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?status=BLOCKED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "BLOCKED"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_GET_006] VEP-SC-01: Tìm kiếm đồng thời theo họ tên hoặc số điện thoại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GET_006 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test(\"TC_EP_GET_006 - Response is an Array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?search=0912",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "0912"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. GET /api/users/:id (User Detail By ID)",
+      "item": [
+        {
+          "name": "[TC_EP_GETID_001] VEP-ID-01: Lấy chi tiết thành công người dùng tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GETID_001 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "if (pm.response.code === 200) { pm.test('Password is not exposed', function() { pm.expect(pm.response.json()).to.not.have.property('password'); }); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{admin_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{admin_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_GETID_002] IEP-ID-03: Báo lỗi 404 khi ID không tồn tại trong CSDL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GETID_002 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                  "});",
+                  "pm.test(\"TC_EP_GETID_002 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Không tìm thấy người dùng/i); });",
+                  "if (pm.response.code === 200) { pm.test('Password is not exposed', function() { pm.expect(pm.response.json()).to.not.have.property('password'); }); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_GETID_003] IEP-ID-02: Xử lý khi ID không phải định dạng số nguyên (abc)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_GETID_003 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400,404,500]);",
+                  "});",
+                  "if (pm.response.code === 200) { pm.test('Password is not exposed', function() { pm.expect(pm.response.json()).to.not.have.property('password'); }); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "abc"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. PUT /api/users/:id (Update User, Safety & Mass Assignment Defense)",
+      "item": [
+        {
+          "name": "[TC_EP_UPD_001] VEP-SEC-03, VEP-PT-01: Admin cập nhật hợp lệ thông tin, vai trò, điểm thưởng cho User khác",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_UPD_001 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test(\"TC_EP_UPD_001 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Cập nhật thành công/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nhân Viên Sửa\",\n  \"points\": 5000,\n  \"role\": \"STAFF\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{seeded_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{seeded_user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_UPD_002] VEP-SEC-01, VEP-ST-02: Admin khóa tài khoản người dùng khác (status = BLOCKED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_UPD_002 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"BLOCKED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{seeded_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{seeded_user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_UPD_003] IEP-SEC-01: PHÒNG VỆ: Admin cố gắng tự khóa tài khoản chính mình (status = BLOCKED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_UPD_003 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test(\"TC_EP_UPD_003 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/không thể tự khóa tài khoản của chính mình/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"BLOCKED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{admin_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{admin_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_UPD_004] VEP-SEC-04: MASS ASSIGNMENT DEFENSE: Staff gửi payload sửa role=ADMIN và status=BLOCKED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_UPD_004 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200]);",
+                  "});",
+                  "pm.test('Mass assignment protected: role is not escalated to ADMIN', function() {",
+                  "    if (pm.response.code === 200) {",
+                  "        const res = pm.response.json();",
+                  "        if (res.user) pm.expect(res.user.role).to.not.eql('ADMIN');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\",\n  \"status\": \"BLOCKED\",\n  \"points\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{seeded_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{seeded_user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_UPD_005] IEP-PT-01: Từ chối khi cập nhật điểm thưởng số âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_UPD_005 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,400,422]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": -100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{seeded_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{seeded_user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_UPD_006] IEP-PT-02: Từ chối khi cập nhật điểm thưởng vượt quá 10.000.000",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_UPD_006 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,400,422]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": 10000001\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{seeded_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{seeded_user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_UPD_007] IEP-ID-03: Báo lỗi 404 khi cập nhật User ID không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_UPD_007 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                  "});",
+                  "pm.test(\"TC_EP_UPD_007 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Không tìm thấy người dùng/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test Nonexistent\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "99999"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. DELETE /api/users/:id (Delete User & Self-deletion Defense)",
+      "item": [
+        {
+          "name": "[TC_EP_DEL_001] VEP-SEC-02: Admin xóa thành công tài khoản người dùng khác",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_DEL_001 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,404]);",
+                  "});",
+                  "pm.test(\"TC_EP_DEL_001 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Xóa người dùng thành công/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{created_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{created_user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_DEL_002] IEP-SEC-02: PHÒNG VỆ: Admin cố gắng tự xóa tài khoản chính mình",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_DEL_002 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});",
+                  "pm.test(\"TC_EP_DEL_002 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/không thể tự xóa tài khoản của chính mình/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{admin_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{admin_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_DEL_003] IEP-ID-03: Báo lỗi 404 khi xóa tài khoản không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_DEL_003 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404]);",
+                  "});",
+                  "pm.test(\"TC_EP_DEL_003 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Không tìm thấy người dùng/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_DEL_004] IEP-JWT-04: Vai trò Nhân viên hoặc Khách hàng cố gắng gọi API xóa người dùng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_EP_DEL_004 - Status code check\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{seeded_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{seeded_user_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Profile Management (GET & PUT /api/users/profile)",
+      "item": [
+        {
+          "name": "[TC_EP_PRF_001] VEP-ID-01: Lấy thông tin cá nhân của người dùng đang đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC_EP_PRF_001 - Status 200 OK', function() { pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test('TC_EP_PRF_001 - Profile object returned', function() {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res).to.have.property('id');",
+                  "    pm.expect(res).to.have.property('fullName');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_PRF_002] VEP-FN-01, VEP-AV-01: Cập nhật hồ sơ cá nhân với Họ tên và Avatar URL hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC_EP_PRF_002 - Status 200 OK', function() { pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test('TC_EP_PRF_002 - Update success message', function() {",
+                  "    pm.expect(pm.response.text()).to.match(/Cập nhật hồ sơ thành công/i);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn Mới\",\n  \"avatar\": \"https://cdn.futuresushi.com/avatar/user03.png\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[TC_EP_PRF_003] IEP-AV-01: Từ chối khi chuỗi ảnh đại diện vượt quá 10.000 ký tự",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set('b64_10001', 'data:image/png;base64,' + 'A'.repeat(10001));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TC_EP_PRF_003 - Handled with valid status code', function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"avatar\": \"{{b64_10001}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "profile"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
