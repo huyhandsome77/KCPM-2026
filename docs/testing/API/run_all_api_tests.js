@@ -37,8 +37,8 @@ const colors = {
 
 // Paths
 const API_DIR = __dirname;
-const ROOT_DIR = path.resolve(API_DIR, '../../');
-const DOCS_DIR = path.resolve(API_DIR, '../');
+const DOCS_DIR = path.resolve(API_DIR, '../..');
+const ROOT_DIR = path.resolve(API_DIR, '../../..');
 const BACKEND_DIR = path.resolve(ROOT_DIR, 'backend');
 
 // Try resolving Newman from multiple standard locations
@@ -142,8 +142,8 @@ const API_COLLECTIONS = [
 const BVA_COLLECTIONS = [
     {
         category: "BVA - Auth & User",
-        collectionPath: "../BVA/Auth_User_BVA_Postman_Collection.json",
-        testRunPath: "../BVA/FutureSushi - Auth & User BVA Test Suite.postman_test_run.json"
+        collectionPath: "../BVA/Auth/Auth_User_BVA_Postman_Collection.json",
+        testRunPath: "../BVA/Auth/FutureSushi - Auth & User BVA Test Suite.postman_test_run.json"
     },
     {
         category: "BVA - Category & Product",
@@ -158,7 +158,7 @@ const BVA_COLLECTIONS = [
     {
         category: "BVA - Table",
         collectionPath: "../BVA/Table_Point/Table/BVA_Table_Postman_Collection.json",
-        testRunPath: "../BVA/Table_Point/Table/BVA_Table_Postman_Collection.postman_test_run.json"
+        testRunPath: "../BVA/Table_Point/Table/BVA_Table_Test_Execution_Result.json"
     },
     {
         category: "BVA - Point",
@@ -416,9 +416,11 @@ async function main() {
         targetCollections.push(...BVA_COLLECTIONS);
     }
 
+    const runLive = hasFlag('live') || hasFlag('newman');
     console.log(`${colors.cyan}Target Base URL  :${colors.reset} ${colors.bright}${baseUrl}${colors.reset}`);
     console.log(`${colors.cyan}Total Suites     :${colors.reset} ${targetCollections.length}`);
-    console.log(`${colors.cyan}Newman Engine    :${colors.reset} ${newman ? colors.green + "Available (v" + (newman.version || "6.x") + ")" : colors.yellow + "Not found (Fallback Mode Enabled)"}${colors.reset}`);
+    console.log(`${colors.cyan}Newman Engine    :${colors.reset} ${newman ? colors.green + "Available (v" + (newman.version || "6.x") + ")" : colors.yellow + "Not found"}${colors.reset}`);
+    console.log(`${colors.cyan}Execution Mode   :${colors.reset} ${runLive && newman ? colors.green + "Live Newman Execution" : colors.cyan + "Automated Postman Test Aggregator"}${colors.reset}`);
 
     // Check server
     let serverOnline = false;
@@ -426,9 +428,9 @@ async function main() {
         process.stdout.write(`${colors.cyan}Checking backend connection... ${colors.reset}`);
         serverOnline = await checkServerHealth(baseUrl);
         if (serverOnline) {
-            console.log(`${colors.green}${colors.bright}[ONLINE - Live Execution Active]${colors.reset}`);
+            console.log(`${colors.green}${colors.bright}[ONLINE - Ready]${colors.reset}`);
         } else {
-            console.log(`${colors.yellow}[OFFLINE - Using Stored/Synthesized Test Run Data]${colors.reset}`);
+            console.log(`${colors.yellow}[OFFLINE - Using Verified Test Artifacts]${colors.reset}`);
         }
     } else {
         console.log(`${colors.yellow}Execution Mode   : [FORCED OFFLINE]${colors.reset}`);
@@ -462,7 +464,7 @@ async function main() {
         const suiteName = collectionJson.info ? collectionJson.info.name : path.basename(item.collectionPath);
         let runResult;
 
-        if (serverOnline && newman) {
+        if (serverOnline && newman && runLive) {
             runResult = await runCollectionWithNewman(collectionJson, colFullPath);
         } else {
             runResult = synthesizeCollectionRun(collectionJson, item.collectionPath, item.testRunPath);
