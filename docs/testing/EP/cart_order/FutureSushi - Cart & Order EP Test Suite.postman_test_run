@@ -1,0 +1,300 @@
+{
+	"id": "ad4bf367-e451-422e-bc21-4c364246135e",
+	"name": "FutureSushi - Cart & Order EP Test Suite (SCRUM-66)",
+	"timestamp": "2026-09-10T21:06:26.190Z",
+	"collection_id": "56967522-8c03e2d6-70e0-4342-b44f-eb9934245f97",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 13,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2026-09-10T21:06:18.919Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "a5d0dbb8-8db4-49c8-884a-7c89d234e9b0",
+			"name": "0.1 Setup - Admin Login (Get Token)",
+			"url": "http://localhost:3000/api/auth/login",
+			"time": 1084,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Admin Login successful": true
+			},
+			"testPassFailCounts": {
+				"Admin Login successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1084
+			],
+			"allTests": [
+				{
+					"Admin Login successful": true
+				}
+			]
+		},
+		{
+			"id": "009f04c6-3b07-4da5-928c-ceb9da7c8444",
+			"name": "[TC_EP_01] Valid EP: Tạo đơn hàng thành công với giỏ hàng hợp lệ đầy đủ tham số",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1057,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_EP_01] Status 201 Created": true,
+				"[TC_EP_01] Tính đúng totalPrice và finalPrice": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_01] Status 201 Created": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_01] Tính đúng totalPrice và finalPrice": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1057
+			],
+			"allTests": [
+				{
+					"[TC_EP_01] Status 201 Created": true,
+					"[TC_EP_01] Tính đúng totalPrice và finalPrice": true
+				}
+			]
+		},
+		{
+			"id": "dec9fe09-0a77-4f50-8064-e0f81a0c4a22",
+			"name": "[TC_EP_02] Invalid EP: Đặt hàng thất bại khi giỏ hàng rỗng (items = [])",
+			"url": "http://localhost:3000/api/orders",
+			"time": 110,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_02] Status 400 Bad Request": true,
+				"[TC_EP_02] Message bắt lỗi giỏ hàng rỗng": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_02] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_02] Message bắt lỗi giỏ hàng rỗng": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				110
+			],
+			"allTests": [
+				{
+					"[TC_EP_02] Status 400 Bad Request": true,
+					"[TC_EP_02] Message bắt lỗi giỏ hàng rỗng": true
+				}
+			]
+		},
+		{
+			"id": "46569105-7a48-40ee-838b-989650274dcb",
+			"name": "[TC_EP_03] Invalid EP: Đặt hàng thất bại khi món trong giỏ bị tạm ngưng phục vụ (isAvailable = false)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 319,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_03] Status 400 Bad Request": true,
+				"[TC_EP_03] Message bắt lỗi món tạm ngưng phục vụ": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_03] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_03] Message bắt lỗi món tạm ngưng phục vụ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				319
+			],
+			"allTests": [
+				{
+					"[TC_EP_03] Status 400 Bad Request": true,
+					"[TC_EP_03] Message bắt lỗi món tạm ngưng phục vụ": true
+				}
+			]
+		},
+		{
+			"id": "90bd6cf4-1505-4869-a068-9f26081a1a79",
+			"name": "[TC_EP_04] Invalid EP: Đặt hàng khi ghi chú dài hơn mức cho phép (> 200 ký tự)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 849,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_EP_04] Status Code verification": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_04] Status Code verification": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				849
+			],
+			"allTests": [
+				{
+					"[TC_EP_04] Status Code verification": true
+				}
+			]
+		},
+		{
+			"id": "9cf11c44-6d93-48f6-83de-045a1771a504",
+			"name": "[TC_EP_05] Invalid EP: Đặt hàng thất bại khi số lượng món vượt quá tồn kho (quantity: 10 > stock: 3)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 316,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_05] Status 400 Bad Request": true,
+				"[TC_EP_05] Message bắt lỗi không đủ suất tồn kho": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_05] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_05] Message bắt lỗi không đủ suất tồn kho": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				316
+			],
+			"allTests": [
+				{
+					"[TC_EP_05] Status 400 Bad Request": true,
+					"[TC_EP_05] Message bắt lỗi không đủ suất tồn kho": true
+				}
+			]
+		},
+		{
+			"id": "2ee3f370-4065-459d-90c4-506bf84e2b65",
+			"name": "[TC_EP_06] Invalid EP: Đặt hàng khi số lượng món dưới mức tối thiểu (quantity = 0)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 738,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_EP_06] Status Code verification": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_06] Status Code verification": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				738
+			],
+			"allTests": [
+				{
+					"[TC_EP_06] Status Code verification": true
+				}
+			]
+		},
+		{
+			"id": "b596d17a-5f25-4909-8bd4-21210f488e8e",
+			"name": "[TC_EP_07] Invalid EP: Đặt hàng thất bại khi điểm sử dụng vượt quá số dư (used_points: 500 > balance: 100)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 529,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_EP_07] Status 400 Bad Request": true,
+				"[TC_EP_07] Message bắt lỗi không đủ điểm tích lũy": true
+			},
+			"testPassFailCounts": {
+				"[TC_EP_07] Status 400 Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[TC_EP_07] Message bắt lỗi không đủ điểm tích lũy": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				529
+			],
+			"allTests": [
+				{
+					"[TC_EP_07] Status 400 Bad Request": true,
+					"[TC_EP_07] Message bắt lỗi không đủ điểm tích lũy": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 5002,
+	"collection": {
+		"requests": [
+			{
+				"id": "a5d0dbb8-8db4-49c8-884a-7c89d234e9b0",
+				"method": "POST"
+			},
+			{
+				"id": "009f04c6-3b07-4da5-928c-ceb9da7c8444",
+				"method": "POST"
+			},
+			{
+				"id": "dec9fe09-0a77-4f50-8064-e0f81a0c4a22",
+				"method": "POST"
+			},
+			{
+				"id": "46569105-7a48-40ee-838b-989650274dcb",
+				"method": "POST"
+			},
+			{
+				"id": "90bd6cf4-1505-4869-a068-9f26081a1a79",
+				"method": "POST"
+			},
+			{
+				"id": "9cf11c44-6d93-48f6-83de-045a1771a504",
+				"method": "POST"
+			},
+			{
+				"id": "2ee3f370-4065-459d-90c4-506bf84e2b65",
+				"method": "POST"
+			},
+			{
+				"id": "b596d17a-5f25-4909-8bd4-21210f488e8e",
+				"method": "POST"
+			}
+		]
+	}
+}
