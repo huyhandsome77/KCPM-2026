@@ -1,370 +1,141 @@
-# BÁO CÁO KẾT QUẢ KIỂM THỬ BVA – TABLE MODULE
+# FutureSuShi – Báo cáo kiểm thử BVA Table
 
-**Học phần:** Kiểm chứng và Đảm bảo Chất lượng Phần mềm (KCPM)  
-**Dự án:** FutureSushi – Hệ thống Đặt món & Quản lý Nhà hàng Sushi  
-**Phương pháp:** Boundary Value Analysis (BVA) – công thức 4n+1  
-**Bộ testcase:** BVA Table 4n+1 – EXACTLY 17 TEST CASES  
-**Công cụ thực thi:** Postman  
-**Môi trường:** FutureSushi – Local Environment  
-**Base URL:** `http://localhost:3000`  
-**API:** `POST /api/tables`  
-**Ngày thực thi:** 04/09/2026
+## 1. Thông tin chung
 
----
-
-# 1. MỤC TIÊU KIỂM THỬ
-
-* Kiểm tra hành vi của API tạo bàn tại `/api/tables`.
-* Kiểm tra các giá trị biên của các biến đầu vào trong bộ BVA.
-* Kiểm tra cả Status Code và Payload Body của response.
-* Ghi nhận kết quả PASS/FAIL theo đúng kết quả thực tế khi chạy Postman.
-* Không thay đổi source code hoặc dữ liệu hệ thống để làm thay đổi kết quả kiểm thử.
+- **Module:** Table (Bàn)
+- **Chức năng:** Tạo bàn mới
+- **Phương thức:** `POST`
+- **Endpoint:** `http://localhost:3000/api/tables`
+- **Kỹ thuật kiểm thử:** Phân tích giá trị biên (Boundary Value Analysis – BVA)
+- **Phương pháp:** BVA 4n+1
+- **Tổng số biến có miền giá trị biên:** 3
+- **Tổng số testcase BVA:** 13
 
 ---
 
-# 2. PHẠM VI KIỂM THỬ
+## 2. Yêu cầu SRS
 
-Phạm vi thực thi gồm đúng **17 testcase BVA** trong collection:
-
-* TB-001: Baseline / Nominal.
-* TB-002 → TB-005: Biên `tableNumber`.
-* TB-006 → TB-009: Biên `capacity`.
-* TB-010 → TB-013: Biên độ dài `qrCode`.
-* TB-014 → TB-017: Các giá trị biên của `status`.
-
-API được kiểm thử:
-
-```text
-POST http://localhost:3000/api/tables
-```
-
-Các request được thực hiện trên môi trường:
-
-```text
-FutureSushi - Local Environment
-```
-
----
-
-# 3. THIẾT KẾ BVA / 4n+1
-
-Bộ testcase được tổ chức theo công thức:
-
-```text
-4n + 1
-```
-
-với:
-
-```text
-n = 4 biến/nhóm dữ liệu đầu vào được kiểm tra biên
-```
-
-Tổng số testcase:
-
-```text
-4 × 4 + 1 = 17 testcase
-```
-
-Các nhóm testcase được tổ chức:
-
-| Nhóm | Testcase | Nội dung |
+| Trường | Kiểu dữ liệu / Miền giá trị | Ràng buộc |
 |---|---|---|
-| Baseline | TB-001 | Giá trị nominal |
-| tableNumber | TB-002 → TB-005 | Min, Min+1, Max-1, Max |
-| capacity | TB-006 → TB-009 | Min, Min+1, Max-1, Max |
-| qrCode | TB-010 → TB-013 | length Min, Min+1, Max-1, Max |
-| status | TB-014 → TB-017 | 4 giá trị biên/đại diện |
+| `tableNumber` | Số nguyên dương, [1, 500] | Phải là duy nhất trong hệ thống |
+| `capacity` | Số nguyên dương, [1, 50] | Giá trị từ 1 đến 50 |
+| `status` | Giá trị phân loại | `AVAILABLE`, `OCCUPIED`, `RESERVED` |
+| `qrCode` | Chuỗi ký tự, độ dài [10, 255] | Phải là duy nhất trong hệ thống |
+
+### Phân loại trường để áp dụng BVA
+
+- `tableNumber`: áp dụng BVA.
+- `capacity`: áp dụng BVA.
+- `qrCode`: áp dụng BVA theo **độ dài chuỗi**.
+- `status`: không áp dụng BVA vì đây là trường phân loại; trường này phù hợp với kỹ thuật Phân hoạch tương đương (EP).
+- Tính **duy nhất** của `tableNumber` và `qrCode` là ràng buộc nghiệp vụ riêng, cần kiểm thử bằng testcase riêng nếu cần.
 
 ---
 
-# 4. DANH SÁCH TEST CASE VÀ KẾT QUẢ THỰC THI
+## 3. Xác định các giá trị biên
 
-## 4.1. Baseline
+Với BVA 4n+1:
 
-### BVA-TB-001 – Baseline / Nominal
+- Có 3 biến cần kiểm thử BVA.
+- Mỗi biến có 4 giá trị biên: **Min, Min+1, Max-1, Max**.
+- Có 1 testcase Baseline/Nominal.
+- Tổng số testcase:
 
-* Method: `POST`
-* Endpoint: `/api/tables`
-* Input:
-  * `tableNumber = 600`
-  * `capacity = 4`
-  * `qrCode = BVA-BASE-600`
-  * `status = AVAILABLE`
-* Expected: `201 Created`, payload có `message` và `table`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Note: Tạo bàn thành công; response trả đúng các field chính theo input.
+**4 × 3 + 1 = 13 testcase**
 
----
+### Bảng giá trị biên
 
-## 4.2. tableNumber
+| Trường | Min | Min+1 | Max-1 | Max |
+|---|---:|---:|---:|---:|
+| `tableNumber` | 1 | 2 | 499 | 500 |
+| `capacity` | 1 | 2 | 49 | 50 |
+| `qrCode` (độ dài) | 10 | 11 | 254 | 255 |
 
-### BVA-TB-002 – tableNumber Min
+### Giá trị Baseline/Nominal
 
-* Input: `tableNumber = 1`.
-* Expected: `201 Created`.
-* Actual: `400 Bad Request`.
-* Assertions: **3/9 PASS**.
-* Kết quả: **FAIL**.
-* Payload thực tế:
-```json
-{
-  "message": "Bàn #1 đã tồn tại trong hệ thống!"
-}
-```
-* Ghi nhận: testcase không đạt do dữ liệu bàn #1 đã tồn tại và đang có Order #3 chưa hoàn tất.
-* Không thay đổi dữ liệu hoặc source code để ép testcase PASS.
-
-### BVA-TB-003 – tableNumber Min+1
-
-* Input: `tableNumber = 2`.
-* Expected: `201 Created`.
-* Actual: `400 Bad Request`.
-* Assertions: **3/9 PASS**.
-* Payload thực tế:
-```json
-{
-  "message": "Bàn #2 đã tồn tại trong hệ thống!"
-}
-```
-* Ghi nhận: testcase không đạt do bàn #2 đã tồn tại trong hệ thống.
-* Không thay đổi dữ liệu hoặc source code để ép testcase PASS.
-
-### BVA-TB-004 – tableNumber Max-1
-
-* Input: `tableNumber = 999`.
-* Expected: `201 Created`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `tableNumber = 999`.
-
-### BVA-TB-005 – tableNumber Max
-
-* Input: `tableNumber = 1000`.
-* Expected: `201 Created`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `tableNumber = 1000`.
+- `tableNumber = 250`
+- `capacity = 25`
+- `qrCode` có độ dài 100 ký tự
+- `status = AVAILABLE`
 
 ---
 
-## 4.3. capacity
+## 4. Kết quả kiểm thử
 
-### BVA-TB-006 – capacity Min
+| STT | Test Case ID | Nội dung | Kết quả |
+|---:|---|---|---|
+| 1 | BVA-TB-001 | Baseline / Nominal | **PASS** |
+| 2 | BVA-TB-002 | `tableNumber` = Min = 1 | **FAIL** |
+| 3 | BVA-TB-003 | `tableNumber` = Min+1 = 2 | **FAIL** |
+| 4 | BVA-TB-004 | `tableNumber` = Max-1 = 499 | **PASS** |
+| 5 | BVA-TB-005 | `tableNumber` = Max = 500 | **PASS** |
+| 6 | BVA-TB-006 | `capacity` = Min = 1 | **PASS** |
+| 7 | BVA-TB-007 | `capacity` = Min+1 = 2 | **PASS** |
+| 8 | BVA-TB-008 | `capacity` = Max-1 = 49 | **PASS** |
+| 9 | BVA-TB-009 | `capacity` = Max = 50 | **PASS** |
+| 10 | BVA-TB-010 | `qrCode` length = Min = 10 | **PASS** |
+| 11 | BVA-TB-011 | `qrCode` length = Min+1 = 11 | **PASS** |
+| 12 | BVA-TB-012 | `qrCode` length = Max-1 = 254 | **FAIL** |
+| 13 | BVA-TB-013 | `qrCode` length = Max = 255 | **FAIL** |
 
-* Input: `capacity = 1`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `capacity = 1`.
+### Tổng hợp
 
-### BVA-TB-007 – capacity Min+1
-
-* Input: `capacity = 2`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `capacity = 2`.
-
-### BVA-TB-008 – capacity Max-1
-
-* Input: `capacity = 19`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `capacity = 19`.
-
-### BVA-TB-009 – capacity Max
-
-* Input: `capacity = 20`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `capacity = 20`.
+- **Tổng testcase:** 13
+- **PASS:** 9
+- **FAIL:** 4
+- **Tỷ lệ PASS:** 69,23%
+- **Tỷ lệ FAIL:** 30,77%
 
 ---
 
-## 4.4. qrCode length
+## 5. Các vấn đề cần lưu ý sau khi kiểm thử
 
-### BVA-TB-010 – qrCode length Min
+### 5.1. tableNumber = 1 và 2
 
-* Input: `qrCode = "Q"`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
+Hai testcase sử dụng đúng giá trị biên theo SRS nhưng bị lỗi do:
 
-### BVA-TB-011 – qrCode length Min+1
+- Bàn #1 đã tồn tại.
+- Bàn #2 đã tồn tại.
 
-* Input: `qrCode = "QR"`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
+Do đó kết quả FAIL hiện tại phản ánh **xung đột dữ liệu test**, chưa phải bằng chứng rằng API không chấp nhận Min/Min+1.
 
-### BVA-TB-012 – qrCode length Max-1
+### 5.2. qrCode = 254 và 255
 
-* Input: qrCode tại giá trị độ dài `Max-1`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
+Hai testcase trả HTTP 201 nhưng không thể PASS vì:
 
-### BVA-TB-013 – qrCode length Max
+- `{{qr_254}}` chưa được thay thế thành 254 ký tự.
+- `{{qr_255}}` chưa được thay thế thành 255 ký tự.
 
-* Input: qrCode tại giá trị độ dài `Max`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
+Cần chạy lại sau khi cấu hình đúng biến Postman.
 
----
+### 5.3. Tính duy nhất
 
-## 4.5. status
+SRS yêu cầu:
 
-### BVA-TB-014 – status Min
+- `tableNumber` phải unique.
+- `qrCode` phải unique.
 
-* Input: `status = AVAILABLE`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `status = AVAILABLE`.
-
-### BVA-TB-015 – status Min+1
-
-* Input: `status = BOOKED`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `status = BOOKED`.
-
-### BVA-TB-016 – status Max-1
-
-* Input: `status = OCCUPIED`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `status = OCCUPIED`.
-
-### BVA-TB-017 – status Max
-
-* Input: `status = CLEANING`.
-* Actual: `201 Created`.
-* Assertions: **9/9 PASS**.
-* Kết quả: **PASS**.
-* Response trả `status = CLEANING`.
+Trong bộ BVA này, các testcase chủ yếu kiểm tra **giá trị biên của miền dữ liệu**. Tính unique là một ràng buộc nghiệp vụ riêng và nên có testcase riêng nếu phạm vi kiểm thử yêu cầu.
 
 ---
 
-# 5. KẾT QUẢ THỰC THI
+## 6. Kết luận
 
-| Chỉ số | Kết quả |
-|---|---:|
-| Tổng testcase | **17** |
-| PASS | **15** |
-| FAIL | **2** |
-| Pass Rate | **88.24%** |
-| Fail Rate | **11.76%** |
+Bộ kiểm thử đã được chuẩn hóa theo SRS và phương pháp BVA 4n+1:
 
-Tình trạng thực thi:
+- `tableNumber`: kiểm tra 1, 2, 499, 500.
+- `capacity`: kiểm tra 1, 2, 49, 50.
+- `qrCode`: kiểm tra độ dài 10, 11, 254, 255.
+- `status`: không đưa vào BVA vì là trường phân loại.
+- Tổng cộng **13 testcase**.
 
-```text
-15/17 testcase PASS
-2/17 testcase FAIL
-```
+Kết quả thực thi hiện tại:
 
-Các testcase PASS đều ghi nhận response thành công `201 Created` và bộ assertion trong Postman đạt `9/9`.
+**9 PASS / 4 FAIL – Tỷ lệ PASS 69,23%.**
 
-Hai testcase FAIL:
+Trong 4 testcase FAIL:
 
-* **BVA-TB-002:** Expected `201`, Actual `400` – bàn #1 đã tồn tại và đang có Order #3 chưa hoàn tất.
-* **BVA-TB-003:** Expected `201`, Actual `400` – bàn #2 đã tồn tại trong hệ thống.
-
----
-
-# 6. PHÂN TÍCH PAYLOAD VÀ ASSERTION
-
-Bộ test Postman đã kiểm tra nhiều thành phần của response thay vì chỉ kiểm tra Status Code.
-
-Đối với testcase PASS, Postman ghi nhận:
-
-* Status code đúng `201`.
-* Response là JSON.
-* Response time dưới ngưỡng kiểm tra.
-* Payload có `message`.
-* Payload có object `table`.
-* `tableNumber` trong response khớp input.
-* `capacity` trong response khớp input.
-* `qrCode` trong response khớp input.
-* `status` trong response khớp input.
-
-Tổng số assertion theo testcase PASS được ghi nhận là:
-
-```text
-9/9 PASS
-```
-
-Đối với TB-002 và TB-003, response thực tế là lỗi nghiệp vụ `400`, vì vậy các assertion yêu cầu payload `table` không đạt. Đây là kết quả đúng với response thực tế và được giữ nguyên trong execution result.
-
----
-
-# 7. UNCOVERED / FAILED CASES
-
-## BVA-TB-002
-
-**Nguyên nhân thực tế:**
-
-```text
-Bàn #1 đã tồn tại trong hệ thống
-và đang có Order #3 chưa hoàn tất.
-```
-
-API trả:
-
-```text
-400 Bad Request
-```
-
-## BVA-TB-003
-
-**Nguyên nhân thực tế:**
-
-```text
-Bàn #2 đã tồn tại trong hệ thống.
-```
-
-API trả:
-
-```text
-400 Bad Request
-```
-
-Hai trường hợp trên là kết quả phát sinh từ dữ liệu hiện tại của môi trường test. Không chỉnh sửa source code hoặc dữ liệu để loại bỏ FAIL.
-
----
-
-# 8. ĐÁNH GIÁ CHẤT LƯỢNG BỘ TEST
-
-* Bộ kiểm thử có đúng **17 testcase**, tương ứng với bộ BVA `4n+1` đã thiết kế.
-* Các testcase được thực thi trực tiếp trên API `/api/tables` bằng Postman.
-* Kết quả có phân biệt rõ PASS và FAIL.
-* Payload Body được kiểm tra cùng với Status Code.
-* Hai FAIL được ghi nhận theo đúng response thực tế.
-* Không sửa source code hoặc dữ liệu hệ thống để làm đẹp kết quả.
-* Kết quả hiện tại phản ánh trạng thái thực tế của môi trường Local tại thời điểm test.
-
----
-
-# 9. KẾT LUẬN
-
-Bộ **BVA Table 4n+1 gồm 17 testcase** đã được thực thi trên Postman.
-
-Kết quả:
-
-```text
-PASS = 15/17
-FAIL = 2/17
-Pass Rate = 88.24%
-```
-
----
+- **BVA-TB-002:** dữ liệu bàn #1 đã tồn tại.
+- **BVA-TB-003:** dữ liệu bàn #2 đã tồn tại.
+- **BVA-TB-012:** chưa gửi thực tế chuỗi 254 ký tự.
+- **BVA-TB-013:** chưa gửi thực tế chuỗi 255 ký tự.
