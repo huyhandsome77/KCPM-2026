@@ -1,0 +1,148 @@
+{
+  "project": "FutureSuShi",
+  "module": "Restaurant Table & QR Code",
+  "method": "Equivalence Partitioning (EP)",
+  "environment": "FutureSushi - Local Environment",
+  "baseUrl": "http://localhost:3000",
+  "total": 15,
+  "pass": 14,
+  "fail": 1,
+  "pass_rate": "93.33%",
+  "test_cases": [
+    {
+      "id": "EP-TB-001",
+      "name": "Baseline",
+      "method": "POST",
+      "actual_status": "201 Created",
+      "assertions": "4/4 PASS",
+      "result": "PASS",
+      "actual_detail": "Tạo bàn thành công; id=30, tableNumber=600, capacity=4, qrCode=QR-EP-001, status=AVAILABLE."
+    },
+    {
+      "id": "EP-TB-002",
+      "name": "Duplicate tableNumber",
+      "method": "POST",
+      "actual_status": "400 Bad Request",
+      "assertions": "3/3 PASS",
+      "result": "PASS",
+      "actual_detail": "Bàn #1 đã tồn tại trong hệ thống."
+    },
+    {
+      "id": "EP-TB-003",
+      "name": "tableNumber non-number",
+      "method": "POST",
+      "actual_status": "500 Internal Server Error",
+      "assertions": "3/3 PASS",
+      "result": "PASS",
+      "actual_detail": "Unknown column 'NaN' in 'where clause'."
+    },
+    {
+      "id": "EP-TB-004",
+      "name": "capacity valid",
+      "method": "POST",
+      "actual_status": "201 Created",
+      "assertions": "4/4 PASS",
+      "result": "PASS",
+      "actual_detail": "Tạo bàn thành công; id=31, tableNumber=601, capacity=4, qrCode=QR-EP-004, status=AVAILABLE."
+    },
+    {
+      "id": "EP-TB-005",
+      "name": "capacity non-number",
+      "method": "POST",
+      "actual_status": "201 Created",
+      "assertions": "2/3 PASS",
+      "result": "FAIL",
+      "actual_detail": "API tạo bàn id=32 nhưng payload trả capacity=null khi input capacity='ABC'."
+    },
+    {
+      "id": "EP-TB-006",
+      "name": "capacity empty default",
+      "method": "POST",
+      "actual_status": "201 Created",
+      "assertions": "5/5 PASS",
+      "result": "PASS",
+      "actual_detail": "Tạo bàn id=33; capacity rỗng được áp dụng default=4."
+    },
+    {
+      "id": "EP-TB-007",
+      "name": "qrCode valid",
+      "method": "POST",
+      "actual_status": "201 Created",
+      "assertions": "4/4 PASS",
+      "result": "PASS",
+      "actual_detail": "Tạo bàn id=34; qrCode=QR-EP-007."
+    },
+    {
+      "id": "EP-TB-008",
+      "name": "qrCode empty default",
+      "method": "POST",
+      "actual_status": "201 Created",
+      "assertions": "5/5 PASS",
+      "result": "PASS",
+      "actual_detail": "Tạo bàn id=35; qrCode mặc định=T605."
+    },
+    {
+      "id": "EP-TB-009",
+      "name": "status valid ENUM",
+      "method": "POST",
+      "actual_status": "201 Created",
+      "assertions": "4/4 PASS",
+      "result": "PASS",
+      "actual_detail": "Tạo bàn id=36; status=AVAILABLE."
+    },
+    {
+      "id": "EP-TB-010",
+      "name": "status invalid ENUM",
+      "method": "POST",
+      "actual_status": "500 Internal Server Error",
+      "assertions": "3/3 PASS",
+      "result": "PASS",
+      "actual_detail": "Data truncated for column 'status' at row 1."
+    },
+    {
+      "id": "EP-TB-011",
+      "name": "Existing table_id",
+      "method": "PUT",
+      "actual_status": "200 OK",
+      "assertions": "3/3 PASS",
+      "result": "PASS",
+      "actual_detail": "Cập nhật trạng thái bàn id=1 thành BOOKED."
+    },
+    {
+      "id": "EP-TB-012",
+      "name": "Non-existing table_id",
+      "method": "PUT",
+      "actual_status": "404 Not Found",
+      "assertions": "2/2 PASS",
+      "result": "PASS",
+      "actual_detail": "Không tìm thấy bàn ăn."
+    },
+    {
+      "id": "EP-TB-013",
+      "name": "Invalid table_id",
+      "method": "PUT",
+      "actual_status": "404 Not Found",
+      "assertions": "2/2 PASS",
+      "result": "PASS",
+      "actual_detail": "Không tìm thấy bàn ăn."
+    },
+    {
+      "id": "EP-TB-014",
+      "name": "Existing QR Code",
+      "method": "GET",
+      "actual_status": "200 OK",
+      "assertions": "2/2 PASS",
+      "result": "PASS",
+      "actual_detail": "Trả về id=1, tableNumber=1, qrCode=QR-TB-901-UPDATED, capacity=6, status=BOOKED."
+    },
+    {
+      "id": "EP-TB-015",
+      "name": "Non-existing QR Code",
+      "method": "GET",
+      "actual_status": "404 Not Found",
+      "assertions": "2/2 PASS",
+      "result": "PASS",
+      "actual_detail": "Không tìm thấy bàn với mã QR hoặc số bàn này."
+    }
+  ]
+}
