@@ -1,5 +1,5 @@
 const productController = require('../src/controllers/productController');
-const { Product } = require('../src/models');
+const { Product, Category, OrderItem, CartItem } = require('../src/models');
 const { Op } = require('sequelize');
 
 jest.mock('../src/models', () => ({
@@ -9,7 +9,16 @@ jest.mock('../src/models', () => ({
     create: jest.fn(),
     update: jest.fn(),
     destroy: jest.fn(),
-  }
+  },
+  Category: {
+    findByPk: jest.fn(),
+  },
+  OrderItem: {
+    count: jest.fn(),
+  },
+  CartItem: {
+    count: jest.fn(),
+  },
 }));
 
 describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Module Món Ăn & Khớp BVA)', () => {
@@ -27,6 +36,9 @@ describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Modu
       send: jest.fn().mockReturnThis()
     };
     jest.clearAllMocks();
+    Category.findByPk.mockResolvedValue({ id: 1, name: 'Default Category' });
+    OrderItem.count.mockResolvedValue(0);
+    CartItem.count.mockResolvedValue(0);
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -254,7 +266,7 @@ describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Modu
       req.body = { name: 'Sushi', price: -0.01, category_id: 1 };
       await productController.createProduct(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Price must be between 0 and 99,999,999.99' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Price must be greater than 0 and up to 99,999,999.99' });
 
       // Price overflow
       req.body = { name: 'Sushi', price: 100000000.00, category_id: 1 };
@@ -467,6 +479,7 @@ describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Modu
       req.body = { price: 50000 };
 
       Product.update.mockResolvedValue([0]);
+      Product.findByPk.mockResolvedValue(null);
 
       await productController.updateProduct(req, res);
 
@@ -493,6 +506,9 @@ describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Modu
   describe('deleteProduct (Xóa món ăn)', () => {
     test('[WB-PRD-27] Nhánh xóa món ăn thành công (deleted = 1 -> 204)', async () => {
       req.params.id = '1';
+      Product.findByPk.mockResolvedValue({ id: 1, name: 'Sushi' });
+      OrderItem.count.mockResolvedValue(0);
+      CartItem.count.mockResolvedValue(0);
       Product.destroy.mockResolvedValue(1);
 
       await productController.deleteProduct(req, res);
@@ -510,7 +526,7 @@ describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Modu
 
     test('[WB-PRD-29] Nhánh xóa món ăn không tồn tại (deleted = 0 -> 404)', async () => {
       req.params.id = '999';
-      Product.destroy.mockResolvedValue(0);
+      Product.findByPk.mockResolvedValue(null);
 
       await productController.deleteProduct(req, res);
 
@@ -520,12 +536,81 @@ describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Modu
 
     test('[WB-PRD-30] Khối catch ngoại lệ lỗi DB khi xóa món ăn (500)', async () => {
       req.params.id = '1';
-      Product.destroy.mockRejectedValue(new Error('Foreign key error'));
+      Product.findByPk.mockRejectedValue(new Error('Generic database error'));
 
       await productController.deleteProduct(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Foreign key error' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Generic database error' });
+    });
+
+    test('[WB-PRD-31] Thêm món ăn thất bại vì Category ID không tồn tại trong DB -> 400', async () => {
+      req.body = {
+        name: 'Trà sen',
+        price: 35000,
+        category_id: 999
+      };
+      Category.findByPk.mockResolvedValue(null);
+
+      await productController.createProduct(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Category not found' });
+    });
+
+    test('[WB-PRD-32] Cập nhật món ăn thất bại vì Category ID mới không tồn tại trong DB -> 400', async () => {
+      req.params.id = '1';
+      req.body = { category_id: 888 };
+      Category.findByPk.mockResolvedValue(null);
+
+      await productController.updateProduct(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Category not found' });
+    });
+
+    test('[WB-PRD-33] Cập nhật món ăn không có thay đổi (updated = 0) nhưng tìm thấy trong DB -> 200', async () => {
+      req.params.id = '1';
+      req.body = { name: 'Sushi Same Name' };
+      Product.update.mockResolvedValue([0]);
+      Product.findByPk.mockResolvedValue({ id: 1, name: 'Sushi Same Name' });
+
+      await productController.updateProduct(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ id: 1, name: 'Sushi Same Name' });
+    });
+
+    test('[WB-PRD-34] Xóa món ăn bị chặn do đang có trong OrderItem / CartItem -> 400', async () => {
+      req.params.id = '1';
+      Product.findByPk.mockResolvedValue({ id: 1, name: 'Pizza' });
+      OrderItem.count.mockResolvedValue(2);
+      CartItem.count.mockResolvedValue(0);
+
+      await productController.deleteProduct(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Ràng buộc toàn vẹn dữ liệu')
+      }));
+    });
+
+    test('[WB-PRD-35] Xóa món ăn gặp lỗi SequelizeForeignKeyConstraintError -> 400', async () => {
+      req.params.id = '1';
+      Product.findByPk.mockResolvedValue({ id: 1, name: 'Pizza' });
+      OrderItem.count.mockResolvedValue(0);
+      CartItem.count.mockResolvedValue(0);
+      const fkError = new Error('FK constraint');
+      fkError.name = 'SequelizeForeignKeyConstraintError';
+      Product.destroy.mockRejectedValue(fkError);
+
+      await productController.deleteProduct(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Ràng buộc toàn vẹn dữ liệu')
+      }));
     });
   });
 });
+

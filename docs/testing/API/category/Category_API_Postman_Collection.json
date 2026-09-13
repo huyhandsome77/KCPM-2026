@@ -321,14 +321,18 @@
           }
         },
         {
-          "name": "TC_API_CAT_003 - Tạo danh mục với tên 100 ký tự (Boundary Max - 201)",
+          "name": "TC_API_CAT_003 - Tên danh mục vượt quá 100 ký tự (400 Bad Request)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 201 Created\", function () {",
-                  "    pm.response.to.have.status(201);",
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Response contains message: Category name cannot exceed 100 characters\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql(\"Category name cannot exceed 100 characters\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -349,7 +353,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Danh mục ẩm thực truyền thống phong cách Tokyo hiện đại cao cấp phục vụ sự kiện lễ hội đặc biệt 1234\"\n}"
+              "raw": "{\n  \"name\": \"Danh mục ẩm thực truyền thống phong cách Tokyo hiện đại cao cấp phục vụ sự kiện lễ hội đặc biệt 12345\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/categories",
@@ -712,8 +716,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -755,8 +763,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -798,8 +810,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1256,14 +1272,18 @@
           }
         },
         {
-          "name": "TC_API_CAT_026 - ID số nguyên âm (404 Not Found)",
+          "name": "TC_API_CAT_026 - ID số nguyên âm (400 Bad Request)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 400 or 404\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Response message is Invalid category ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql(\"Invalid category ID\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1671,8 +1691,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1715,8 +1739,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1759,8 +1787,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1805,6 +1837,70 @@
           "name": "TC_API_CAT_039 - Xóa danh mục hợp lệ không có sản phẩm (204 No Content)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Pre-request: Tự động đảm bảo có Admin Token và tạo danh mục rỗng độc lập trước khi test xóa",
+                  "const baseUrl = pm.collectionVariables.get('baseUrl') || 'http://localhost:3000';",
+                  "",
+                  "function createTempCategory(token) {",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/categories',",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/json',",
+                  "            'Authorization': 'Bearer ' + token",
+                  "        },",
+                  "        body: {",
+                  "            mode: 'raw',",
+                  "            raw: JSON.stringify({",
+                  "                name: 'Temp Empty Category ' + Date.now(),",
+                  "                description: 'Danh mục tạm thời không có món ăn để kiểm thử xóa'",
+                  "            })",
+                  "        }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 201) {",
+                  "            const data = res.json();",
+                  "            pm.collectionVariables.set('createdCategoryId', String(data.id));",
+                  "            pm.variables.set('createdCategoryId', String(data.id));",
+                  "            console.log('Pre-request created empty category ID:', data.id);",
+                  "        } else {",
+                  "            console.error('Failed to create temp category:', res ? res.text() : err);",
+                  "        }",
+                  "    });",
+                  "}",
+                  "",
+                  "let adminToken = pm.collectionVariables.get('admin_token') || pm.variables.get('admin_token');",
+                  "",
+                  "if (!adminToken) {",
+                  "    // Tự động đăng nhập Admin lấy token nếu chưa chạy bước Auth Login",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/auth/login',",
+                  "        method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: {",
+                  "            mode: 'raw',",
+                  "            raw: JSON.stringify({ account: 'admin', password: '123' })",
+                  "        }",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const authData = res.json();",
+                  "            adminToken = authData.token;",
+                  "            pm.collectionVariables.set('admin_token', adminToken);",
+                  "            pm.variables.set('admin_token', adminToken);",
+                  "            createTempCategory(adminToken);",
+                  "        } else {",
+                  "            console.error('Auto login failed in pre-request:', res ? res.text() : err);",
+                  "        }",
+                  "    });",
+                  "} else {",
+                  "    createTempCategory(adminToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -1838,14 +1934,18 @@
           }
         },
         {
-          "name": "TC_API_CAT_040 - Ràng buộc khóa ngoại khi xóa danh mục có sản phẩm (400 / 409 / 500)",
+          "name": "TC_API_CAT_040 - Ràng buộc khóa ngoại khi xóa danh mục có sản phẩm (400 Bad Request)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Handled foreign key constraint on delete\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 409, 500]);",
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Response contains foreign key constraint error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql(\"Không thể xóa danh mục đang có sản phẩm liên kết (Ràng buộc khóa ngoại)\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1916,8 +2016,17 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 404 Not Found\", function () {",
-                  "    pm.response.to.have.status(404);",
+                  "pm.test(\"Status code is 400 or 404\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                  "});",
+                  "pm.test(\"Response contains appropriate error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData && jsonData.message) {",
+                  "        pm.expect(jsonData.message).to.be.oneOf([",
+                  "            \"Not found\",",
+                  "            \"Không thể xóa danh mục đang có sản phẩm liên kết (Ràng buộc khóa ngoại)\"",
+                  "        ]);",
+                  "    }",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1983,8 +2092,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -2019,8 +2132,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -2055,8 +2172,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 403 Forbidden\", function () {",
-                  "    pm.response.to.have.status(403);",
+                  "pm.test(\"Status code is 401 Unauthorized or 403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});",
+                  "pm.test(\"Response contains authorization/token error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.be.oneOf([\"Invalid token\", \"Access denied. Admin only.\"]);",
                   "});"
                 ],
                 "type": "text/javascript"

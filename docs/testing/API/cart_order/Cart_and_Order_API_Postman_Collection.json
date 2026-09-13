@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "api-order-collection-2026",
     "name": "Cart and Order API Test Suite",
-    "description": "Bộ kiểm thử tự động toàn diện cho Module Cart & Order API (/api/orders).",
+    "description": "Bộ kiểm thử tự động toàn diện cho Module Cart & Order API (/api/orders). Bao gồm đầy đủ quy trình vòng đời đơn hàng (State Machine), quản lý tồn kho, áp dụng điểm thưởng, thanh toán đơn lẻ, thanh toán theo bàn và các ca kiểm thử ngoại lệ.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -17,6 +17,11 @@
       "type": "string"
     },
     {
+      "key": "staff_token",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "customer_token",
       "value": "",
       "type": "string"
@@ -25,6 +30,89 @@
       "key": "createdOrderId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "createdOrderForCancelId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdOrderForDeleteId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-Auth Script: Tự động đăng nhập lấy token nếu chưa có",
+          "const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+          "const reqName = pm.info.requestName || '';",
+          "",
+          "if (!reqName.includes('Login')) {",
+          "    const adminToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token') || pm.globals.get('admin_token');",
+          "    const customerToken = pm.collectionVariables.get('customer_token') || pm.environment.get('customer_token') || pm.globals.get('customer_token');",
+          "    const staffToken = pm.collectionVariables.get('staff_token') || pm.environment.get('staff_token') || pm.globals.get('staff_token');",
+          "",
+          "    if (!adminToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'admin', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('admin_token', data.token);",
+          "                    pm.environment.set('admin_token', data.token);",
+          "                    pm.globals.set('admin_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "",
+          "    if (!customerToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'customer', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('customer_token', data.token);",
+          "                    pm.environment.set('customer_token', data.token);",
+          "                    pm.globals.set('customer_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "",
+          "    if (!staffToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'staff', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('staff_token', data.token);",
+          "                    pm.environment.set('staff_token', data.token);",
+          "                    pm.globals.set('staff_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
     }
   ],
   "item": [
@@ -41,7 +129,10 @@
                   "pm.test('Customer login success', function () {",
                   "    pm.response.to.have.status(200);",
                   "    var res = pm.response.json();",
+                  "    pm.expect(res.token).to.be.a('string');",
                   "    pm.collectionVariables.set('customer_token', res.token);",
+                  "    pm.environment.set('customer_token', res.token);",
+                  "    pm.globals.set('customer_token', res.token);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -74,6 +165,51 @@
           }
         },
         {
+          "name": "Auth - Login as Staff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Staff login success', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.token).to.be.a('string');",
+                  "    pm.collectionVariables.set('staff_token', res.token);",
+                  "    pm.environment.set('staff_token', res.token);",
+                  "    pm.globals.set('staff_token', res.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"account\":\"staff\",\"password\":\"123\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
           "name": "Auth - Login as Admin",
           "event": [
             {
@@ -83,7 +219,10 @@
                   "pm.test('Admin login success', function () {",
                   "    pm.response.to.have.status(200);",
                   "    var res = pm.response.json();",
+                  "    pm.expect(res.token).to.be.a('string');",
                   "    pm.collectionVariables.set('admin_token', res.token);",
+                  "    pm.environment.set('admin_token', res.token);",
+                  "    pm.globals.set('admin_token', res.token);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -118,20 +257,27 @@
       ]
     },
     {
-      "name": "01. Order Operations",
+      "name": "01. Order Lifecycle Flow (State Machine)",
       "item": [
         {
-          "name": "TC_API_ORD_001 - Tạo đơn hàng đặt món thành công",
+          "name": "TC_API_ORD_001 - Tạo đơn hàng đặt món mới (Status: PENDING)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 201 Created or 200 OK', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Response contains order data and PENDING status', function () {",
                   "    var res = pm.response.json();",
-                  "    var order = res.order || res.data || res;",
-                  "    if (order.id) pm.collectionVariables.set('createdOrderId', String(order.id));",
+                  "    var order = res.data || res.order || res;",
+                  "    pm.expect(order).to.have.property('id');",
+                  "    pm.expect(order.status).to.eql('PENDING');",
+                  "    pm.expect(order.paymentStatus).to.eql('UNPAID');",
+                  "    pm.collectionVariables.set('createdOrderId', String(order.id));",
+                  "    pm.environment.set('createdOrderId', String(order.id));",
+                  "    pm.globals.set('createdOrderId', String(order.id));",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -152,7 +298,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"table_id\":1,\"items\":[{\"product_id\":1,\"quantity\":2,\"price\":150000}],\"used_points\":0}"
+              "raw": "{\n  \"table_id\": 1,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 2,\n      \"note\": \"Không cay\"\n    }\n  ],\n  \"note\": \"Đơn hàng bàn 1\",\n  \"used_points\": 0\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/orders",
@@ -167,7 +313,351 @@
           }
         },
         {
-          "name": "TC_API_ORD_002 - Lấy danh sách toàn bộ đơn hàng",
+          "name": "TC_API_ORD_002 - Lấy chi tiết đơn hàng vừa tạo theo ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Verify order detail structure', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res).to.have.property('id');",
+                  "    pm.expect(res.OrderItems).to.be.an('array');",
+                  "    pm.expect(res.OrderItems.length).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{createdOrderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_003 - Staff/Admin duyệt đơn hàng (Status -> CONFIRMED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Order status is CONFIRMED', function () {",
+                  "    var res = pm.response.json();",
+                  "    var order = res.data || res;",
+                  "    pm.expect(order.status).to.eql('CONFIRMED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{createdOrderId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_004 - Nhà bếp nhận đơn chế biến (Status -> PREPARING)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Order status is PREPARING', function () {",
+                  "    var res = pm.response.json();",
+                  "    var order = res.data || res;",
+                  "    pm.expect(order.status).to.eql('PREPARING');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PREPARING\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{createdOrderId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_005 - Thử thanh toán khi đơn hàng chưa READY (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message notifies order is not ready for payment', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Chờ phục vụ');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{createdOrderId}}",
+                "pay"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_006 - Nhà bếp hoàn tất món ăn (Status -> READY)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Order status is READY', function () {",
+                  "    var res = pm.response.json();",
+                  "    var order = res.data || res;",
+                  "    pm.expect(order.status).to.eql('READY');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{createdOrderId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_007 - Nhân viên thanh toán đơn hàng khi đã READY (Status -> COMPLETED, PAID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Payment success and message returned', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Thanh toán thành công');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{createdOrderId}}",
+                "pay"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_008 - Thử thanh toán lại đơn hàng đã PAID (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message informs order already paid', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('đã được thanh toán trước đó');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{createdOrderId}}",
+                "pay"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Table & Customer Order Queries",
+      "item": [
+        {
+          "name": "TC_API_ORD_009 - Admin lấy danh sách toàn bộ đơn hàng",
           "event": [
             {
               "listen": "test",
@@ -203,7 +693,7 @@
           }
         },
         {
-          "name": "TC_API_ORD_003 - Xem chi tiết đơn hàng bằng ID",
+          "name": "TC_API_ORD_010 - Lọc danh sách đơn hàng theo status và paymentStatus",
           "event": [
             {
               "listen": "test",
@@ -211,6 +701,14 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Filtered orders match query parameters', function () {",
+                  "    var list = pm.response.json();",
+                  "    pm.expect(list).to.be.an('array');",
+                  "    list.forEach(function(item) {",
+                  "        pm.expect(item.status).to.eql('COMPLETED');",
+                  "        pm.expect(item.paymentStatus).to.eql('PAID');",
+                  "    });",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -226,20 +724,29 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}",
+              "raw": "{{baseUrl}}/api/orders?status=COMPLETED&paymentStatus=PAID",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "orders",
-                "{{createdOrderId}}"
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "COMPLETED"
+                },
+                {
+                  "key": "paymentStatus",
+                  "value": "PAID"
+                }
               ]
             }
           }
         },
         {
-          "name": "TC_API_ORD_004 - Cập nhật trạng thái đơn hàng (PREPARING)",
+          "name": "TC_API_ORD_011 - Khách hàng xem lịch sử đơn hàng của mình (My Orders)",
           "event": [
             {
               "listen": "test",
@@ -247,6 +754,10 @@
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response is user order list', function () {",
+                  "    var orders = pm.response.json();",
+                  "    pm.expect(orders).to.be.an('array');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -254,44 +765,409 @@
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "GET",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
                 "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
+                "value": "Bearer {{customer_token}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"status\":\"PREPARING\"}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}/status",
+              "raw": "{{baseUrl}}/api/orders/my-orders",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "orders",
-                "{{createdOrderId}}",
-                "status"
+                "my-orders"
               ]
             }
           }
         },
         {
-          "name": "TC_API_ORD_005 - Thanh toán đơn hàng lẻ",
+          "name": "TC_API_ORD_012 - Lấy danh sách các đơn hàng chưa thanh toán theo bàn",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
                   "pm.test('Status code is 200 OK', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Result is an array of table orders', function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/table/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "table",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_013 - Thanh toán toàn bộ đơn hàng theo bàn (Pay All by Table)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK or 404 Handled', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/table/1/pay-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "table",
+                "1",
+                "pay-all"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Business Logic, Points & Negative Cases",
+      "item": [
+        {
+          "name": "TC_API_ORD_014 - Tạo đơn hàng áp dụng điểm thưởng tích lũy (used_points)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Verify discountAmount and finalPrice after points deduction', function () {",
+                  "    var res = pm.response.json();",
+                  "    var order = res.data || res;",
+                  "    pm.expect(order.discountAmount).to.be.greaterThan(0);",
+                  "    pm.expect(order.finalPrice).to.eql(order.totalPrice - order.discountAmount);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_id\": 1,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 1000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_015 - Tạo đơn hàng dùng điểm vượt quá số điểm hiện có (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message indicates insufficient points', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('không đủ để áp dụng');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_id\": 1,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 99999999\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_016 - Tạo đơn hàng thất bại khi danh sách món ăn rỗng (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message requires at least one item', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('ít nhất một món ăn');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_id\": 1,\n  \"items\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_017 - Tạo đơn hàng với món không tồn tại (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message informs product does not exist', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('không tồn tại');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_id\": 1,\n  \"items\": [\n    {\n      \"product_id\": 999999,\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_018 - Tạo đơn hàng với số lượng vượt quá tồn kho (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_id\": 1,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 999999\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_019 - Setup đơn hàng để kiểm thử Hủy đơn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    var order = res.data || res;",
+                  "    pm.collectionVariables.set('createdOrderForCancelId', String(order.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_id\": 1,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"note\": \"Đơn hàng test hủy và hoàn kho\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_020 - Hủy đơn hàng và tự động hoàn trả tồn kho (Status: CANCELLED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Order status is CANCELLED', function () {",
+                  "    var res = pm.response.json();",
+                  "    var order = res.data || res;",
+                  "    pm.expect(order.status).to.eql('CANCELLED');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -312,24 +1188,109 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"paymentMethod\":\"CASH\"}"
+              "raw": "{\n  \"status\": \"CANCELLED\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/orders/{{createdOrderId}}/pay",
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderForCancelId}}/status",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "orders",
-                "{{createdOrderId}}",
-                "pay"
+                "{{createdOrderForCancelId}}",
+                "status"
               ]
             }
           }
         },
         {
-          "name": "TC_API_ORD_006 - Xem chi tiết đơn hàng không tồn tại trả về 404",
+          "name": "TC_API_ORD_021 - Setup đơn hàng để kiểm thử Xóa đơn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var res = pm.response.json();",
+                  "    var order = res.data || res;",
+                  "    pm.collectionVariables.set('createdOrderForDeleteId', String(order.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_id\": 1,\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"note\": \"Đơn hàng test xóa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_022 - Xóa đơn hàng thành công",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Delete success message returned', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Xóa đơn hàng thành công');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{createdOrderForDeleteId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{createdOrderForDeleteId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_023 - Xem chi tiết đơn hàng không tồn tại trả về 404 Not Found",
           "event": [
             {
               "listen": "test",
@@ -345,6 +1306,42 @@
           ],
           "request": {
             "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_ORD_024 - Xóa đơn hàng không tồn tại trả về 404 Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
             "header": [
               {
                 "key": "Authorization",

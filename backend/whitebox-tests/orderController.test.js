@@ -5,9 +5,11 @@ jest.mock('../src/models', () => ({
   Order: { create: jest.fn(), findByPk: jest.fn(), findAll: jest.fn(), update: jest.fn(), destroy: jest.fn() },
   OrderItem: { bulkCreate: jest.fn() },
   Product: { findByPk: jest.fn() },
-  RestaurantTable: { update: jest.fn() },
+  RestaurantTable: { update: jest.fn(), findByPk: jest.fn() },
   User: { findByPk: jest.fn() },
   Reservation: { update: jest.fn() },
+  Payment: { findOrCreate: jest.fn() },
+  PointHistory: { create: jest.fn() },
   sequelize: { transaction: jest.fn() }
 }));
 
@@ -20,15 +22,16 @@ const makeResponse = () => {
 
 const makeTransaction = () => ({ commit: jest.fn(), rollback: jest.fn() });
 
+let logSpy, errorSpy;
 beforeAll(() => {
   // Silence console logs and errors during test execution
-  jest.spyOn(console, 'log').mockImplementation(() => {});
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+  logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterAll(() => {
-  console.log.mockRestore();
-  console.error.mockRestore();
+  if (logSpy && typeof logSpy.mockRestore === 'function') logSpy.mockRestore();
+  if (errorSpy && typeof errorSpy.mockRestore === 'function') errorSpy.mockRestore();
 });
 
 beforeEach(() => {
@@ -37,408 +40,13 @@ beforeEach(() => {
   models.OrderItem.bulkCreate.mockResolvedValue([]);
   models.RestaurantTable.update.mockResolvedValue([1]);
   models.Reservation.update.mockResolvedValue([1]);
+  models.Payment.findOrCreate.mockResolvedValue([{ update: jest.fn().mockResolvedValue() }, true]);
 });
 
 // ==========================================
-// 1. STANDARD BVA TESTS (4n + 1 = 13 TCs)
-// Input Variables: quantity (1..10), used_points (0..100), price (10..1000)
+// WHITE-BOX TEST CASES FOR ORDER CONTROLLER
 // ==========================================
-describe('1. STANDARD BVA TEST CASES (4n + 1 = 13 TCs)', () => {
-  test('BVA-BASE: All variables at Nominal (quantity=5, used_points=50, price=100)', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    const createdOrder = { id: 10 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue(createdOrder);
-    models.Order.findByPk.mockResolvedValue(createdOrder);
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(user.update).toHaveBeenCalledWith({ points: 50 }, expect.any(Object));
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 50, finalPrice: 450 }), expect.any(Object));
-  });
-
-  test('BVA-Q-01: quantity = Min (1), used_points=50, price=100', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 1 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 100, discountAmount: 50, finalPrice: 50 }), expect.any(Object));
-  });
-
-  test('BVA-Q-02: quantity = Min+ (2), used_points=50, price=100', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 2 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 200, discountAmount: 50, finalPrice: 150 }), expect.any(Object));
-  });
-
-  test('BVA-Q-03: quantity = Max- (9), used_points=50, price=100', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 9 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 900, discountAmount: 50, finalPrice: 850 }), expect.any(Object));
-  });
-
-  test('BVA-Q-04: quantity = Max (10), used_points=50, price=100', async () => {
-    const product = { id: 1, name: 'Dish', price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 10 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 1000, discountAmount: 50, finalPrice: 950 }), expect.any(Object));
-  });
-
-  test('BVA-P-01: used_points = Min (0), quantity=5, price=100', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 0, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 0, finalPrice: 500 }), expect.any(Object));
-  });
-
-  test('BVA-P-02: used_points = Min+ (1), quantity=5, price=100', async () => {
-    const product = { id: 1, price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 1, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(user.update).toHaveBeenCalledWith({ points: 99 }, expect.any(Object));
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 1, finalPrice: 499 }), expect.any(Object));
-  });
-
-  test('BVA-P-03: used_points = Max- (99), quantity=5, price=100', async () => {
-    const product = { id: 1, price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 99, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(user.update).toHaveBeenCalledWith({ points: 1 }, expect.any(Object));
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 99, finalPrice: 401 }), expect.any(Object));
-  });
-
-  test('BVA-P-04: used_points = Max (100), quantity=5, price=100', async () => {
-    const product = { id: 1, price: 100 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 100, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(user.update).toHaveBeenCalledWith({ points: 0 }, expect.any(Object));
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 500, discountAmount: 100, finalPrice: 400 }), expect.any(Object));
-  });
-
-  test('BVA-S-01: product price = Min (10), quantity=5, used_points=50', async () => {
-    const product = { id: 1, price: 10 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 50, discountAmount: 50, finalPrice: 0 }), expect.any(Object));
-  });
-
-  test('BVA-S-02: product price = Min+ (20), quantity=5, used_points=50', async () => {
-    const product = { id: 1, price: 20 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 100, discountAmount: 50, finalPrice: 50 }), expect.any(Object));
-  });
-
-  test('BVA-S-03: product price = Max- (900), quantity=5, used_points=50', async () => {
-    const product = { id: 1, price: 900 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 4500, discountAmount: 50, finalPrice: 4450 }), expect.any(Object));
-  });
-
-  test('BVA-S-04: product price = Max (1000), quantity=5, used_points=50', async () => {
-    const product = { id: 1, price: 1000 };
-    const user = { id: 1, points: 100, update: jest.fn() };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue(user);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 5000, discountAmount: 50, finalPrice: 4950 }), expect.any(Object));
-  });
-});
-
-// ==========================================
-// 2. ROBUSTNESS BVA TESTS (6n + 1 = 19 TCs)
-// ==========================================
-describe('2. ROBUSTNESS BVA TEST CASES (6n + 1 = 19 TCs)', () => {
-  test('ROB-BASE: All variables at Nominal', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 50, items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-Q-01: quantity = Min- (0)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 0 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-Q-02: quantity = Min (1)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 1 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-Q-03: quantity = Min+ (2)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 2 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-Q-04: quantity = Max- (9)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 9 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-Q-05: quantity = Max (10)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 10 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-Q-06: quantity = Max+ (11 - Large quantity)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 11 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-P-01: used_points = Min- (-1)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { used_points: -1, items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-P-02: used_points = Min (0)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { used_points: 0, items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-P-03: used_points = Min+ (1)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue({ id: 1, points: 100, update: jest.fn() });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 1, items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-P-04: used_points = Max- (99)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue({ id: 1, points: 100, update: jest.fn() });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 99, items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-P-05: used_points = Max (100)', async () => {
-    const product = { id: 1, price: 100 };
-    models.Product.findByPk.mockResolvedValue(product);
-    models.User.findByPk.mockResolvedValue({ id: 1, points: 100, update: jest.fn() });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 100, items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-P-06: used_points = Max+ (101 - Over balance)', async () => {
-    models.Product.findByPk.mockResolvedValue({ id: 1, price: 100 });
-    models.User.findByPk.mockResolvedValue({ id: 1, points: 100, update: jest.fn() });
-    const res = makeResponse();
-    await controller.createOrder({ user: { id: 1 }, body: { used_points: 101, items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('không đủ') }));
-  });
-
-  test('ROB-S-01: product price = Min- (0)', async () => {
-    models.Product.findByPk.mockResolvedValue({ id: 1, price: 0 });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(models.Order.create).toHaveBeenCalledWith(expect.objectContaining({ totalPrice: 0 }), expect.any(Object));
-  });
-
-  test('ROB-S-02: product price = Min (10)', async () => {
-    models.Product.findByPk.mockResolvedValue({ id: 1, price: 10 });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-S-03: product price = Min+ (20)', async () => {
-    models.Product.findByPk.mockResolvedValue({ id: 1, price: 20 });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-S-04: product price = Max- (900)', async () => {
-    models.Product.findByPk.mockResolvedValue({ id: 1, price: 900 });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-S-05: product price = Max (1000)', async () => {
-    models.Product.findByPk.mockResolvedValue({ id: 1, price: 1000 });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-
-  test('ROB-S-06: product price = Max+ (1500)', async () => {
-    models.Product.findByPk.mockResolvedValue({ id: 1, price: 1500 });
-    models.Order.create.mockResolvedValue({ id: 10 });
-    models.Order.findByPk.mockResolvedValue({ id: 10 });
-    const res = makeResponse();
-    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 5 }] } }, res);
-    expect(res.status).toHaveBeenCalledWith(201);
-  });
-});
-
-// ==========================================
-// 3. WHITE-BOX TEST CASES FOR ORDER CONTROLLER
-// ==========================================
-describe('3. WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
+describe('WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
   test('WB-ORD-01: items missing or empty array', async () => {
     const res = makeResponse();
     await controller.createOrder({ body: { items: [] } }, res);
@@ -623,7 +231,7 @@ describe('3. WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
     const res = makeResponse();
     await controller.updateOrderStatus({ params: { id: 1 }, body: { status: 'CONFIRMED' } }, res);
 
-    expect(order.update).toHaveBeenCalledWith({ status: 'CONFIRMED' });
+    expect(order.update).toHaveBeenCalledWith({ status: 'CONFIRMED' }, expect.any(Object));
     expect(res.json).toHaveBeenCalledWith({ message: "Cập nhật trạng thái thành công", data: order });
   });
 
@@ -795,6 +403,7 @@ describe('3. WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
       { status: 'COMPLETED' },
       expect.objectContaining({ where: { table_id: 3, status: 'CHECKED_IN' } })
     );
+    expect(res.json).toHaveBeenCalledWith({ message: "Thanh toán thành công. Bàn hiện đã sẵn sàng." });
   });
 
   test('WB-ORD-35: payOrder database exception rolls back and forwards to next', async () => {
@@ -821,4 +430,188 @@ describe('3. WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
     await controller.getMyOrders({ user: { id: 5 } }, makeResponse(), next);
     expect(next).toHaveBeenCalledWith(err);
   });
+
+  test('WB-ORD-38: createOrder throws error when product is unavailable (isAvailable === false)', async () => {
+    const fakeProduct = { id: 1, name: 'Cà phê', price: 25000, isAvailable: false, stock: 10 };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+
+    const req = {
+      body: {
+        table_id: 1,
+        items: [{ product_id: 1, quantity: 1 }]
+      }
+    };
+    const res = makeResponse();
+    const next = jest.fn();
+
+    await controller.createOrder(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Món "Cà phê" hiện đang tạm ngưng phục vụ!'
+    }));
+  });
+
+  test('WB-ORD-39: createOrder throws error when product stock is insufficient (stock < quantity)', async () => {
+    const fakeProduct = { id: 1, name: 'Trà đào', price: 30000, isAvailable: true, stock: 2 };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+
+    const req = {
+      body: {
+        table_id: 1,
+        items: [{ product_id: 1, quantity: 5 }]
+      }
+    };
+    const res = makeResponse();
+    const next = jest.fn();
+
+    await controller.createOrder(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Món "Trà đào" chỉ còn 2 suất trong kho, không đủ phục vụ (5 suất)!'
+    }));
+  });
+
+  test('WB-ORD-40: createOrder deducts stock and sets isAvailable=false when newStock === 0', async () => {
+    const fakeProduct = {
+      id: 1,
+      name: 'Bánh ngọt',
+      price: 20000,
+      isAvailable: true,
+      stock: 2,
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+    models.RestaurantTable.update.mockResolvedValue([1]);
+    const createdOrder = { id: 99, table_id: 1 };
+    models.Order.create.mockResolvedValue(createdOrder);
+    models.Order.findByPk.mockResolvedValue(createdOrder);
+    models.OrderItem.bulkCreate.mockResolvedValue([]);
+
+    const req = {
+      body: {
+        table_id: 1,
+        items: [{ product_id: 1, quantity: 2 }]
+      }
+    };
+    const res = makeResponse();
+    const next = jest.fn();
+
+    await controller.createOrder(req, res, next);
+
+    expect(fakeProduct.update).toHaveBeenCalledWith(
+      expect.objectContaining({ stock: 0, isAvailable: false }),
+      expect.any(Object)
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  test('WB-ORD-41: deleteOrder restores product stock when order is not CANCELLED', async () => {
+    const fakeProduct = {
+      id: 10,
+      stock: 5,
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+    const mockOrder = {
+      id: 1,
+      status: 'PENDING',
+      OrderItems: [{ product_id: 10, quantity: 3 }],
+      destroy: jest.fn().mockResolvedValue(true)
+    };
+    models.Order.findByPk.mockResolvedValue(mockOrder);
+
+    const res = makeResponse();
+    await controller.deleteOrder({ params: { id: 1 } }, res);
+
+    expect(fakeProduct.update).toHaveBeenCalledWith(
+      { stock: 8, isAvailable: true },
+      expect.any(Object)
+    );
+    expect(mockOrder.destroy).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ message: "Xóa đơn hàng thành công" });
+  });
+
+  test('WB-ORD-42: payAllOrdersByTable updates existing payment record when created is false', async () => {
+    const mockPaymentRecord = { update: jest.fn().mockResolvedValue(true) };
+    models.Payment.findOrCreate.mockResolvedValue([mockPaymentRecord, false]);
+    models.Order.findAll.mockResolvedValue([
+      { id: 1, status: 'READY', finalPrice: 100000, update: jest.fn().mockResolvedValue(true) }
+    ]);
+    models.Order.update.mockResolvedValue([1]);
+    models.RestaurantTable.update.mockResolvedValue([1]);
+    models.Reservation.update.mockResolvedValue([0]);
+
+    const res = makeResponse();
+    await controller.payAllOrdersByTable({ params: { tableId: 1 }, body: { paymentMethod: 'CASH' } }, res);
+
+    expect(mockPaymentRecord.update).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 100000, status: 'SUCCESS' }),
+      expect.any(Object)
+    );
+    expect(res.json).toHaveBeenCalledWith({ message: "Đã thanh toán thành công 1 đơn hàng." });
+  });
+
+  test('WB-ORD-43: payOrder updates existing payment record when created is false', async () => {
+    const mockPaymentRecord = { update: jest.fn().mockResolvedValue(true) };
+    models.Payment.findOrCreate.mockResolvedValue([mockPaymentRecord, false]);
+    const mockOrder = {
+      id: 1,
+      status: 'READY',
+      paymentStatus: 'UNPAID',
+      finalPrice: 50000,
+      table_id: 1,
+      user_id: 2,
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Order.findByPk.mockResolvedValue(mockOrder);
+    models.RestaurantTable.update.mockResolvedValue([1]);
+    models.Reservation.update.mockResolvedValue([0]);
+    models.PointHistory.create.mockResolvedValue({});
+    models.User.findByPk.mockResolvedValue({ id: 2, point: 0, update: jest.fn().mockResolvedValue(true) });
+
+    const res = makeResponse();
+    await controller.payOrder({ params: { id: 1 }, body: { paymentMethod: 'CASH' } }, res);
+
+    expect(mockPaymentRecord.update).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 50000, status: 'SUCCESS' }),
+      expect.any(Object)
+    );
+    expect(res.json).toHaveBeenCalledWith({ message: "Thanh toán thành công. Bàn hiện đã sẵn sàng." });
+  });
+
+  test('WB-ORD-44: updateOrderStatus with CANCELLED restores stock of OrderItems', async () => {
+    const fakeProduct = {
+      id: 5,
+      name: 'Bún bò',
+      stock: 4,
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Product.findByPk.mockResolvedValue(fakeProduct);
+
+    const mockOrder = {
+      id: 10,
+      status: 'PENDING',
+      OrderItems: [{ product_id: 5, quantity: 2 }],
+      update: jest.fn().mockResolvedValue(true)
+    };
+    models.Order.findByPk.mockResolvedValue(mockOrder);
+
+    const res = makeResponse();
+    await controller.updateOrderStatus({ params: { id: 10 }, body: { status: 'CANCELLED' } }, res);
+
+    expect(fakeProduct.update).toHaveBeenCalledWith(
+      { stock: 6, isAvailable: true },
+      expect.any(Object)
+    );
+    expect(mockOrder.update).toHaveBeenCalledWith(
+      { status: 'CANCELLED' },
+      expect.any(Object)
+    );
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Cập nhật trạng thái thành công",
+      data: mockOrder
+    });
+  });
 });
+
+

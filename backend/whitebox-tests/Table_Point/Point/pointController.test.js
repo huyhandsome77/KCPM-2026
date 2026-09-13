@@ -5,12 +5,12 @@ const {
 } = require('../mocks/pointMocks');
 
 jest.mock(
-    '../../../../../backend/src/models',
+    '../../../src/models',
     () => require('../mocks/pointMocks')
 );
 
 const pointController =
-    require('../../../../../backend/src/controllers/pointController');
+    require('../../../src/controllers/pointController');
 
 const {
     createMockResponse,
@@ -64,7 +64,7 @@ describe('Point Controller - addPointsFromOrder', () => {
                 res.json
             ).toHaveBeenCalledWith({
                 message:
-                    'Vui lòng nhập đầy đủ Số điện thoại và Mã hóa đơn'
+                    'Vui lòng nhập Số điện thoại hợp lệ'
             });
 
             expect(
@@ -435,10 +435,27 @@ describe('Point Controller - addPointsFromOrder', () => {
             sequelize.transaction
                 .mockResolvedValue(transaction);
 
+            const mockUser = {
+                id: 1,
+                fullName: 'Nguyen Van A',
+                points: 100,
+                increment: jest.fn().mockRejectedValue(new Error('Database error'))
+            };
+
+            const mockOrder = {
+                id: 1,
+                paymentStatus: 'PAID',
+                status: 'COMPLETED',
+                isPointsAdded: false,
+                finalPrice: 100000,
+                update: jest.fn().mockResolvedValue()
+            };
+
             User.findOne
-                .mockRejectedValue(
-                    new Error('Database error')
-                );
+                .mockResolvedValue(mockUser);
+
+            Order.findByPk
+                .mockResolvedValue(mockOrder);
 
             await pointController.addPointsFromOrder(
                 req,
@@ -465,4 +482,33 @@ describe('Point Controller - addPointsFromOrder', () => {
         }
     );
 
-});
+    // ========================================================
+    // WB-POINT-010
+    // orderId không hợp lệ (null, <= 0, chuỗi không phải số)
+    // ========================================================
+    test(
+        'WB-POINT-010: orderId không hợp lệ (null, <= 0, NaN)',
+        async () => {
+            const req = {
+                body: {
+                    phone: '0901234567',
+                    orderId: -1
+                }
+            };
+            const res = createMockResponse();
+            const next = createMockNext();
+
+            await pointController.addPointsFromOrder(
+                req,
+                res,
+                next
+            );
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Mã hóa đơn không hợp lệ (phải là số nguyên dương)'
+            });
+        }
+    );
+
+});

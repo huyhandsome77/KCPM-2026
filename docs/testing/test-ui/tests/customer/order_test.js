@@ -77,12 +77,17 @@ Scenario("Khách đặt món khi giỏ hàng trống", async ({ I }) => {
 
 
 
+const TEST_ACCOUNT = {
+  account: "thinh",
+  password: "123"
+};
+
 Scenario("Người dùng đăng nhập và đặt món thành công", async ({ I }) => {
   I.amOnPage("/login.html");
 
-  I.fillField("#account", "thinh");
+  I.fillField("#account", TEST_ACCOUNT.account);
 
-  I.fillField("#password", "123");
+  I.fillField("#password", TEST_ACCOUNT.password);
 
   I.click("#loginForm button");
 

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "api-point-collection-2026",
     "name": "Point API Test Suite",
-    "description": "Bộ kiểm thử tự động cho Module Tích điểm Khách hàng (/api/points).",
+    "description": "Bộ kiểm thử tự động toàn diện cho Module Tích điểm Khách hàng (/api/points). Kiểm thử nghiêm ngặt phân quyền Role (403 với Customer, 401 khi không có token), các ràng buộc nghiệp vụ (chặn tích điểm đơn chưa thanh toán, chặn trùng lặp đơn đã tích), xác thực công thức tích lũy 5% và kiểm thử giá trị biên.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -12,9 +12,102 @@
       "type": "string"
     },
     {
-      "key": "admin_token",
+      "key": "customer_token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "staff_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_phone",
+      "value": "+8401234567890123456",
+      "type": "string"
+    },
+    {
+      "key": "testPointProductId",
+      "value": "33",
+      "type": "string"
+    },
+    {
+      "key": "testPointOrderId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-Auth Script: Tự động lấy token Admin, Staff, Customer nếu chưa có",
+          "const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+          "const reqName = pm.info.requestName || '';",
+          "",
+          "if (!reqName.includes('Login') && !reqName.includes('401')) {",
+          "    const staffToken = pm.collectionVariables.get('staff_token') || pm.environment.get('staff_token') || pm.globals.get('staff_token');",
+          "    const customerToken = pm.collectionVariables.get('customer_token') || pm.environment.get('customer_token') || pm.globals.get('customer_token');",
+          "    const adminToken = pm.collectionVariables.get('admin_token') || pm.environment.get('admin_token') || pm.globals.get('admin_token');",
+          "",
+          "    if (!staffToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'staff', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('staff_token', data.token);",
+          "                    pm.environment.set('staff_token', data.token);",
+          "                    pm.globals.set('staff_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "",
+          "    if (!customerToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'customer', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('customer_token', data.token);",
+          "                    pm.environment.set('customer_token', data.token);",
+          "                    pm.globals.set('customer_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "",
+          "    if (!adminToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/auth/login',",
+          "            method: 'POST',",
+          "            header: { 'Content-Type': 'application/json' },",
+          "            body: { mode: 'raw', raw: JSON.stringify({ account: 'admin', password: '123' }) }",
+          "        }, function (err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const data = res.json();",
+          "                if (data.token) {",
+          "                    pm.collectionVariables.set('admin_token', data.token);",
+          "                    pm.environment.set('admin_token', data.token);",
+          "                    pm.globals.set('admin_token', data.token);",
+          "                }",
+          "            }",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
     }
   ],
   "item": [
@@ -22,16 +115,21 @@
       "name": "00. Auth Setup",
       "item": [
         {
-          "name": "Auth - Login as Admin",
+          "name": "Auth - Login as Customer",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Admin login success', function () {",
+                  "pm.test('Customer login success', function () {",
                   "    pm.response.to.have.status(200);",
                   "    var res = pm.response.json();",
-                  "    pm.collectionVariables.set('admin_token', res.token);",
+                  "    pm.expect(res.token).to.be.a('string');",
+                  "    pm.collectionVariables.set('customer_token', res.token);",
+                  "    if (res.user && res.user.phone) {",
+                  "        pm.collectionVariables.set('customer_phone', res.user.phone);",
+                  "        pm.variables.set('customer_phone', res.user.phone);",
+                  "    }",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -48,7 +146,51 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"account\":\"admin\",\"password\":\"123\"}"
+              "raw": "{\"account\":\"customer\",\"password\":\"123\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Auth - Login as Staff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Staff login success', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.token).to.be.a('string');",
+                  "    pm.collectionVariables.set('staff_token', res.token);",
+                  "    pm.variables.set('staff_token', res.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"account\":\"staff\",\"password\":\"123\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -66,17 +208,22 @@
       ]
     },
     {
-      "name": "01. Point Operations",
+      "name": "01. Authorization & Role Checks",
       "item": [
         {
-          "name": "TC_API_PNT_001 - Tích điểm thành công cho khách hàng qua số điện thoại",
+          "name": "TC_API_PNT_001 - Chặn Customer tự tích điểm cho bản thân (trả về 403 Forbidden)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200 OK or 400 Handled', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "pm.test('Status code is 403 Forbidden', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.be.oneOf([",
+                  "        'Bạn không có quyền',",
+                  "        'Access denied. Staff or Admin only.'",
+                  "    ]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -92,12 +239,12 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
+                "value": "Bearer {{customer_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"phone\":\"0900000002\",\"orderId\":1}"
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"orderId\": 1\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/points/add-points",
@@ -113,7 +260,52 @@
           }
         },
         {
-          "name": "TC_API_PNT_002 - Tích điểm thất bại khi thiếu trường phone",
+          "name": "TC_API_PNT_002 - Chặn Request không có Token (trả về 401 Unauthorized)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 Unauthorized', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"orderId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/points/add-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "add-points"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Input Validations",
+      "item": [
+        {
+          "name": "TC_API_PNT_003 - Thất bại khi thiếu số điện thoại khách hàng (trả về 400 Bad Request)",
           "event": [
             {
               "listen": "test",
@@ -121,6 +313,8 @@
                 "exec": [
                   "pm.test('Status code is 400 Bad Request', function () {",
                   "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Số điện thoại');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -136,12 +330,12 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
+                "value": "Bearer {{staff_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"orderId\":1}"
+              "raw": "{\n  \"orderId\": 1\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/points/add-points",
@@ -157,7 +351,7 @@
           }
         },
         {
-          "name": "TC_API_PNT_003 - Tích điểm thất bại khi thiếu trường orderId",
+          "name": "TC_API_PNT_004 - Thất bại khi số điện thoại rỗng hoặc chỉ chứa khoảng trắng (trả về 400)",
           "event": [
             {
               "listen": "test",
@@ -165,6 +359,8 @@
                 "exec": [
                   "pm.test('Status code is 400 Bad Request', function () {",
                   "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Số điện thoại');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -180,12 +376,12 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
+                "value": "Bearer {{staff_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"phone\":\"0900000002\"}"
+              "raw": "{\n  \"phone\": \"   \",\n  \"orderId\": 1\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/points/add-points",
@@ -201,14 +397,16 @@
           }
         },
         {
-          "name": "TC_API_PNT_004 - Tích điểm thất bại khi số điện thoại không tồn tại",
+          "name": "TC_API_PNT_005 - Thất bại khi thiếu mã hóa đơn orderId (trả về 400 Bad Request)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 404 or 400', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Mã hóa đơn không hợp lệ');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -224,12 +422,454 @@
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
+                "value": "Bearer {{staff_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"phone\":\"0999999999\",\"orderId\":1}"
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/points/add-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "add-points"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_PNT_006 - Thất bại khi orderId <= 0 hoặc không phải số (trả về 400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('nguyên dương');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"orderId\": -5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/points/add-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "add-points"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_PNT_007 - Thất bại khi số điện thoại khách hàng không tồn tại (trả về 404 Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Không tìm thấy khách hàng');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"0999888777999\",\n  \"orderId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/points/add-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "add-points"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_PNT_008 - Thất bại khi mã hóa đơn orderId không tồn tại (trả về 404 Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('Không tìm thấy mã hóa đơn');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"orderId\": 999999\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/points/add-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "add-points"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Business Logic & Point Calculation Flow",
+      "item": [
+        {
+          "name": "TC_API_PNT_009 - Setup tạo đơn hàng mới cho khách để chuẩn bị tích điểm",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const baseUrl = pm.collectionVariables.get('baseUrl') || 'http://localhost:3000';",
+                  "pm.sendRequest(baseUrl + '/api/products', function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        const products = res.json();",
+                  "        const avail = Array.isArray(products) ? products.find(p => p.isAvailable && p.stock > 0) : null;",
+                  "        if (avail) {",
+                  "            pm.collectionVariables.set('testPointProductId', String(avail.id));",
+                  "            pm.variables.set('testPointProductId', String(avail.id));",
+                  "        }",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var res = pm.response.json();",
+                  "    var order = res.data || res.order || res;",
+                  "    pm.collectionVariables.set('testPointOrderId', String(order.id));",
+                  "    pm.variables.set('testPointOrderId', String(order.id));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"table_id\": 2,\n  \"items\": [\n    {\n      \"product_id\": {{testPointProductId}},\n      \"quantity\": 1\n    }\n  ],\n  \"note\": \"Đơn hàng test tích điểm 5%\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_PNT_010 - Thử tích điểm khi đơn hàng chưa thanh toán / chưa hoàn tất (trả về 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('chưa hoàn thành hoặc chưa thanh toán');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"orderId\": {{testPointOrderId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/points/add-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "add-points"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_PNT_011 - Chuyển trạng thái đơn sang READY để thanh toán",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{testPointOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{testPointOrderId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_PNT_012 - Thanh toán hoàn tất đơn hàng (COMPLETED, PAID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{testPointOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{testPointOrderId}}",
+                "pay"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_PNT_013 - Nhân viên tích điểm thành công cho khách hàng & kiểm tra công thức 5%",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Verify earnedPoints calculation (5% of order final price)', function () {",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res).to.have.property('earnedPoints');",
+                  "    pm.expect(res.earnedPoints).to.be.greaterThan(0);",
+                  "    pm.expect(res).to.have.property('totalPoints');",
+                  "    pm.expect(res.message).to.include('Tích điểm thành công');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"orderId\": {{testPointOrderId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/points/add-points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "add-points"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC_API_PNT_014 - Thử tích điểm lần 2 trên cùng một đơn hàng đã tích điểm (trả về 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var res = pm.response.json();",
+                  "    pm.expect(res.message).to.include('đã được tích điểm trước đó');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"orderId\": {{testPointOrderId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/points/add-points",

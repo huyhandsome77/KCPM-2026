@@ -1,11 +1,11 @@
 import { TOKEN_KEY, USER_KEY, API_BASE_URL, RESERVATION_STATUS_MAP } from './js/config.js';
-import { formatCurrency, formatDateTime, formatNumber, escapeHtml, userInitials, statusChip, tableStatusClass, orderStatusClass, paymentStatusClass, reservationStatusClass } from './js/utils.js';
+import { formatCurrency, formatDateTime, formatNumber, escapeHtml, userInitials, statusChip, tableStatusClass, orderStatusClass, paymentStatusClass, reservationStatusClass, removeVietnameseTones } from './js/utils.js';
 import { api } from './js/api.js';
 import { renderReservationsGrid } from './js/views/reservationsView.js';
 import { renderOrdersGrid, generatePayOSQRUrl, getOrderTableInfo } from './js/views/ordersView.js';
 import { renderTablesFloorGrid } from './js/views/tablesView.js';
 import { renderProductsGrid } from './js/views/productsView.js';
-import { renderUsersGrid } from './js/views/usersView.js';
+import { renderUsersGrid, renderUsersTable } from './js/views/usersView.js';
 import { renderPaymentsGrid } from './js/views/paymentsView.js';
 
 const VIEW_META = {
@@ -310,6 +310,16 @@ const state = {
     users: 'ALL',
     reviews: 'ALL'
   },
+  pagination: {
+    users: { page: 1, limit: 12 },
+    categories: { page: 1, limit: 12 },
+    products: { page: 1, limit: 12 },
+    tables: { page: 1, limit: 12 },
+    reservations: { page: 1, limit: 12 },
+    orders: { page: 1, limit: 12 },
+    payments: { page: 1, limit: 12 },
+    reviews: { page: 1, limit: 12 }
+  },
   statsQuery: {
     type: 'day',
     date: ''
@@ -567,8 +577,9 @@ function render() {
           </div>
 
           <div class="admin-search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Tìm kiếm nhanh hệ thống..." value="${escapeHtml(state.filters[state.activeView] || '')}" data-action="search-input" data-view="${state.activeView}" />
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" placeholder="Tìm kiếm nhanh hệ thống..." value="${escapeHtml(state.filters[state.activeView] || '')}" data-action="search-input" data-view="${state.activeView}" autocomplete="off" />
+            ${state.filters[state.activeView] ? `<button type="button" class="clear-search-btn" data-action="clear-search" data-view="${state.activeView}" title="Xóa tìm kiếm"><i class="fa-solid fa-xmark"></i></button>` : ''}
           </div>
 
           <div class="admin-topbar-right">
@@ -1150,11 +1161,82 @@ function renderStats() {
   `;
 }
 
+function renderPagination(view, currentPage, totalPages, totalItems, limit) {
+  if (totalItems <= 0) return '';
+
+  const startItem = limit >= 999999 ? 1 : Math.min((currentPage - 1) * limit + 1, totalItems);
+  const endItem = limit >= 999999 ? totalItems : Math.min(currentPage * limit, totalItems);
+
+  let pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (currentPage > 3) pages.push('...');
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (currentPage < totalPages - 2) pages.push('...');
+    pages.push(totalPages);
+  }
+
+  const pageButtonsHtml = pages.map(p => {
+    if (p === '...') return `<span style="padding:0 0.3rem; color:#94a3b8; font-weight:700">...</span>`;
+    return `
+      <button class="btn btn-secondary btn-small pagination-btn ${currentPage === p ? 'active' : ''}" data-action="goto-page" data-view="${view}" data-page="${p}">
+        ${p}
+      </button>
+    `;
+  }).join('');
+
+  return `
+    <div class="entity-pagination-bar">
+      <div class="pagination-info">
+        Hiển thị <strong>${startItem} - ${endItem}</strong> trên tổng số <strong>${formatNumber(totalItems)}</strong> bản ghi
+      </div>
+
+      <div class="pagination-controls">
+        <div class="pagination-limit-select">
+          <label>Hiển thị:</label>
+          <select data-action="change-page-limit" data-view="${view}">
+            <option value="12" ${limit === 12 ? 'selected' : ''}>12 / trang</option>
+            <option value="24" ${limit === 24 ? 'selected' : ''}>24 / trang</option>
+            <option value="48" ${limit === 48 ? 'selected' : ''}>48 / trang</option>
+            <option value="999999" ${limit >= 999999 ? 'selected' : ''}>Tất cả</option>
+          </select>
+        </div>
+
+        <div class="pagination-buttons">
+          <button class="btn btn-secondary btn-small pagination-btn" data-action="goto-page" data-view="${view}" data-page="${currentPage - 1}" ${currentPage <= 1 ? 'disabled' : ''} title="Trang trước">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          ${pageButtonsHtml}
+          <button class="btn btn-secondary btn-small pagination-btn" data-action="goto-page" data-view="${view}" data-page="${currentPage + 1}" ${currentPage >= totalPages ? 'disabled' : ''} title="Trang kế">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderEntityView(view) {
   const config = ENTITY_CONFIGS[view];
   const rawRecords = state.data[view];
-  const records = getFilteredRecords(view, rawRecords);
+  const allFilteredRecords = getFilteredRecords(view, rawRecords);
   const mode = state.viewModes[view] || 'grid';
+
+  if (!state.pagination[view]) {
+    state.pagination[view] = { page: 1, limit: 12 };
+  }
+
+  const totalItems = allFilteredRecords.length;
+  const limit = Number(state.pagination[view].limit || 12);
+  const totalPages = Math.max(1, Math.ceil(totalItems / (limit >= 999999 ? totalItems || 1 : limit)));
+  const currentPage = Math.min(Math.max(1, Number(state.pagination[view].page || 1)), totalPages);
+  state.pagination[view].page = currentPage;
+
+  const records = limit >= 999999 ? allFilteredRecords : allFilteredRecords.slice((currentPage - 1) * limit, currentPage * limit);
 
   return `
     <section class="entity-page-header">
@@ -1173,9 +1255,10 @@ function renderEntityView(view) {
       ${renderViewFilterTabs(view, rawRecords)}
       
       <div style="display:flex; align-items:center; gap:0.8rem; margin-left:auto">
-        <div class="admin-search-box" style="min-width:240px">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="search" placeholder="Tìm kiếm nhanh..." value="${escapeHtml(state.filters[view] || '')}" data-action="search-input" data-view="${view}" />
+        <div class="admin-search-box" style="min-width:260px">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" placeholder="Tìm kiếm nhanh..." value="${escapeHtml(state.filters[view] || '')}" data-action="search-input" data-view="${view}" autocomplete="off" />
+          ${state.filters[view] ? `<button type="button" class="clear-search-btn" data-action="clear-search" data-view="${view}" title="Xóa tìm kiếm"><i class="fa-solid fa-xmark"></i></button>` : ''}
         </div>
         <div class="view-mode-toggle">
           <button class="view-mode-btn ${mode === 'grid' || mode === 'cards' || mode === 'floor' ? 'active' : ''}" data-action="toggle-view-mode" data-view="${view}" data-mode="grid" title="Dạng Thẻ / Sơ đồ">
@@ -1191,6 +1274,8 @@ function renderEntityView(view) {
     <section class="entity-content-body">
       ${renderViewContent(view, records, mode)}
     </section>
+
+    ${renderPagination(view, currentPage, totalPages, totalItems, limit)}
   `;
 }
 
@@ -1515,7 +1600,8 @@ function renderViewFilterTabs(view, rawData) {
       { id: 'ADMIN', label: 'ADMIN', count: list.filter(u => String(u.role).toUpperCase() === 'ADMIN').length },
       { id: 'STAFF', label: 'STAFF', count: list.filter(u => String(u.role).toUpperCase() === 'STAFF').length },
       { id: 'KITCHEN', label: 'KITCHEN', count: list.filter(u => String(u.role).toUpperCase() === 'KITCHEN').length },
-      { id: 'CUSTOMER', label: 'CUSTOMER', count: list.filter(u => String(u.role).toUpperCase() === 'CUSTOMER' || !u.role).length }
+      { id: 'CUSTOMER', label: 'CUSTOMER', count: list.filter(u => String(u.role).toUpperCase() === 'CUSTOMER' || !u.role).length },
+      { id: 'BLOCKED', label: 'Bị khóa 🔒', count: list.filter(u => String(u.status).toUpperCase() === 'BLOCKED' || String(u.status).toUpperCase() === 'INACTIVE').length }
     ];
   } else if (view === 'reviews') {
     tabs = [
@@ -1543,7 +1629,7 @@ function renderViewFilterTabs(view, rawData) {
 function getFilteredRecords(view, records) {
   let list = Array.isArray(records) ? records : (records?.reviews || []);
   const activeTab = state.activeTabs[view] || 'ALL';
-  const query = (state.filters[view] || '').trim().toLowerCase();
+  const query = (state.filters[view] || '').trim();
 
   if (activeTab !== 'ALL') {
     if (view === 'products') {
@@ -1564,7 +1650,8 @@ function getFilteredRecords(view, records) {
       else if (activeTab === 'CASH') list = list.filter(p => String(p.paymentMethod).toUpperCase() === 'CASH');
       else if (activeTab === 'ONLINE') list = list.filter(p => ['PAYOS', 'TRANSFER', 'BANKING', 'VNPAY', 'MOMO'].includes(String(p.paymentMethod).toUpperCase()));
     } else if (view === 'users') {
-      if (activeTab === 'CUSTOMER') list = list.filter(u => String(u.role).toUpperCase() === 'CUSTOMER' || !u.role);
+      if (activeTab === 'BLOCKED') list = list.filter(u => String(u.status).toUpperCase() === 'BLOCKED' || String(u.status).toUpperCase() === 'INACTIVE');
+      else if (activeTab === 'CUSTOMER') list = list.filter(u => String(u.role).toUpperCase() === 'CUSTOMER' || !u.role);
       else list = list.filter(u => String(u.role).toUpperCase() === activeTab);
     } else if (view === 'reviews') {
       if (activeTab === 'LOW') list = list.filter(r => Number(r.rating) <= 3);
@@ -1573,13 +1660,35 @@ function getFilteredRecords(view, records) {
   }
 
   if (!query) return list;
+
+  const normalizedQuery = removeVietnameseTones(query);
+
   return list.filter(record => {
+    if (view === 'users') {
+      const roleMap = {
+        'ADMIN': 'quản trị viên admin',
+        'STAFF': 'nhân viên phục vụ staff',
+        'KITCHEN': 'đầu bếp bếp kitchen',
+        'CUSTOMER': 'khách hàng customer thành viên'
+      };
+      const statusMap = {
+        'ACTIVE': 'hoạt động active',
+        'BLOCKED': 'bị khóa blocked inactive khóa'
+      };
+      const roleText = roleMap[String(record.role || '').toUpperCase()] || '';
+      const statusText = statusMap[String(record.status || '').toUpperCase()] || '';
+      const rawText = `${record.id} ${record.fullName || ''} ${record.username || ''} ${record.email || ''} ${record.phone || ''} ${record.points || 0} ${roleText} ${statusText}`;
+      const searchTarget = removeVietnameseTones(rawText);
+      return searchTarget.includes(normalizedQuery);
+    }
+
     if (view === 'orders') {
       const tInfo = getOrderTableInfo(record, state.data.tables);
-      const searchStr = `${JSON.stringify(record)} ${tInfo.label} ${tInfo.tableNumber || ''}`.toLowerCase();
-      return searchStr.includes(query);
+      const rawText = `${JSON.stringify(record)} ${tInfo.label} ${tInfo.tableNumber || ''}`;
+      return removeVietnameseTones(rawText).includes(normalizedQuery);
     }
-    return JSON.stringify(record).toLowerCase().includes(query);
+
+    return removeVietnameseTones(JSON.stringify(record)).includes(normalizedQuery);
   });
 }
 
@@ -1589,6 +1698,7 @@ function renderViewContent(view, records, mode) {
   }
 
   if (mode === 'table') {
+    if (view === 'users') return renderUsersTable(records);
     return renderDataTable(view, records);
   }
 
@@ -1736,56 +1846,7 @@ function renderDataTable(view, records) {
   `;
 }
 
-function renderUsersTable(records) {
-  return `
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th><i class="fa-solid fa-user" style="color:#3b82f6"></i> Thành viên</th>
-            <th><i class="fa-solid fa-phone" style="color:#64748b"></i> Số điện thoại</th>
-            <th><i class="fa-solid fa-user-shield" style="color:#8b5cf6"></i> Vai trò</th>
-            <th><i class="fa-solid fa-shield-halved" style="color:#10b981"></i> Trạng thái</th>
-            <th style="text-align:right">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${records.map(user => {
-            const initials = userInitials(user);
-            const role = String(user.role || 'CUSTOMER').toUpperCase();
-            const isBlocked = String(user.status || 'ACTIVE').toUpperCase() === 'BLOCKED';
 
-            return `
-              <tr>
-                <td>
-                  <div style="display:flex; align-items:center; gap:0.75rem">
-                    <div class="user-card-avatar" style="width:40px; height:40px; font-size:0.92rem; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.06)">
-                      ${user.avatar ? `<img src="${escapeHtml(user.avatar)}" alt="${escapeHtml(user.fullName)}" />` : initials}
-                    </div>
-                    <div>
-                      <strong style="display:block; font-size:0.95rem; color:#0f172a">${escapeHtml(user.fullName || 'Người dùng')}</strong>
-                      <small style="color:#64748b">@${escapeHtml(user.username || 'user')}</small>
-                    </div>
-                  </div>
-                </td>
-                <td><i class="fa-solid fa-phone" style="font-size:0.78rem; color:#94a3b8; margin-right:0.3rem"></i> ${escapeHtml(user.phone || '-')}</td>
-                <td>${statusChip(role, role)}</td>
-                <td>${statusChip(isBlocked ? 'blocked' : 'active', isBlocked ? 'Bị khóa' : 'Hoạt động')}</td>
-                <td style="text-align:right">
-                  <div class="row-actions" style="justify-content:flex-end">
-                    <button class="btn btn-ghost btn-small" data-action="view-user-detail" data-id="${user.id}"><i class="fa-solid fa-eye"></i> Chi tiết</button>
-                    <button class="btn btn-secondary btn-small" data-action="edit-record" data-view="users" data-id="${user.id}" title="Sửa"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn btn-danger btn-small" data-action="delete-record" data-view="users" data-id="${user.id}" title="Xóa"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
 
 function renderPaymentsTable(records) {
   const list = Array.isArray(records) ? records : [];
@@ -2478,6 +2539,30 @@ function bindLogin() {
   });
 }
 
+function renderWithFocusPreservation(activeInput) {
+  const action = activeInput?.dataset?.action;
+  const view = activeInput?.dataset?.view;
+  const cursorStart = activeInput?.selectionStart;
+  const cursorEnd = activeInput?.selectionEnd;
+  const isSearch = action === 'search-input';
+
+  render();
+
+  if (isSearch && view) {
+    const selector = `[data-action="search-input"][data-view="${view}"]`;
+    const newInputs = document.querySelectorAll(selector);
+    const targetInput = newInputs.length > 1 ? newInputs[newInputs.length - 1] : newInputs[0];
+    if (targetInput) {
+      targetInput.focus();
+      try {
+        if (typeof cursorStart === 'number' && typeof cursorEnd === 'number') {
+          targetInput.setSelectionRange(cursorStart, cursorEnd);
+        }
+      } catch (err) {}
+    }
+  }
+}
+
 function bindGlobalEvents() {
   app.onclick = async event => {
     const target = event.target.closest('[data-action]');
@@ -2584,15 +2669,29 @@ function bindGlobalEvents() {
           if (detailBox) detailBox.classList.toggle('hidden');
           break;
         }
+        case 'goto-page': {
+          const page = Number(target.dataset.page || target.closest('[data-page]')?.dataset.page);
+          const pView = target.dataset.view || target.closest('[data-view]')?.dataset.view || state.activeView;
+          if (page && state.pagination && state.pagination[pView]) {
+            state.pagination[pView].page = page;
+            render();
+          }
+          break;
+        }
+        case 'clear-search': {
+          const sView = target.dataset.view || target.closest('[data-view]')?.dataset.view || state.activeView;
+          state.filters[sView] = '';
+          if (state.pagination && state.pagination[sView]) {
+            state.pagination[sView].page = 1;
+          }
+          render();
+          break;
+        }
         case 'table-status-select':
           break;
         case 'search-input':
           state.filters[view] = target.value;
-          render();
-          break;
-        case 'clear-search':
-          state.filters[view] = '';
-          render();
+          renderWithFocusPreservation(target);
           break;
         case 'add-order-item':
           addOrderItem();
@@ -2606,6 +2705,9 @@ function bindGlobalEvents() {
           break;
         case 'set-filter-tab':
           state.activeTabs[view] = target.dataset.tab || 'ALL';
+          if (state.pagination && state.pagination[view]) {
+            state.pagination[view].page = 1;
+          }
           render();
           break;
         case 'toggle-product-available': {
@@ -2621,11 +2723,12 @@ function bindGlobalEvents() {
         case 'toggle-user-status': {
           const userObj = (state.data.users || []).find(u => String(u.id) === String(id));
           if (userObj) {
-            const newStatus = String(userObj.status).toUpperCase() === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED';
+            const isCurrentlyBlocked = String(userObj.status).toUpperCase() === 'BLOCKED' || String(userObj.status).toUpperCase() === 'INACTIVE';
+            const newStatus = isCurrentlyBlocked ? 'ACTIVE' : 'BLOCKED';
             await simpleAction(`/api/users/${id}`, {
               method: 'PUT',
               body: JSON.stringify({ ...userObj, status: newStatus })
-            }, newStatus === 'BLOCKED' ? 'Đã khóa tài khoản người dùng' : 'Đã mở khóa tài khoản');
+            }, newStatus === 'BLOCKED' ? 'Đã khóa tài khoản người dùng' : 'Đã mở khóa tài khoản người dùng thành công');
           }
           break;
         }
@@ -2714,6 +2817,15 @@ function bindGlobalEvents() {
 
   app.onchange = async event => {
     const target = event.target;
+    if (target.matches('[data-action="change-page-limit"]')) {
+      const pView = target.dataset.view || state.activeView;
+      if (state.pagination && state.pagination[pView]) {
+        state.pagination[pView].limit = Number(target.value);
+        state.pagination[pView].page = 1;
+        render();
+      }
+      return;
+    }
     if (target.matches('[data-action="table-status-select"]')) {
       const id = target.dataset.id;
       const status = target.value;
@@ -2731,8 +2843,12 @@ function bindGlobalEvents() {
   app.oninput = event => {
     const target = event.target;
     if (target.matches('[data-action="search-input"]')) {
-      state.filters[target.dataset.view] = target.value;
-      render();
+      const sView = target.dataset.view || state.activeView;
+      state.filters[sView] = target.value;
+      if (state.pagination && state.pagination[sView]) {
+        state.pagination[sView].page = 1;
+      }
+      renderWithFocusPreservation(target);
     }
   };
 

@@ -10,7 +10,9 @@ jest.mock('../src/models', () => ({
         update: jest.fn(),
         destroy: jest.fn(),
     },
-    Product: {}
+    Product: {
+        count: jest.fn(),
+    }
 }));
 
 describe('White-Box Testing: Category Controller (Kiểm thử Hộp trắng Module Danh Mục & Khớp BVA)', () => {
@@ -394,6 +396,8 @@ describe('White-Box Testing: Category Controller (Kiểm thử Hộp trắng Mod
     describe('deleteCategory (Xóa danh mục)', () => {
         test('[WB-CAT-22] Nhánh xóa danh mục tồn tại thành công (deleted = 1 -> 204)', async () => {
             req.params.id = '1';
+            Category.findByPk.mockResolvedValue({ id: 1, name: 'To delete' });
+            Product.count.mockResolvedValue(0);
             Category.destroy.mockResolvedValue(1);
 
             await categoryController.deleteCategory(req, res);
@@ -407,11 +411,12 @@ describe('White-Box Testing: Category Controller (Kiểm thử Hộp trắng Mod
             req.params.id = '0';
             await categoryController.deleteCategory(req, res);
             expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Invalid category ID' });
         });
 
-        test('[WB-CAT-24] Nhánh xóa danh mục không tồn tại (deleted = 0 -> 404)', async () => {
+        test('[WB-CAT-24] Nhánh xóa danh mục không tồn tại (not found -> 404)', async () => {
             req.params.id = '999';
-            Category.destroy.mockResolvedValue(0);
+            Category.findByPk.mockResolvedValue(null);
 
             await categoryController.deleteCategory(req, res);
 
@@ -419,14 +424,29 @@ describe('White-Box Testing: Category Controller (Kiểm thử Hộp trắng Mod
             expect(res.json).toHaveBeenCalledWith({ message: 'Not found' });
         });
 
-        test('[WB-CAT-25] Khối catch lỗi cơ sở dữ liệu khi xóa danh mục (500)', async () => {
+        test('[WB-CAT-25] Nhánh danh mục có sản phẩm liên kết (Foreign key constraint -> 400)', async () => {
             req.params.id = '1';
-            Category.destroy.mockRejectedValue(new Error('Foreign key constraint error'));
+            Category.findByPk.mockResolvedValue({ id: 1, name: 'Has Products' });
+            Product.count.mockResolvedValue(3);
+
+            await categoryController.deleteCategory(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Không thể xóa danh mục đang có sản phẩm liên kết (Ràng buộc khóa ngoại)'
+            });
+        });
+
+        test('[WB-CAT-26] Khối catch lỗi cơ sở dữ liệu khi xóa danh mục (500)', async () => {
+            req.params.id = '1';
+            Category.findByPk.mockResolvedValue({ id: 1 });
+            Product.count.mockResolvedValue(0);
+            Category.destroy.mockRejectedValue(new Error('Database error'));
 
             await categoryController.deleteCategory(req, res);
 
             expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ message: 'Foreign key constraint error' });
+            expect(res.json).toHaveBeenCalledWith({ message: 'Database error' });
         });
     });
 });

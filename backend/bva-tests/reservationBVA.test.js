@@ -1,426 +1,1029 @@
-const reservationController = require('../src/controllers/reservationController');
-const { Reservation, RestaurantTable, sequelize } = require('../src/models');
+const mockTransaction = {
+    commit: jest.fn(),
+    rollback: jest.fn()
+};
 
 jest.mock('../src/models', () => ({
+
     Reservation: {
+
         findAll: jest.fn(),
+
         findByPk: jest.fn(),
-        create: jest.fn()
+
+        create: jest.fn(),
+
+        findOne: jest.fn()
+
     },
+
+
     RestaurantTable: {
+
         findOne: jest.fn(),
+
         update: jest.fn()
+
     },
+
+
     User: {},
 
+
     sequelize: {
+
         transaction: jest.fn(),
+
         where: jest.fn(),
+
         fn: jest.fn(),
+
         col: jest.fn(),
+
         literal: jest.fn()
+
     }
+
 }));
 
-describe('BVA Testing: Reservation Controller', () => {
+
+const {
+
+    Reservation,
+
+    RestaurantTable,
+
+    sequelize
+
+} = require('../src/models');
+
+
+const reservationController =
+    require('../src/controllers/reservationController');
+
+
+const createMockResponse = () => {
+
+    const res = {};
+
+    res.status =
+        jest.fn().mockReturnValue(res);
+
+    res.json =
+        jest.fn().mockReturnValue(res);
+
+    return res;
+
+};
+
+
+const createTransaction = () => ({
+
+    commit: jest.fn(),
+
+    rollback: jest.fn()
+
+});
+
+
+
+const createMockReservation = ({
+
+    id = 1,
+
+    reservationTime,
+
+    status = 'CONFIRMED',
+
+    table_id = 1
+
+}) => ({
+
+    id,
+
+    reservationTime,
+
+    status,
+
+    table_id,
+
+
+    save: jest.fn().mockResolvedValue(true)
+
+});
+
+
+
+describe('RESERVATION BVA TEST SUITE', () => {
+
 
     let req;
+
     let res;
+
     let next;
+
     let transaction;
+
+
+
+    const FIXED_NOW =
+        new Date('2026-09-05T10:00:00.000Z');
+
+
 
     beforeEach(() => {
 
-        req = {
-            body: {},
-            params: {},
-            query: {},
-            user: {
-                id: 1
-            }
-        };
-
-        res = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn().mockReturnThis()
-        };
-
-        next = jest.fn();
-
-        transaction = {
-            commit: jest.fn(),
-            rollback: jest.fn()
-        };
-
-        sequelize.transaction.mockResolvedValue(transaction);
 
         jest.clearAllMocks();
 
-        sequelize.transaction.mockResolvedValue(transaction);
+
+
+        jest.useFakeTimers();
+
+        jest.setSystemTime(FIXED_NOW);
+
+
+
+        req = {
+
+            params: {},
+
+            body: {}
+
+        };
+
+
+        res = createMockResponse();
+
+
+
+        next = jest.fn();
+
+
+
+        transaction = createTransaction();
+
+
+        sequelize.transaction
+            .mockResolvedValue(transaction);
+
+
+
+        sequelize.col.mockImplementation(
+            value => value
+        );
+
+
+        sequelize.literal.mockImplementation(
+            value => value
+        );
+
+
+        sequelize.fn.mockImplementation(
+            (...args) => args
+        );
+
+
+        sequelize.where.mockImplementation(
+            (...args) => args
+        );
+
     });
 
 
+    afterEach(() => {
 
-    describe('BVA - createReservation: numberOfGuests', () => {
+        jest.useRealTimers();
 
-        test('[BVA-RES-01] Min boundary: numberOfGuests = 1', async () => {
+    });
 
-            req.body = {
-                guestName: 'Trí',
-                guestPhone: '0900000001',
-                reservationTime: '2026-08-25T18:00:00',
-                numberOfGuests: 1
-            };
 
-            Reservation.findAll.mockResolvedValue([]);
+    describe(
+        'STANDARD BVA - CHECK-IN TIME (4n+1)',
+        () => {
 
-            const mockTable = {
+
+            test(
+                'BVA-01: should allow check-in exactly 30 minutes before reservation time',
+                async () => {
+
+
+
+                    const reservationTime =
+                        new Date(
+                            FIXED_NOW.getTime()
+                            + 30 * 60 * 1000
+                        );
+
+
+                    const reservation =
+                        createMockReservation({
+
+                            reservationTime
+
+                        });
+
+
+                    Reservation.findByPk
+                        .mockResolvedValue(
+                            reservation
+                        );
+
+
+                    await reservationController.checkIn(
+
+                        {
+                            params: {
+                                id: 1
+                            }
+                        },
+
+                        res,
+
+                        next
+
+                    );
+
+
+                    expect(
+                        reservation.status
+                    ).toBe(
+                        'CHECKED_IN'
+                    );
+
+
+                    expect(
+                        reservation.save
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        RestaurantTable.update
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.commit
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.rollback
+                    ).not.toHaveBeenCalled();
+
+
+                    expect(
+                        res.json
+                    ).toHaveBeenCalledWith({
+
+                        message:
+                            'Xác nhận nhận bàn thành công'
+
+                    });
+
+                }
+
+            );
+
+
+
+            test(
+                'BVA-02: should allow check-in 29 minutes before reservation time',
+                async () => {
+
+
+                    const reservationTime =
+                        new Date(
+                            FIXED_NOW.getTime()
+                            + 29 * 60 * 1000
+                        );
+
+
+                    const reservation =
+                        createMockReservation({
+
+                            reservationTime
+
+                        });
+
+
+                    Reservation.findByPk
+                        .mockResolvedValue(
+                            reservation
+                        );
+
+
+                    await reservationController.checkIn(
+
+                        {
+                            params: {
+                                id: 1
+                            }
+                        },
+
+                        res,
+
+                        next
+
+                    );
+
+
+                    expect(
+                        reservation.status
+                    ).toBe(
+                        'CHECKED_IN'
+                    );
+
+
+                    expect(
+                        transaction.commit
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        res.status
+                    ).not.toHaveBeenCalledWith(
+                        400
+                    );
+
+                }
+
+            );
+
+
+            test(
+                'BVA-03: should allow check-in exactly at reservation time',
+                async () => {
+
+
+                    const reservation =
+                        createMockReservation({
+
+                            reservationTime:
+                                FIXED_NOW
+
+                        });
+
+
+                    Reservation.findByPk
+                        .mockResolvedValue(
+                            reservation
+                        );
+
+
+                    await reservationController.checkIn(
+
+                        {
+                            params: {
+                                id: 1
+                            }
+                        },
+
+                        res,
+
+                        next
+
+                    );
+
+
+                    expect(
+                        reservation.status
+                    ).toBe(
+                        'CHECKED_IN'
+                    );
+
+
+                    expect(
+                        reservation.save
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.commit
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.rollback
+                    ).not.toHaveBeenCalled();
+
+                }
+
+            );
+
+
+            test(
+                'BVA-04: should allow check-in 29 minutes after reservation time',
+                async () => {
+
+
+                    const reservationTime =
+                        new Date(
+                            FIXED_NOW.getTime()
+                            - 29 * 60 * 1000
+                        );
+
+
+                    const reservation =
+                        createMockReservation({
+
+                            reservationTime
+
+                        });
+
+
+                    Reservation.findByPk
+                        .mockResolvedValue(
+                            reservation
+                        );
+
+
+                    await reservationController.checkIn(
+
+                        {
+                            params: {
+                                id: 1
+                            }
+                        },
+
+                        res,
+
+                        next
+
+                    );
+
+
+                    expect(
+                        reservation.status
+                    ).toBe(
+                        'CHECKED_IN'
+                    );
+
+
+                    expect(
+                        transaction.commit
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.rollback
+                    ).not.toHaveBeenCalled();
+
+                }
+
+            );
+
+
+
+            test(
+                'BVA-05: should allow check-in exactly 30 minutes after reservation time',
+                async () => {
+
+
+                    const reservationTime =
+                        new Date(
+                            FIXED_NOW.getTime()
+                            - 30 * 60 * 1000
+                        );
+
+
+                    const reservation =
+                        createMockReservation({
+
+                            reservationTime
+
+                        });
+
+
+                    Reservation.findByPk
+                        .mockResolvedValue(
+                            reservation
+                        );
+
+
+                    await reservationController.checkIn(
+
+                        {
+                            params: {
+                                id: 1
+                            }
+                        },
+
+                        res,
+
+                        next
+
+                    );
+
+
+                    expect(
+                        reservation.status
+                    ).toBe(
+                        'CHECKED_IN'
+                    );
+
+
+                    expect(
+                        transaction.commit
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        res.json
+                    ).toHaveBeenCalledWith({
+
+                        message:
+                            'Xác nhận nhận bàn thành công'
+
+                    });
+
+                }
+
+            );
+
+
+        }
+
+    );
+
+
+
+    describe(
+        'ROBUST BVA - OUTSIDE CHECK-IN BOUNDARY',
+        () => {
+
+            test(
+                'RBVA-01: should reject check-in 31 minutes before reservation time',
+                async () => {
+
+
+                    const reservationTime =
+                        new Date(
+                            FIXED_NOW.getTime()
+                            + 31 * 60 * 1000
+                        );
+
+
+                    const reservation =
+                        createMockReservation({
+
+                            reservationTime
+
+                        });
+
+
+                    Reservation.findByPk
+                        .mockResolvedValue(
+                            reservation
+                        );
+
+
+                    await reservationController.checkIn(
+
+                        {
+                            params: {
+                                id: 1
+                            }
+                        },
+
+                        res,
+
+                        next
+
+                    );
+
+
+                    expect(
+                        transaction.rollback
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.commit
+                    ).not.toHaveBeenCalled();
+
+
+                    expect(
+                        reservation.status
+                    ).toBe(
+                        'CONFIRMED'
+                    );
+
+
+                    expect(
+                        res.status
+                    ).toHaveBeenCalledWith(
+                        400
+                    );
+
+
+                    expect(
+                        res.json
+                    ).toHaveBeenCalledWith({
+
+                        message:
+                            'Chỉ có thể nhấn nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn!'
+
+                    });
+
+                }
+
+            );
+
+
+
+            test(
+                'RBVA-02: should reject check-in 31 minutes after reservation time',
+                async () => {
+
+
+                    const reservationTime =
+                        new Date(
+                            FIXED_NOW.getTime()
+                            - 31 * 60 * 1000
+                        );
+
+
+                    const reservation =
+                        createMockReservation({
+
+                            reservationTime
+
+                        });
+
+
+                    Reservation.findByPk
+                        .mockResolvedValue(
+                            reservation
+                        );
+
+
+                    await reservationController.checkIn(
+
+                        {
+                            params: {
+                                id: 1
+                            }
+                        },
+
+                        res,
+
+                        next
+
+                    );
+
+
+                    expect(
+                        transaction.rollback
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.commit
+                    ).not.toHaveBeenCalled();
+
+
+                    expect(
+                        reservation.status
+                    ).toBe(
+                        'CONFIRMED'
+                    );
+
+
+                    expect(
+                        res.status
+                    ).toHaveBeenCalledWith(
+                        400
+                    );
+
+
+                    expect(
+                        res.json
+                    ).toHaveBeenCalledWith({
+
+                        message:
+                            'Chỉ có thể nhấn nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn!'
+
+                    });
+
+                }
+
+            );
+
+
+        }
+
+    );
+
+
+
+    describe(
+        'CONDITIONAL BOUNDARY - TABLE CAPACITY',
+        () => {
+
+
+            const availableTable = {
+
                 id: 1,
+
                 tableNumber: 1,
+
                 capacity: 4
+
             };
 
-            RestaurantTable.findOne.mockResolvedValue(mockTable);
 
-            const mockReservation = {
-                toJSON: () => ({
-                    id: 1,
-                    ...req.body
-                })
-            };
-
-            Reservation.create.mockResolvedValue(mockReservation);
-
-            await reservationController.createReservation(req, res, next);
-
-            expect(Reservation.create).toHaveBeenCalled();
-
-            expect(res.status).toHaveBeenCalledWith(201);
-
-            expect(transaction.commit).toHaveBeenCalled();
-        });
+            beforeEach(() => {
 
 
-        test('[BVA-RES-02] Below minimum: numberOfGuests = 0', async () => {
 
-            req.body = {
-                guestName: 'Trí',
-                guestPhone: '0900000001',
-                reservationTime: '2026-08-25T18:00:00',
-                numberOfGuests: 0
-            };
-
-            Reservation.findAll.mockResolvedValue([]);
-
-            RestaurantTable.findOne.mockResolvedValue(null);
-
-            await reservationController.createReservation(req, res, next);
-
-            expect(res.status).toHaveBeenCalledWith(400);
-
-            expect(transaction.rollback).toHaveBeenCalled();
-        });
+                Reservation.findAll
+                    .mockResolvedValue([]);
 
 
-        test('[BVA-RES-03] Just above minimum: numberOfGuests = 2', async () => {
-
-            req.body = {
-                guestName: 'Trí',
-                guestPhone: '0900000001',
-                reservationTime: '2026-08-25T18:00:00',
-                numberOfGuests: 2
-            };
-
-            Reservation.findAll.mockResolvedValue([]);
-
-            const mockTable = {
-                id: 2,
-                tableNumber: 2,
-                capacity: 4
-            };
-
-            RestaurantTable.findOne.mockResolvedValue(mockTable);
-
-            Reservation.create.mockResolvedValue({
-                toJSON: () => ({
-                    id: 2,
-                    ...req.body
-                })
             });
 
-            await reservationController.createReservation(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(201);
+            test(
+                'CAP-01: should accept 3 guests for table capacity 4',
+                async () => {
 
-            expect(transaction.commit).toHaveBeenCalled();
-        });
 
-    });
+                    RestaurantTable.findOne
+                        .mockResolvedValue(
+                            availableTable
+                        );
 
 
-    describe('BVA - Table Capacity', () => {
+                    const createdReservation = {
 
-        test('[BVA-RES-04] Exact boundary: guests = table capacity = 4', async () => {
+                        id: 1,
 
-            req.body = {
-                guestName: 'Trí',
-                guestPhone: '0900000001',
-                reservationTime: '2026-08-25T18:00:00',
-                numberOfGuests: 4
-            };
+                        toJSON:
+                            jest.fn().mockReturnValue({
 
-            Reservation.findAll.mockResolvedValue([]);
+                                id: 1,
 
-            const mockTable = {
-                id: 1,
-                tableNumber: 1,
-                capacity: 4
-            };
+                                numberOfGuests: 3
 
-            RestaurantTable.findOne.mockResolvedValue(mockTable);
+                            })
 
-            Reservation.create.mockResolvedValue({
-                toJSON: () => ({
-                    id: 1,
-                    ...req.body
-                })
-            });
+                    };
 
-            await reservationController.createReservation(req, res, next);
 
-            expect(RestaurantTable.findOne).toHaveBeenCalled();
+                    Reservation.create
+                        .mockResolvedValue(
+                            createdReservation
+                        );
 
-            expect(res.status).toHaveBeenCalledWith(201);
-        });
 
+                    await reservationController.createReservation(
 
-        test('[BVA-RES-05] Above boundary: guests = 5 but only capacity = 4', async () => {
+                        {
 
-            req.body = {
-                guestName: 'Trí',
-                guestPhone: '0900000001',
-                reservationTime: '2026-08-25T18:00:00',
-                numberOfGuests: 5
-            };
+                            body: {
 
-            Reservation.findAll.mockResolvedValue([]);
+                                guestName:
+                                    'Nguyen Van A',
 
-            RestaurantTable.findOne.mockResolvedValue(null);
+                                guestPhone:
+                                    '0900000000',
 
-            await reservationController.createReservation(req, res, next);
+                                reservationTime:
+                                    '2026-10-01T10:00:00',
 
-            expect(res.status).toHaveBeenCalledWith(400);
+                                numberOfGuests:
+                                    3
 
-            expect(transaction.rollback).toHaveBeenCalled();
-        });
+                            }
 
-    });
+                        },
 
+                        res,
 
+                        next
 
-    describe('BVA - checkIn time boundary ±30 minutes', () => {
+                    );
 
-        test('[BVA-RES-06] Lower boundary: exactly 30 minutes before', async () => {
 
-            const now = new Date();
+                    expect(
+                        Reservation.findAll
+                    ).toHaveBeenCalled();
 
-            const reservationTime =
-                new Date(now.getTime() + 30 * 60 * 1000);
 
-            req.params.id = 1;
+                    expect(
+                        RestaurantTable.findOne
+                    ).toHaveBeenCalled();
 
-            const reservation = {
-                id: 1,
-                table_id: 1,
-                status: 'CONFIRMED',
-                reservationTime,
-                save: jest.fn()
-            };
 
-            Reservation.findByPk.mockResolvedValue(reservation);
+                    expect(
+                        Reservation.create
+                    ).toHaveBeenCalled();
 
-            await reservationController.checkIn(req, res, next);
 
-            expect(reservation.save).toHaveBeenCalled();
+                    expect(
+                        transaction.commit
+                    ).toHaveBeenCalled();
 
-            expect(transaction.commit).toHaveBeenCalled();
-        });
 
+                    expect(
+                        transaction.rollback
+                    ).not.toHaveBeenCalled();
 
-        test('[BVA-RES-07] Below lower boundary: more than 30 minutes early', async () => {
 
-            const now = new Date();
+                    expect(
+                        res.status
+                    ).toHaveBeenCalledWith(
+                        201
+                    );
 
-            const reservationTime =
-                new Date(now.getTime() + 31 * 60 * 1000);
 
-            req.params.id = 1;
+                }
 
-            Reservation.findByPk.mockResolvedValue({
-                id: 1,
-                table_id: 1,
-                status: 'CONFIRMED',
-                reservationTime
-            });
+            );
 
-            await reservationController.checkIn(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(400);
 
-            expect(transaction.rollback).toHaveBeenCalled();
-        });
+            test(
+                'CAP-02: should accept exactly 4 guests for table capacity 4',
+                async () => {
 
 
-       test('[BVA-RES-08] Upper boundary: exactly 30 minutes after', async () => {
+                    RestaurantTable.findOne
+                        .mockResolvedValue(
+                            availableTable
+                        );
 
-    const now = new Date();
 
-    jest.useFakeTimers();
-    jest.setSystemTime(now);
+                    const createdReservation = {
 
-    const reservationTime =
-        new Date(now.getTime() - 30 * 60 * 1000);
+                        id: 2,
 
-    req.params.id = 1;
+                        toJSON:
+                            jest.fn().mockReturnValue({
 
-    const reservation = {
-        id: 1,
-        table_id: 1,
-        status: 'PENDING',
-        reservationTime,
-        save: jest.fn().mockResolvedValue(true)
-    };
+                                id: 2,
 
-    Reservation.findByPk.mockResolvedValue(reservation);
+                                numberOfGuests: 4
 
-    await reservationController.checkIn(req, res, next);
+                            })
 
-    expect(reservation.save).toHaveBeenCalled();
+                    };
 
-    expect(transaction.commit).toHaveBeenCalled();
 
-    jest.useRealTimers();
-});
+                    Reservation.create
+                        .mockResolvedValue(
+                            createdReservation
+                        );
 
-        test('[BVA-RES-09] Above upper boundary: more than 30 minutes late', async () => {
 
-            const now = new Date();
+                    await reservationController.createReservation(
 
-            const reservationTime =
-                new Date(now.getTime() - 31 * 60 * 1000);
+                        {
 
-            req.params.id = 1;
+                            body: {
 
-            Reservation.findByPk.mockResolvedValue({
-                id: 1,
-                table_id: 1,
-                status: 'CONFIRMED',
-                reservationTime
-            });
+                                guestName:
+                                    'Nguyen Van B',
 
-            await reservationController.checkIn(req, res, next);
+                                guestPhone:
+                                    '0900000001',
 
-            expect(res.status).toHaveBeenCalledWith(400);
+                                reservationTime:
+                                    '2026-10-01T10:00:00',
 
-            expect(transaction.rollback).toHaveBeenCalled();
-        });
+                                numberOfGuests:
+                                    4
 
-    });
+                            }
 
+                        },
 
-    describe('BVA - Reservation Status', () => {
+                        res,
 
-        test('[BVA-RES-10] Boundary valid: PENDING -> CONFIRMED', async () => {
+                        next
 
-            req.params.id = 1;
+                    );
 
-            const reservation = {
-                id: 1,
-                status: 'PENDING',
-                save: jest.fn()
-            };
 
-            Reservation.findByPk.mockResolvedValue(reservation);
+                    expect(
+                        RestaurantTable.findOne
+                    ).toHaveBeenCalled();
 
-            await reservationController.confirmReservation(req, res, next);
 
-            expect(reservation.status).toBe('CONFIRMED');
+                    expect(
+                        Reservation.create
+                    ).toHaveBeenCalled();
 
-            expect(reservation.save).toHaveBeenCalled();
-        });
 
+                    expect(
+                        transaction.commit
+                    ).toHaveBeenCalled();
 
-        test('[BVA-RES-11] Invalid boundary: CONFIRMED cannot confirm again', async () => {
 
-            req.params.id = 1;
+                    expect(
+                        res.status
+                    ).toHaveBeenCalledWith(
+                        201
+                    );
 
-            Reservation.findByPk.mockResolvedValue({
-                id: 1,
-                status: 'CONFIRMED',
-                save: jest.fn()
-            });
 
-            await reservationController.confirmReservation(req, res, next);
+                }
 
-            expect(res.status).toHaveBeenCalledWith(400);
-        });
+            );
 
 
-        test('[BVA-RES-12] Valid cancel boundary: PENDING', async () => {
+            test(
+                'CAP-03: should reject 5 guests when no suitable table is available',
+                async () => {
 
-            req.params.id = 1;
 
-            const reservation = {
-                id: 1,
-                status: 'PENDING',
-                save: jest.fn()
-            };
+                    RestaurantTable.findOne
+                        .mockResolvedValue(
+                            null
+                        );
 
-            Reservation.findByPk.mockResolvedValue(reservation);
 
-            await reservationController.cancelReservation(req, res, next);
+                    await reservationController.createReservation(
 
-            expect(reservation.status).toBe('CANCELLED');
+                        {
 
-            expect(reservation.save).toHaveBeenCalled();
-        });
+                            body: {
 
+                                guestName:
+                                    'Nguyen Van C',
 
-        test('[BVA-RES-13] Valid cancel boundary: CONFIRMED', async () => {
+                                guestPhone:
+                                    '0900000002',
 
-            req.params.id = 1;
+                                reservationTime:
+                                    '2026-10-01T10:00:00',
 
-            const reservation = {
-                id: 1,
-                status: 'CONFIRMED',
-                save: jest.fn()
-            };
+                                numberOfGuests:
+                                    5
 
-            Reservation.findByPk.mockResolvedValue(reservation);
+                            }
 
-            await reservationController.cancelReservation(req, res, next);
+                        },
 
-            expect(reservation.status).toBe('CANCELLED');
+                        res,
 
-            expect(reservation.save).toHaveBeenCalled();
-        });
+                        next
 
+                    );
 
-        test('[BVA-RES-14] Invalid cancel boundary: CHECKED_IN', async () => {
 
-            req.params.id = 1;
+                    expect(
+                        Reservation.findAll
+                    ).toHaveBeenCalled();
 
-            Reservation.findByPk.mockResolvedValue({
-                id: 1,
-                status: 'CHECKED_IN',
-                save: jest.fn()
-            });
 
-            await reservationController.cancelReservation(req, res, next);
+                    expect(
+                        RestaurantTable.findOne
+                    ).toHaveBeenCalled();
 
-            expect(res.status).toHaveBeenCalledWith(400);
-        });
 
-    });
+                    expect(
+                        Reservation.create
+                    ).not.toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.rollback
+                    ).toHaveBeenCalled();
+
+
+                    expect(
+                        transaction.commit
+                    ).not.toHaveBeenCalled();
+
+
+                    expect(
+                        res.status
+                    ).toHaveBeenCalledWith(
+                        400
+                    );
+
+
+                    expect(
+                        res.json
+                    ).toHaveBeenCalledWith({
+
+                        message:
+                            'Rất tiếc, hiện tại không còn bàn trống phù hợp với số lượng khách và khung giờ bạn yêu cầu. Vui lòng chọn khung giờ khác!'
+
+                    });
+
+
+                }
+
+            );
+
+
+        }
+
+    );
+
 
 });
