@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "0d8e7022-1327-4f7e-ad5a-52c0e4d262e9",
+    "_postman_id": "8c51c9f7-9bf3-4c32-b7a8-894dbb0088c9",
     "name": "FutureSuShi - BVA Points",
     "description": "5 BVA cases for SRS current_balance [0, 10,000,000]. Each case resets User.points via the existing admin User API, creates an eligible Order, marks it READY, pays it CASH, then calls /api/points/add-points. Uses target_user_id=2 from the existing environment. Point rate oracle: floor(finalPrice/100*5).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "57473064",
-    "_collection_link": "https://go.postman.co/collection/57473064-0d8e7022-1327-4f7e-ad5a-52c0e4d262e9?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/57473064-8c51c9f7-9bf3-4c32-b7a8-894dbb0088c9?source=collection_link"
   },
   "item": [
     {
@@ -17,16 +17,25 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
-                  "const data=pm.response.json();",
-                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
-                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
-                  "const u=users.find(x=>Number(x.id)===targetId);",
-                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
-                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
-                ]
+                  "pm.test('Get users status is 200', () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "const users = Array.isArray(data) ? data : (data.users || data.data || []);",
+                  "const u = users.find(x => x && x.id != null);",
+                  "pm.test('User exists', () => {",
+                  "    pm.expect(u, 'Không tìm thấy user nào').to.exist;",
+                  "});",
+                  "if (u) {",
+                  "    pm.environment.set('target_user_id', String(u.id));",
+                  "    pm.environment.set('testUserId', String(u.id));",
+                  "    pm.environment.set('testPhone', String(u.phone || ''));",
+                  "    pm.environment.set('testUserJson', JSON.stringify(u));",
+                  "    console.log('Selected user ID:', u.id);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -49,7 +58,14 @@
               }
             ],
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
             },
             "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
           },
@@ -61,7 +77,6 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
                   "pm.environment.set('u_fullName',String(u.fullName||''));",
@@ -70,17 +85,22 @@
                   "pm.environment.set('u_avatar',String(u.avatar||''));",
                   "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
                   "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
                   "pm.environment.set('currentBalance','5000000');"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -112,7 +132,15 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users/{{target_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{target_user_id}}"
+              ]
             }
           },
           "response": []
@@ -123,14 +151,16 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
                   "const d=pm.response.json(); const o=d.data||d.order||d;",
                   "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
                   "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
                   "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -154,7 +184,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 1\"\n}",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 11,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 1\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -162,7 +192,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
             }
           },
           "response": []
@@ -208,7 +245,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "status"
+              ]
             },
             "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
           },
@@ -220,10 +266,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -255,7 +303,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "pay"
+              ]
             },
             "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
           },
@@ -267,7 +324,6 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
                   "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
@@ -286,7 +342,10 @@
                   "} else {",
                   "  if(5000000 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
                   "}"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -318,12 +377,14 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "raw": "{{baseUrl}}/api/points/add-points",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "{{pointEndpoint}}"
+                "api",
+                "points",
+                "add-points"
               ]
             },
             "description": "SRS BVA current_balance=5000000. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
@@ -344,13 +405,20 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
-                  "const data=pm.response.json();",
-                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
-                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
-                  "const u=users.find(x=>Number(x.id)===targetId);",
-                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
-                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
+                  "pm.test('Get users status is 200', () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "const users = Array.isArray(data) ? data : (data.users || data.data || []);",
+                  "const u = users.find(x => x && x.id != null);",
+                  "pm.test('User exists', () => {",
+                  "    pm.expect(u, 'Không tìm thấy user nào').to.exist;",
+                  "});",
+                  "if (u) {",
+                  "    pm.environment.set('target_user_id', String(u.id));",
+                  "    pm.environment.set('testUserId', String(u.id));",
+                  "    pm.environment.set('testPhone', String(u.phone || ''));",
+                  "    pm.environment.set('testUserJson', JSON.stringify(u));",
+                  "    console.log('Selected user ID:', u.id);",
+                  "}"
                 ]
               }
             }
@@ -374,7 +442,14 @@
               }
             ],
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
             },
             "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
           },
@@ -386,7 +461,6 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
                   "pm.environment.set('u_fullName',String(u.fullName||''));",
@@ -395,17 +469,22 @@
                   "pm.environment.set('u_avatar',String(u.avatar||''));",
                   "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
                   "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
                   "pm.environment.set('currentBalance','0');"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -437,7 +516,15 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users/{{target_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{target_user_id}}"
+              ]
             }
           },
           "response": []
@@ -448,14 +535,16 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
                   "const d=pm.response.json(); const o=d.data||d.order||d;",
                   "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
                   "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
                   "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -479,7 +568,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 2\"\n}",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 11,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 2\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -487,7 +576,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
             }
           },
           "response": []
@@ -498,10 +594,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -533,7 +631,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "status"
+              ]
             },
             "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
           },
@@ -545,10 +652,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -580,7 +689,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "pay"
+              ]
             },
             "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
           },
@@ -592,7 +710,6 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
                   "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
@@ -611,7 +728,10 @@
                   "} else {",
                   "  if(0 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
                   "}"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -643,12 +763,14 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "raw": "{{baseUrl}}/api/points/add-points",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "{{pointEndpoint}}"
+                "api",
+                "points",
+                "add-points"
               ]
             },
             "description": "SRS BVA current_balance=0. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
@@ -667,16 +789,25 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
-                  "const data=pm.response.json();",
-                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
-                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
-                  "const u=users.find(x=>Number(x.id)===targetId);",
-                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
-                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
-                ]
+                  "pm.test('Get users status is 200', () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "const users = Array.isArray(data) ? data : (data.users || data.data || []);",
+                  "const u = users.find(x => x && x.id != null);",
+                  "pm.test('User exists', () => {",
+                  "    pm.expect(u, 'Không tìm thấy user nào').to.exist;",
+                  "});",
+                  "if (u) {",
+                  "    pm.environment.set('target_user_id', String(u.id));",
+                  "    pm.environment.set('testUserId', String(u.id));",
+                  "    pm.environment.set('testPhone', String(u.phone || ''));",
+                  "    pm.environment.set('testUserJson', JSON.stringify(u));",
+                  "    console.log('Selected user ID:', u.id);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -699,7 +830,14 @@
               }
             ],
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
             },
             "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
           },
@@ -711,7 +849,6 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
                   "pm.environment.set('u_fullName',String(u.fullName||''));",
@@ -720,17 +857,22 @@
                   "pm.environment.set('u_avatar',String(u.avatar||''));",
                   "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
                   "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
                   "pm.environment.set('currentBalance','1');"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -762,7 +904,15 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users/{{target_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{target_user_id}}"
+              ]
             }
           },
           "response": []
@@ -773,14 +923,16 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
                   "const d=pm.response.json(); const o=d.data||d.order||d;",
                   "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
                   "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
                   "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -804,7 +956,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 3\"\n}",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 11,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 3\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -812,7 +964,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
             }
           },
           "response": []
@@ -823,10 +982,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -858,7 +1019,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "status"
+              ]
             },
             "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
           },
@@ -870,10 +1040,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -905,7 +1077,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "pay"
+              ]
             },
             "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
           },
@@ -968,12 +1149,14 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "raw": "{{baseUrl}}/api/points/add-points",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "{{pointEndpoint}}"
+                "api",
+                "points",
+                "add-points"
               ]
             },
             "description": "SRS BVA current_balance=1. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
@@ -992,16 +1175,25 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
-                  "const data=pm.response.json();",
-                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
-                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
-                  "const u=users.find(x=>Number(x.id)===targetId);",
-                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
-                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
-                ]
+                  "pm.test('Get users status is 200', () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "const users = Array.isArray(data) ? data : (data.users || data.data || []);",
+                  "const u = users.find(x => x && x.id != null);",
+                  "pm.test('User exists', () => {",
+                  "    pm.expect(u, 'Không tìm thấy user nào').to.exist;",
+                  "});",
+                  "if (u) {",
+                  "    pm.environment.set('target_user_id', String(u.id));",
+                  "    pm.environment.set('testUserId', String(u.id));",
+                  "    pm.environment.set('testPhone', String(u.phone || ''));",
+                  "    pm.environment.set('testUserJson', JSON.stringify(u));",
+                  "    console.log('Selected user ID:', u.id);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1024,7 +1216,14 @@
               }
             ],
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
             },
             "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
           },
@@ -1036,7 +1235,6 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
                   "pm.environment.set('u_fullName',String(u.fullName||''));",
@@ -1045,17 +1243,22 @@
                   "pm.environment.set('u_avatar',String(u.avatar||''));",
                   "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
                   "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
                   "pm.environment.set('currentBalance','9999999');"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1087,7 +1290,15 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users/{{target_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{target_user_id}}"
+              ]
             }
           },
           "response": []
@@ -1098,14 +1309,16 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
                   "const d=pm.response.json(); const o=d.data||d.order||d;",
                   "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
                   "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
                   "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1129,7 +1342,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 4\"\n}",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 11,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 4\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1137,7 +1350,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
             }
           },
           "response": []
@@ -1148,10 +1368,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1183,7 +1405,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "status"
+              ]
             },
             "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
           },
@@ -1195,10 +1426,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1230,7 +1463,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "pay"
+              ]
             },
             "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
           },
@@ -1242,7 +1484,6 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
                   "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
@@ -1261,7 +1502,10 @@
                   "} else {",
                   "  if(9999999 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
                   "}"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1293,12 +1537,14 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "raw": "{{baseUrl}}/api/points/add-points",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "{{pointEndpoint}}"
+                "api",
+                "points",
+                "add-points"
               ]
             },
             "description": "SRS BVA current_balance=9999999. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
@@ -1319,13 +1565,20 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
-                  "const data=pm.response.json();",
-                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
-                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
-                  "const u=users.find(x=>Number(x.id)===targetId);",
-                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
-                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
+                  "pm.test('Get users status is 200', () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "const users = Array.isArray(data) ? data : (data.users || data.data || []);",
+                  "const u = users.find(x => x && x.id != null);",
+                  "pm.test('User exists', () => {",
+                  "    pm.expect(u, 'Không tìm thấy user nào').to.exist;",
+                  "});",
+                  "if (u) {",
+                  "    pm.environment.set('target_user_id', String(u.id));",
+                  "    pm.environment.set('testUserId', String(u.id));",
+                  "    pm.environment.set('testPhone', String(u.phone || ''));",
+                  "    pm.environment.set('testUserJson', JSON.stringify(u));",
+                  "    console.log('Selected user ID:', u.id);",
+                  "}"
                 ]
               }
             }
@@ -1349,7 +1602,14 @@
               }
             ],
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
             },
             "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
           },
@@ -1361,7 +1621,6 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
                   "pm.environment.set('u_fullName',String(u.fullName||''));",
@@ -1370,17 +1629,22 @@
                   "pm.environment.set('u_avatar',String(u.avatar||''));",
                   "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
                   "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
                   "pm.environment.set('currentBalance','10000000');"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1412,7 +1676,15 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/users/{{target_user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{target_user_id}}"
+              ]
             }
           },
           "response": []
@@ -1423,14 +1695,16 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
                   "const d=pm.response.json(); const o=d.data||d.order||d;",
                   "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
                   "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
                   "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1454,7 +1728,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 5\"\n}",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 11,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 5\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1462,7 +1736,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
             }
           },
           "response": []
@@ -1473,10 +1754,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1508,7 +1791,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "status"
+              ]
             },
             "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
           },
@@ -1520,10 +1812,12 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1555,7 +1849,16 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/orders/{{currentOrderId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{currentOrderId}}",
+                "pay"
+              ]
             },
             "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
           },
@@ -1567,7 +1870,6 @@
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
                   "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
@@ -1586,7 +1888,10 @@
                   "} else {",
                   "  if(10000000 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
                   "}"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -1618,12 +1923,14 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "raw": "{{baseUrl}}/api/points/add-points",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "{{pointEndpoint}}"
+                "api",
+                "points",
+                "add-points"
               ]
             },
             "description": "SRS BVA current_balance=10000000. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
@@ -1668,7 +1975,15 @@
           }
         },
         "url": {
-          "raw": ""
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
         }
       },
       "response": []
