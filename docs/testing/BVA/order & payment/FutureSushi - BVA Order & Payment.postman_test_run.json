@@ -1,0 +1,456 @@
+{
+	"id": "8294cadd-95ad-45af-94c8-16a362c6bb66",
+	"name": "FutureSushi - BVA Order & Payment",
+	"timestamp": "2026-09-14T06:05:50.524Z",
+	"collection_id": "58206046-77fb4a34-2fee-4708-97a8-d7cb117d77fb",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 12,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2026-09-14T06:05:32.214Z",
+	"totalFail": 2,
+	"results": [
+		{
+			"id": "18626d0c-9d88-4abe-82da-7bb198374c95",
+			"name": "TC_AUTH_001 - Đăng nhập tài khoản Admin lấy Token JWT",
+			"url": "http://localhost:3000/api/auth/login",
+			"time": 1083,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"[TC_AUTH_001] Status 200 OK & Lấy token JWT": true
+			},
+			"testPassFailCounts": {
+				"[TC_AUTH_001] Status 200 OK & Lấy token JWT": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1083
+			],
+			"allTests": [
+				{
+					"[TC_AUTH_001] Status 200 OK & Lấy token JWT": true
+				}
+			]
+		},
+		{
+			"id": "d36d7901-3e03-4e8d-8c2c-ccf4d2751abb",
+			"name": "TC_BVA_BASE - Giá trị danh định Nominal (qty=50, points=500, price=150.000đ)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1095,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_BASE] Status 201 Created & Tính toán chính xác giá trị danh định": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_BASE] Status 201 Created & Tính toán chính xác giá trị danh định": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1095
+			],
+			"allTests": [
+				{
+					"[TC_BVA_BASE] Status 201 Created & Tính toán chính xác giá trị danh định": true
+				}
+			]
+		},
+		{
+			"id": "8b9f7ea7-ebfc-4809-aef8-66cd98f31a1a",
+			"name": "TC_BVA_Q_01 - Số lượng món biên tối thiểu Min (quantity = 1)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1102,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_Q_01] Status 201 & total=150.000đ, discount=500đ, final=149.500đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_Q_01] Status 201 & total=150.000đ, discount=500đ, final=149.500đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1102
+			],
+			"allTests": [
+				{
+					"[TC_BVA_Q_01] Status 201 & total=150.000đ, discount=500đ, final=149.500đ": true
+				}
+			]
+		},
+		{
+			"id": "3d1b939e-9197-4d7c-b7da-bc98e0886003",
+			"name": "TC_BVA_Q_02 - Số lượng món lân cận tối thiểu Min+ (quantity = 2)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1114,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_Q_02] Status 201 & total=300.000đ, discount=500đ, final=299.500đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_Q_02] Status 201 & total=300.000đ, discount=500đ, final=299.500đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1114
+			],
+			"allTests": [
+				{
+					"[TC_BVA_Q_02] Status 201 & total=300.000đ, discount=500đ, final=299.500đ": true
+				}
+			]
+		},
+		{
+			"id": "47808421-7da8-428b-a831-48d2b83e29ea",
+			"name": "TC_BVA_Q_03 - Số lượng món lân cận tối đa Max- (quantity = 98)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1096,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_Q_03] Status 201 & total=14.700.000đ, discount=500đ, final=14.699.500đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_Q_03] Status 201 & total=14.700.000đ, discount=500đ, final=14.699.500đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1096
+			],
+			"allTests": [
+				{
+					"[TC_BVA_Q_03] Status 201 & total=14.700.000đ, discount=500đ, final=14.699.500đ": true
+				}
+			]
+		},
+		{
+			"id": "c7f75d75-d5c0-4e13-85aa-d0c615687234",
+			"name": "TC_BVA_Q_04 - Số lượng món biên tối đa Max (quantity = 99)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1106,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_Q_04] Status 201 & total=14.850.000đ, discount=500đ, final=14.849.500đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_Q_04] Status 201 & total=14.850.000đ, discount=500đ, final=14.849.500đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1106
+			],
+			"allTests": [
+				{
+					"[TC_BVA_Q_04] Status 201 & total=14.850.000đ, discount=500đ, final=14.849.500đ": true
+				}
+			]
+		},
+		{
+			"id": "77910b02-a16a-4c53-a289-49a705134079",
+			"name": "TC_BVA_P_01 - Điểm tích lũy biên tối thiểu Min (used_points = 0)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 878,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_P_01] Status 201 & total=7.500.000đ, discount=0đ, final=7.500.000đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_P_01] Status 201 & total=7.500.000đ, discount=0đ, final=7.500.000đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				878
+			],
+			"allTests": [
+				{
+					"[TC_BVA_P_01] Status 201 & total=7.500.000đ, discount=0đ, final=7.500.000đ": true
+				}
+			]
+		},
+		{
+			"id": "ea6c0871-1c43-4793-95e3-f0291b5809e8",
+			"name": "TC_BVA_P_02 - Điểm tích lũy lân cận tối thiểu Min+ (used_points = 1)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1102,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_P_02] Status 201 & total=7.500.000đ, discount=1đ, final=7.499.999đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_P_02] Status 201 & total=7.500.000đ, discount=1đ, final=7.499.999đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1102
+			],
+			"allTests": [
+				{
+					"[TC_BVA_P_02] Status 201 & total=7.500.000đ, discount=1đ, final=7.499.999đ": true
+				}
+			]
+		},
+		{
+			"id": "eb21d3d0-b1a4-4226-8269-218734168a5e",
+			"name": "TC_BVA_P_03 - Điểm tích lũy lân cận tối đa Max- (used_points = 7.499.999)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1100,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_P_03] Status 201 & total=7.500.000đ, discount=7.499.999đ, final=1đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_P_03] Status 201 & total=7.500.000đ, discount=7.499.999đ, final=1đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1100
+			],
+			"allTests": [
+				{
+					"[TC_BVA_P_03] Status 201 & total=7.500.000đ, discount=7.499.999đ, final=1đ": true
+				}
+			]
+		},
+		{
+			"id": "5d32ccc9-914a-4569-bb21-83318c148797",
+			"name": "TC_BVA_P_04 - Điểm tích lũy biên tối đa Max (used_points = 7.500.000 - 100%)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1098,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_P_04] Status 201 & total=7.500.000đ, discount=7.500.000đ, final=0đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_P_04] Status 201 & total=7.500.000đ, discount=7.500.000đ, final=0đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1098
+			],
+			"allTests": [
+				{
+					"[TC_BVA_P_04] Status 201 & total=7.500.000đ, discount=7.500.000đ, final=0đ": true
+				}
+			]
+		},
+		{
+			"id": "52524eb4-574d-4f25-8115-ecb2d5048357",
+			"name": "TC_BVA_S_01 - Đơn giá món biên tối thiểu Min (price = 1.000 VNĐ)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1107,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_S_01] Status 201 & total=50.000đ, discount=500đ, final=49.500đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_S_01] Status 201 & total=50.000đ, discount=500đ, final=49.500đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1107
+			],
+			"allTests": [
+				{
+					"[TC_BVA_S_01] Status 201 & total=50.000đ, discount=500đ, final=49.500đ": true
+				}
+			]
+		},
+		{
+			"id": "d22aa221-9712-4171-831f-07ffd9de919d",
+			"name": "TC_BVA_S_02 - Đơn giá món lân cận tối thiểu Min+ (price = 2.000 VNĐ)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 1117,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"[TC_BVA_S_02] Status 201 & total=100.000đ, discount=500đ, final=99.500đ": true
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_S_02] Status 201 & total=100.000đ, discount=500đ, final=99.500đ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1117
+			],
+			"allTests": [
+				{
+					"[TC_BVA_S_02] Status 201 & total=100.000đ, discount=500đ, final=99.500đ": true
+				}
+			]
+		},
+		{
+			"id": "2e5d5d72-efef-4856-a42d-85da67179cc1",
+			"name": "TC_BVA_S_03 - Đơn giá món lân cận tối đa Max- (price = 99.999.000 VNĐ)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 776,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_BVA_S_03] Status 201 & total=4.999.950.000đ, discount=500đ, final=4.999.949.500đ": false
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_S_03] Status 201 & total=4.999.950.000đ, discount=500đ, final=4.999.949.500đ": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				776
+			],
+			"allTests": [
+				{
+					"[TC_BVA_S_03] Status 201 & total=4.999.950.000đ, discount=500đ, final=4.999.949.500đ": false
+				}
+			]
+		},
+		{
+			"id": "6c06c593-f10e-4d6b-b3fc-3eb2bd6c12e4",
+			"name": "TC_BVA_S_04 - Đơn giá món biên tối đa Max (price = 100.000.000 VNĐ)",
+			"url": "http://localhost:3000/api/orders",
+			"time": 808,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"[TC_BVA_S_04] Status 201 & total=5.000.000.000đ, discount=500đ, final=4.999.999.500đ": false
+			},
+			"testPassFailCounts": {
+				"[TC_BVA_S_04] Status 201 & total=5.000.000.000đ, discount=500đ, final=4.999.999.500đ": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				808
+			],
+			"allTests": [
+				{
+					"[TC_BVA_S_04] Status 201 & total=5.000.000.000đ, discount=500đ, final=4.999.999.500đ": false
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 14582,
+	"collection": {
+		"requests": [
+			{
+				"id": "18626d0c-9d88-4abe-82da-7bb198374c95",
+				"method": "POST"
+			},
+			{
+				"id": "d36d7901-3e03-4e8d-8c2c-ccf4d2751abb",
+				"method": "POST"
+			},
+			{
+				"id": "8b9f7ea7-ebfc-4809-aef8-66cd98f31a1a",
+				"method": "POST"
+			},
+			{
+				"id": "3d1b939e-9197-4d7c-b7da-bc98e0886003",
+				"method": "POST"
+			},
+			{
+				"id": "47808421-7da8-428b-a831-48d2b83e29ea",
+				"method": "POST"
+			},
+			{
+				"id": "c7f75d75-d5c0-4e13-85aa-d0c615687234",
+				"method": "POST"
+			},
+			{
+				"id": "77910b02-a16a-4c53-a289-49a705134079",
+				"method": "POST"
+			},
+			{
+				"id": "ea6c0871-1c43-4793-95e3-f0291b5809e8",
+				"method": "POST"
+			},
+			{
+				"id": "eb21d3d0-b1a4-4226-8269-218734168a5e",
+				"method": "POST"
+			},
+			{
+				"id": "5d32ccc9-914a-4569-bb21-83318c148797",
+				"method": "POST"
+			},
+			{
+				"id": "52524eb4-574d-4f25-8115-ecb2d5048357",
+				"method": "POST"
+			},
+			{
+				"id": "d22aa221-9712-4171-831f-07ffd9de919d",
+				"method": "POST"
+			},
+			{
+				"id": "2e5d5d72-efef-4856-a42d-85da67179cc1",
+				"method": "POST"
+			},
+			{
+				"id": "6c06c593-f10e-4d6b-b3fc-3eb2bd6c12e4",
+				"method": "POST"
+			}
+		]
+	}
+}
