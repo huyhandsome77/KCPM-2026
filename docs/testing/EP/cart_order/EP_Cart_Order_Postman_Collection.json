@@ -36,6 +36,9 @@
                   "        pm.environment.set(\"admin_token\", jsonData.token);",
                   "        pm.globals.set(\"admin_token\", jsonData.token);",
                   "    }",
+                  "    if (jsonData.user && jsonData.user.id) {",
+                  "        pm.collectionVariables.set(\"admin_id\", jsonData.user.id);",
+                  "    }",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -63,6 +66,50 @@
                 "api",
                 "auth",
                 "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "0.2 Setup - Cấp điểm tích lũy (Set Points)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Set Points successful\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": 10000000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{admin_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{admin_id}}"
               ]
             }
           }
