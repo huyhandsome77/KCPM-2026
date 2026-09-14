@@ -1,0 +1,908 @@
+{
+  "info": {
+    "_postman_id": "eeaf9fa0-52b6-48b0-96e7-2b236da7ee58",
+    "name": "FutureSushi - BVA Reservation (SCRUM-40)",
+    "description": "BVA Reservation chạy API thật bằng Postman. 10 testcase: 7 check-in boundary + 3 conditional table-capacity boundary.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "reservationId",
+      "value": ""
+    },
+    {
+      "key": "reservationTime",
+      "value": ""
+    },
+    {
+      "key": "guestName",
+      "value": ""
+    },
+    {
+      "key": "guestPhone",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "BVA-RES-01",
+      "item": [
+        {
+          "name": "BVA-RES-01 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"BVA BVA-RES-01\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const offsetMinutes = -30;",
+                  "const t = new Date(Date.now() + offsetMinutes * 60 * 1000);",
+                  "pm.environment.set(\"reservationTime\", t.toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Reservation BVA-RES-01\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Reservation created\", function () {",
+                  "pm.expect(json).to.have.property(\"data\");",
+                  "});",
+                  "if (json.data && json.data.id) {",
+                  "pm.environment.set(\"reservationId\", json.data.id);",
+                  "}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BVA-RES-01 - Check-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{reservationId}}",
+                "check-in"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {",
+                  "pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Check-in success message exists\", function () {",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-02",
+      "item": [
+        {
+          "name": "BVA-RES-02 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"BVA BVA-RES-02\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const offsetMinutes = -29;",
+                  "const t = new Date(Date.now() + offsetMinutes * 60 * 1000);",
+                  "pm.environment.set(\"reservationTime\", t.toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Reservation BVA-RES-02\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Reservation created\", function () {",
+                  "pm.expect(json).to.have.property(\"data\");",
+                  "});",
+                  "if (json.data && json.data.id) {",
+                  "pm.environment.set(\"reservationId\", json.data.id);",
+                  "}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BVA-RES-02 - Check-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{reservationId}}",
+                "check-in"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {",
+                  "pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Check-in success message exists\", function () {",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-03",
+      "item": [
+        {
+          "name": "BVA-RES-03 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"BVA BVA-RES-03\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const offsetMinutes = 0;",
+                  "const t = new Date(Date.now() + offsetMinutes * 60 * 1000);",
+                  "pm.environment.set(\"reservationTime\", t.toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Reservation BVA-RES-03\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Reservation created\", function () {",
+                  "pm.expect(json).to.have.property(\"data\");",
+                  "});",
+                  "if (json.data && json.data.id) {",
+                  "pm.environment.set(\"reservationId\", json.data.id);",
+                  "}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BVA-RES-03 - Check-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{reservationId}}",
+                "check-in"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {",
+                  "pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Check-in success message exists\", function () {",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-04",
+      "item": [
+        {
+          "name": "BVA-RES-04 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"BVA BVA-RES-04\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const offsetMinutes = 29;",
+                  "const t = new Date(Date.now() + offsetMinutes * 60 * 1000);",
+                  "pm.environment.set(\"reservationTime\", t.toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Reservation BVA-RES-04\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Reservation created\", function () {",
+                  "pm.expect(json).to.have.property(\"data\");",
+                  "});",
+                  "if (json.data && json.data.id) {",
+                  "pm.environment.set(\"reservationId\", json.data.id);",
+                  "}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BVA-RES-04 - Check-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{reservationId}}",
+                "check-in"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {",
+                  "pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Check-in success message exists\", function () {",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-05",
+      "item": [
+        {
+          "name": "BVA-RES-05 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"BVA BVA-RES-05\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const offsetMinutes = 30;",
+                  "const t = new Date(Date.now() + offsetMinutes * 60 * 1000);",
+                  "pm.environment.set(\"reservationTime\", t.toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Reservation BVA-RES-05\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Reservation created\", function () {",
+                  "pm.expect(json).to.have.property(\"data\");",
+                  "});",
+                  "if (json.data && json.data.id) {",
+                  "pm.environment.set(\"reservationId\", json.data.id);",
+                  "}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BVA-RES-05 - Check-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{reservationId}}",
+                "check-in"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {",
+                  "pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Check-in success message exists\", function () {",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.message).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-06",
+      "item": [
+        {
+          "name": "BVA-RES-06 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"BVA BVA-RES-06\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const offsetMinutes = -31;",
+                  "const t = new Date(Date.now() + offsetMinutes * 60 * 1000);",
+                  "pm.environment.set(\"reservationTime\", t.toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Reservation BVA-RES-06\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Reservation created\", function () {",
+                  "pm.expect(json).to.have.property(\"data\");",
+                  "});",
+                  "if (json.data && json.data.id) {",
+                  "pm.environment.set(\"reservationId\", json.data.id);",
+                  "}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BVA-RES-06 - Check-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{reservationId}}",
+                "check-in"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 400\", function () {",
+                  "pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-07",
+      "item": [
+        {
+          "name": "BVA-RES-07 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 2,\n  \"note\": \"BVA BVA-RES-07\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const offsetMinutes = 31;",
+                  "const t = new Date(Date.now() + offsetMinutes * 60 * 1000);",
+                  "pm.environment.set(\"reservationTime\", t.toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Reservation BVA-RES-07\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Reservation created\", function () {",
+                  "pm.expect(json).to.have.property(\"data\");",
+                  "});",
+                  "if (json.data && json.data.id) {",
+                  "pm.environment.set(\"reservationId\", json.data.id);",
+                  "}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BVA-RES-07 - Check-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/{{reservationId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations",
+                "{{reservationId}}",
+                "check-in"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 400\", function () {",
+                  "pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-08",
+      "item": [
+        {
+          "name": "BVA-RES-08 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 3,\n  \"note\": \"BVA BVA-RES-08\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"reservationTime\", new Date(Date.now() + 24*60*60*1000 + 3*60*1000).toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Capacity 3\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-09",
+      "item": [
+        {
+          "name": "BVA-RES-09 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 4,\n  \"note\": \"BVA BVA-RES-09\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"reservationTime\", new Date(Date.now() + 24*60*60*1000 + 4*60*1000).toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Capacity 4\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BVA-RES-10",
+      "item": [
+        {
+          "name": "BVA-RES-10 - Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guestName\": \"{{guestName}}\",\n  \"guestPhone\": \"{{guestPhone}}\",\n  \"reservationTime\": \"{{reservationTime}}\",\n  \"numberOfGuests\": 5,\n  \"note\": \"BVA BVA-RES-10\",\n  \"user_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reservations"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"reservationTime\", new Date(Date.now() + 24*60*60*1000 + 5*60*1000).toISOString());",
+                  "pm.environment.set(\"guestName\", \"BVA Capacity 5\");",
+                  "pm.environment.set(\"guestPhone\", \"09\" + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 400\", function () {",
+                  "pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
