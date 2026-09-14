@@ -18,32 +18,69 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-BASE-250\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"QR-BVA-BASE-250\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "type": "text/javascript"
               }
             }
           ],
@@ -83,29 +120,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 1, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-TN-001\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 1;",
+                  "    const targetQR = \"QR-BVA-TN-001\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -146,32 +224,69 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 2, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-TN-002\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
+                  "(function() {",
+                  "    const targetTN = 2;",
+                  "    const targetQR = \"QR-BVA-TN-002\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                "type": "text/javascript"
               }
             }
           ],
@@ -211,29 +326,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 499, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-TN-499\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 499;",
+                  "    const targetQR = \"QR-BVA-TN-499\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -273,29 +429,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 500, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-TN-500\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 500;",
+                  "    const targetQR = \"QR-BVA-TN-500\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -335,29 +532,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 1, \\\"qrCode\\\": \\\"QR-BVA-CAP-001\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"QR-BVA-CAP-001\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 1,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -397,29 +635,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 2, \\\"qrCode\\\": \\\"QR-BVA-CAP-002\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"QR-BVA-CAP-002\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 2,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -459,29 +738,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 49, \\\"qrCode\\\": \\\"QR-BVA-CAP-049\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"QR-BVA-CAP-049\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 49,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -521,29 +841,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 50, \\\"qrCode\\\": \\\"QR-BVA-CAP-050\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"QR-BVA-CAP-050\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 50,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -583,29 +944,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QQQQQQQQQQ\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"1234567890\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -619,7 +1021,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"QQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"1234567890\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -645,29 +1047,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QQQQQQQQQQQ\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"12345678901\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -681,7 +1124,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"QQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"12345678901\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -707,29 +1150,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -769,29 +1253,70 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
-                ]
+                  "(function() {",
+                  "    const targetTN = 250;",
+                  "    const targetQR = \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\";",
+                  "    const body = {",
+                  "      tableNumber: targetTN,",
+                  "      capacity: 25,",
+                  "      qrCode: targetQR,",
+                  "      status: \"AVAILABLE\"",
+                  "    };",
+                  "    pm.variables.set('bvaBody', JSON.stringify(body));",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    pm.sendRequest({",
+                  "        url: baseUrl + '/api/tables',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            const tables = res.json();",
+                  "            if (Array.isArray(tables)) {",
+                  "                const duplicates = tables.filter(t => t && (t.tableNumber === targetTN || t.qrCode === targetQR));",
+                  "                duplicates.forEach(d => {",
+                  "                    if (d && d.id) {",
+                  "                        pm.sendRequest({",
+                  "                            url: baseUrl + '/api/tables/' + d.id,",
+                  "                            method: 'DELETE'",
+                  "                        }, function () {});",
+                  "                    }",
+                  "                });",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Response time < 1000ms', () => pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "    const d = pm.response.json();",
+                  "    const e = JSON.parse(pm.variables.get('bvaBody'));",
+                  "    pm.test('Payload has message', () => pm.expect(d).to.have.property('message'));",
+                  "    pm.test('Payload has table object', () => pm.expect(d.table).to.be.an('object'));",
+                  "    if (d.table) {",
+                  "        pm.test('tableNumber matches input', () => pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
+                  "        pm.test('capacity matches input', () => pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
+                  "        pm.test('qrCode matches input', () => pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
+                  "        pm.test('status matches input', () => pm.expect(String(d.table.status)).to.eql(String(e.status)));",
+                  "    }",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || (pm.environment ? pm.environment.get('baseUrl') : null) || 'http://localhost:3000';",
+                  "    if (d.table && d.table.id) {",
+                  "        pm.sendRequest({",
+                  "            url: baseUrl + '/api/tables/' + d.table.id,",
+                  "            method: 'DELETE'",
+                  "        }, function () {});",
+                  "    }",
+                  "})();"
+                ],
+                "type": "text/javascript"
               }
             }
           ],
@@ -831,7 +1356,8 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000"
+      "value": "http://localhost:3000",
+      "type": "string"
     }
   ]
 }
