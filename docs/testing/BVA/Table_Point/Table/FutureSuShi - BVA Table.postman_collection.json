@@ -1,15 +1,15 @@
 {
   "info": {
-    "_postman_id": "1dcefa95-d6d9-44bf-9607-e80c0b7420ac",
-    "name": "FutureSuShi - BVA Table 4n+1 - REVIEWED",
-    "description": "BVA folder contains exactly 17 cases. Separate regression folder fixes leader-reviewed URLs. All BVA cases assert status, JSON, payload fields and echoed values.",
+    "_postman_id": "7e3423b7-7880-4359-a240-719fe84a1d95",
+    "name": "FutureSuShi - BVA Table",
+    "description": "Standard BVA 4n+1: 13 test cases for table_number, capacity and qrCode length. status is categorical and fixed to AVAILABLE for BVA isolation. table_number and qrCode values are unique per test case.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "57473064",
-    "_collection_link": "https://go.postman.co/collection/57473064-1dcefa95-d6d9-44bf-9607-e80c0b7420ac?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/57473064-7e3423b7-7880-4359-a240-719fe84a1d95?source=collection_link"
   },
   "item": [
     {
-      "name": "1. BVA 4n+1 - EXACTLY 17 TEST CASES",
+      "name": "1. BVA 4n+1",
       "item": [
         {
           "name": "BVA-TB-001 - Baseline / Nominal",
@@ -17,16 +17,17 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 600,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-BASE-600\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
-                ]
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-BASE-250\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
                   "pm.test('Response is JSON',()=>pm.response.to.be.json);",
@@ -39,7 +40,10 @@
                   "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
                   "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
                   "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -53,7 +57,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 600,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-BASE-600\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"QR-BVA-BASE-250\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -61,7 +65,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -74,7 +85,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 1,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-TN-1\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 1, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-TN-001\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -108,7 +119,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 1,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-1\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 1,\n  \"capacity\": 25,\n  \"qrCode\": \"QR-BVA-TN-001\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -116,7 +127,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -127,16 +145,17 @@
             {
               "listen": "prerequest",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 2,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-TN-2\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
-                ]
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 2, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-TN-002\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
                   "pm.test('Response is JSON',()=>pm.response.to.be.json);",
@@ -149,7 +168,10 @@
                   "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
                   "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
                   "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -163,7 +185,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 2,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-2\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 2,\n  \"capacity\": 25,\n  \"qrCode\": \"QR-BVA-TN-002\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -171,7 +193,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -184,7 +213,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 999,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-TN-999\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 499, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-TN-499\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -218,7 +247,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 999,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-999\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 499,\n  \"capacity\": 25,\n  \"qrCode\": \"QR-BVA-TN-499\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -226,7 +255,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -239,7 +275,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 1000,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-TN-1000\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 500, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QR-BVA-TN-500\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -273,7 +309,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 1000,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-1000\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 500,\n  \"capacity\": 25,\n  \"qrCode\": \"QR-BVA-TN-500\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -281,7 +317,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -294,7 +337,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 606,\\n  \\\"capacity\\\": 1,\\n  \\\"qrCode\\\": \\\"BVA-CAP-6\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 1, \\\"qrCode\\\": \\\"QR-BVA-CAP-001\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -328,7 +371,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 606,\n  \"capacity\": 1,\n  \"qrCode\": \"BVA-CAP-6\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 1,\n  \"qrCode\": \"QR-BVA-CAP-001\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -336,7 +379,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -349,7 +399,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 607,\\n  \\\"capacity\\\": 2,\\n  \\\"qrCode\\\": \\\"BVA-CAP-7\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 2, \\\"qrCode\\\": \\\"QR-BVA-CAP-002\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -383,7 +433,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 607,\n  \"capacity\": 2,\n  \"qrCode\": \"BVA-CAP-7\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 2,\n  \"qrCode\": \"QR-BVA-CAP-002\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -391,7 +441,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -404,7 +461,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 608,\\n  \\\"capacity\\\": 19,\\n  \\\"qrCode\\\": \\\"BVA-CAP-8\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 49, \\\"qrCode\\\": \\\"QR-BVA-CAP-049\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -438,7 +495,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 608,\n  \"capacity\": 19,\n  \"qrCode\": \"BVA-CAP-8\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 49,\n  \"qrCode\": \"QR-BVA-CAP-049\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -446,7 +503,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -459,7 +523,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 609,\\n  \\\"capacity\\\": 20,\\n  \\\"qrCode\\\": \\\"BVA-CAP-9\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 50, \\\"qrCode\\\": \\\"QR-BVA-CAP-050\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -493,7 +557,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 609,\n  \"capacity\": 20,\n  \"qrCode\": \"BVA-CAP-9\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 50,\n  \"qrCode\": \"QR-BVA-CAP-050\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -501,7 +565,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -514,7 +585,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 610,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"Q\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QQQQQQQQQQ\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -548,7 +619,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 610,\n  \"capacity\": 4,\n  \"qrCode\": \"Q\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"QQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -556,7 +627,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -569,7 +647,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 611,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"QR\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QQQQQQQQQQQ\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -603,7 +681,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 611,\n  \"capacity\": 4,\n  \"qrCode\": \"QR\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"QQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -611,7 +689,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -624,7 +709,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 612,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -658,7 +743,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 612,\n  \"capacity\": 4,\n  \"qrCode\": \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -666,7 +751,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -679,7 +771,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 613,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
+                  "pm.variables.set('bvaBody', \"{\\\"tableNumber\\\": 250, \\\"capacity\\\": 25, \\\"qrCode\\\": \\\"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\\\", \\\"status\\\": \\\"AVAILABLE\\\"}\");"
                 ]
               }
             },
@@ -713,7 +805,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 613,\n  \"capacity\": 4,\n  \"qrCode\": \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 25,\n  \"qrCode\": \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -721,7 +813,14 @@
               }
             },
             "url": {
-              "raw": ""
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "response": []
@@ -733,10 +832,6 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:3000"
-    },
-    {
-      "key": "existingTableId",
-      "value": "1"
     }
   ]
 }
