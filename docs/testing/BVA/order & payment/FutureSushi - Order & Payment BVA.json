@@ -21,24 +21,10 @@
                   "    var res = pm.response.json();",
                   "    pm.expect(res).to.have.property('token');",
                   "    pm.collectionVariables.set('admin_token', res.token);",
-                  "});",
-                  "",
-                  "var baseUrl = pm.collectionVariables.get('baseUrl');",
-                  "var token = pm.collectionVariables.get('admin_token');",
-                  "",
-                  "pm.sendRequest({",
-                  "    url: baseUrl + '/api/users/1',",
-                  "    method: 'PUT',",
-                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },",
-                  "    body: { mode: 'raw', raw: JSON.stringify({ points: 10000000 }) }",
-                  "}, function (err, res) {});",
-                  "",
-                  "pm.sendRequest({",
-                  "    url: baseUrl + '/api/products/1',",
-                  "    method: 'PUT',",
-                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },",
-                  "    body: { mode: 'raw', raw: JSON.stringify({ price: 150000, stock: 10000, isAvailable: true }) }",
-                  "}, function (err, res) {});"
+                  "    if (res.user && res.user.id) {",
+                  "        pm.collectionVariables.set('admin_id', res.user.id);",
+                  "    }",
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -57,6 +43,70 @@
               "raw": "{{baseUrl}}/api/auth/login",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "TC_SETUP_002 - Cấp điểm tích lũy tối đa theo SRS (10.000.000 điểm)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"[TC_SETUP_002] Cấp điểm tích lũy theo SRS thành công\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": 10000000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{admin_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{admin_id}}"]
+            }
+          }
+        },
+        {
+          "name": "TC_SETUP_003 - Khởi tạo tồn kho và giá mặc định cho Product 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"[TC_SETUP_003] Reset Product 1 thành công\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 150000,\n  \"stock\": 100000,\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "1"]
             }
           }
         }
@@ -338,10 +388,13 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
+                  "var baseUrl = pm.collectionVariables.get('baseUrl') || 'http://localhost:3000';",
+                  "var adminId = pm.collectionVariables.get('admin_id') || 1;",
+                  "var token = pm.collectionVariables.get('admin_token');",
                   "pm.sendRequest({",
-                  "    url: pm.collectionVariables.get('baseUrl') + '/api/users/1',",
+                  "    url: baseUrl + '/api/users/' + adminId,",
                   "    method: 'PUT',",
-                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + pm.collectionVariables.get('admin_token') },",
+                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },",
                   "    body: { mode: 'raw', raw: JSON.stringify({ points: 10000000 }) }",
                   "}, function (err, res) {});"
                 ],
@@ -388,10 +441,13 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
+                  "var baseUrl = pm.collectionVariables.get('baseUrl') || 'http://localhost:3000';",
+                  "var adminId = pm.collectionVariables.get('admin_id') || 1;",
+                  "var token = pm.collectionVariables.get('admin_token');",
                   "pm.sendRequest({",
-                  "    url: pm.collectionVariables.get('baseUrl') + '/api/users/1',",
+                  "    url: baseUrl + '/api/users/' + adminId,",
                   "    method: 'PUT',",
-                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + pm.collectionVariables.get('admin_token') },",
+                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },",
                   "    body: { mode: 'raw', raw: JSON.stringify({ points: 10000000 }) }",
                   "}, function (err, res) {});"
                 ],
