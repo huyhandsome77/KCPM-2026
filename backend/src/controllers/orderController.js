@@ -1,23 +1,60 @@
 const { Order, OrderItem, Product, RestaurantTable, User, Reservation, Payment, sequelize } = require('../models');
 
 exports.createOrder = async (req, res, next) => {
+    const { table_id, items, note, used_points } = (req && req.body) || {};
+
+    // 1. Kiểm tra giỏ hàng rỗng
+    if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: "Đơn hàng phải có ít nhất một món ăn" });
+    }
+
+    // 2. Kiểm tra giới hạn số loại món trong giỏ hàng (tối đa 50 loại)
+    if (items.length > 50) {
+        return res.status(400).json({ message: "Số loại món không được vượt quá 50" });
+    }
+
+    // 3. Kiểm tra độ dài ghi chú đơn hàng (tối đa 200 ký tự)
+    if (note && typeof note === 'string' && note.length > 200) {
+        return res.status(400).json({ message: "Ghi chú món ăn không được vượt quá 200 ký tự" });
+    }
+
+    // 4. Kiểm tra tính hợp lệ của điểm tích lũy sử dụng (used_points >= 0)
+    if (used_points !== undefined && used_points !== null && used_points !== "") {
+        const parsedPoints = Number(used_points);
+        if (isNaN(parsedPoints) || parsedPoints < 0) {
+            return res.status(400).json({ message: "Điểm sử dụng không hợp lệ (phải lớn hơn hoặc bằng 0)" });
+        }
+    }
+
     const t = await sequelize.transaction();
     try {
-        const { table_id, items, note, used_points } = req.body;
         // Ưu tiên lấy userId từ Token để chính xác tuyệt đối
-        const user_id = req.user ? req.user.id : (req.body.user_id || null);
+        const user_id = req.user ? req.user.id : (req.body && req.body.user_id ? req.body.user_id : null);
 
         console.log(">>> Create Order Request:", { table_id, user_id, used_points });
-
-        if (!items || !items.length) {
-            return res.status(400).json({ message: "Đơn hàng phải có ít nhất một món ăn" });
-        }
 
         let totalPrice = 0;
         const orderItemsData = [];
 
-        // 1. Kiểm tra tồn kho và trạng thái phục vụ từng món
+        // 5. Kiểm tra tồn kho, số lượng và trạng thái phục vụ từng món
         for (const item of items) {
+            if (!item || !item.product_id) {
+                throw new Error("Thiếu thông tin sản phẩm (product_id)");
+            }
+
+            // Kiểm tra số lượng món (1 <= quantity <= 99)
+            if (item.quantity === undefined || item.quantity === null || typeof item.quantity !== 'number' || item.quantity <= 0) {
+                throw new Error("Số lượng món không hợp lệ (phải lớn hơn 0)");
+            }
+
+            if (item.quantity > 99) {
+                throw new Error("Số lượng mỗi món không được vượt quá 99 phần");
+            }
+
+            if (item.note && typeof item.note === 'string' && item.note.length > 200) {
+                throw new Error("Ghi chú món ăn không được vượt quá 200 ký tự");
+            }
+
             const product = await Product.findByPk(item.product_id, { transaction: t });
             if (!product) {
                 throw new Error(`Sản phẩm với ID ${item.product_id} không tồn tại`);

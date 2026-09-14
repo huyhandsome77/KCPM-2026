@@ -70,17 +70,44 @@ exports.createProduct = async (req, res) => {
 
     // Validate Category ID (Integer >= 1)
     const catId = category_id !== undefined ? category_id : categoryId;
-    if (catId === undefined || catId === null || isNaN(Number(catId))) {
+    if (catId === undefined || catId === null || catId === '') {
       return res.status(400).json({ message: "Category ID is required and must be a valid number" });
     }
     const numCatId = Number(catId);
-    if (numCatId <= 0 || !Number.isInteger(numCatId)) {
+    if (isNaN(numCatId) || numCatId <= 0 || !Number.isInteger(numCatId)) {
       return res.status(400).json({ message: "Category ID must be a positive integer" });
     }
 
     const categoryExists = await Category.findByPk(numCatId);
     if (!categoryExists) {
       return res.status(400).json({ message: "Category not found" });
+    }
+
+    // Validate Description (Optional, Max 1000 chars, String)
+    if (description !== undefined && description !== null) {
+      if (typeof description !== 'string') {
+        return res.status(400).json({ message: "Description must be a string" });
+      }
+      if (description.length > 1000) {
+        return res.status(400).json({ message: "Description cannot exceed 1000 characters" });
+      }
+    }
+
+    // Validate Image (Optional, Max 255 chars, String)
+    if (image !== undefined && image !== null) {
+      if (typeof image !== 'string') {
+        return res.status(400).json({ message: "Image URL must be a string" });
+      }
+      if (image.length > 255) {
+        return res.status(400).json({ message: "Image URL cannot exceed 255 characters" });
+      }
+    }
+
+    // Validate isAvailable (Optional, Boolean)
+    if (isAvailable !== undefined && isAvailable !== null) {
+      if (typeof isAvailable !== 'boolean') {
+        return res.status(400).json({ message: "isAvailable must be a boolean" });
+      }
     }
 
     const product = await Product.create({
@@ -142,11 +169,11 @@ exports.updateProduct = async (req, res) => {
 
     const catId = category_id !== undefined ? category_id : categoryId;
     if (catId !== undefined) {
-      if (catId === null || isNaN(Number(catId))) {
+      if (catId === null || catId === '') {
         return res.status(400).json({ message: "Category ID must be a valid number" });
       }
       const numCatId = Number(catId);
-      if (numCatId <= 0 || !Number.isInteger(numCatId)) {
+      if (isNaN(numCatId) || numCatId <= 0 || !Number.isInteger(numCatId)) {
         return res.status(400).json({ message: "Category ID must be a positive integer" });
       }
       const categoryExists = await Category.findByPk(numCatId);
@@ -156,9 +183,36 @@ exports.updateProduct = async (req, res) => {
       updateData.category_id = numCatId;
     }
 
-    if (description !== undefined) updateData.description = description;
-    if (image !== undefined) updateData.image = image;
-    if (isAvailable !== undefined) updateData.isAvailable = Boolean(isAvailable);
+    if (description !== undefined) {
+      if (description !== null) {
+        if (typeof description !== 'string') {
+          return res.status(400).json({ message: "Description must be a string" });
+        }
+        if (description.length > 1000) {
+          return res.status(400).json({ message: "Description cannot exceed 1000 characters" });
+        }
+      }
+      updateData.description = description;
+    }
+
+    if (image !== undefined) {
+      if (image !== null) {
+        if (typeof image !== 'string') {
+          return res.status(400).json({ message: "Image URL must be a string" });
+        }
+        if (image.length > 255) {
+          return res.status(400).json({ message: "Image URL cannot exceed 255 characters" });
+        }
+      }
+      updateData.image = image;
+    }
+
+    if (isAvailable !== undefined) {
+      if (isAvailable !== null && typeof isAvailable !== 'boolean') {
+        return res.status(400).json({ message: "isAvailable must be a boolean" });
+      }
+      updateData.isAvailable = Boolean(isAvailable);
+    }
 
     const [updated] = await Product.update(updateData, {
       where: { id }

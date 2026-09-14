@@ -6,13 +6,18 @@ exports.getAllCategories = async (req, res) => {
         const { search } = req.query;
         let where = {};
 
-        if (search && typeof search === 'string' && search.trim() !== '') {
-            where = {
-                [Op.or]: [
-                    { name: { [Op.like]: `%${search.trim()}%` } },
-                    { description: { [Op.like]: `%${search.trim()}%` } }
-                ]
-            };
+        if (search !== undefined && search !== null) {
+            if (typeof search === 'string' && search.length > 100) {
+                return res.status(400).json({ message: "Search query cannot exceed 100 characters" });
+            }
+            if (typeof search === 'string' && search.trim() !== '') {
+                where = {
+                    [Op.or]: [
+                        { name: { [Op.like]: `%${search.trim()}%` } },
+                        { description: { [Op.like]: `%${search.trim()}%` } }
+                    ]
+                };
+            }
         }
 
         const categories = await Category.findAll({
@@ -67,6 +72,18 @@ exports.createCategory = async (req, res) => {
             return res.status(400).json({ message: "Category name cannot exceed 100 characters" });
         }
 
+        if (description !== undefined && description !== null) {
+            if (typeof description !== 'string' || description.length > 500) {
+                return res.status(400).json({ message: "Category description cannot exceed 500 characters" });
+            }
+        }
+
+        if (image !== undefined && image !== null) {
+            if (typeof image !== 'string' || image.length > 255) {
+                return res.status(400).json({ message: "Category image URL cannot exceed 255 characters" });
+            }
+        }
+
         const category = await Category.create({
             name: name.trim(),
             description: description !== undefined ? description : null,
@@ -93,6 +110,18 @@ exports.updateCategory = async (req, res) => {
             }
             if (name.length > 100) {
                 return res.status(400).json({ message: "Category name cannot exceed 100 characters" });
+            }
+        }
+
+        if (description !== undefined && description !== null) {
+            if (typeof description !== 'string' || description.length > 500) {
+                return res.status(400).json({ message: "Category description cannot exceed 500 characters" });
+            }
+        }
+
+        if (image !== undefined && image !== null) {
+            if (typeof image !== 'string' || image.length > 255) {
+                return res.status(400).json({ message: "Category image URL cannot exceed 255 characters" });
             }
         }
 

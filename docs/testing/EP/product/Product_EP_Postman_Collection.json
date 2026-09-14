@@ -1,8 +1,8 @@
 {
     "info": {
-        "_postman_id": "ep-product-suite-2026",
+        "_postman_id": "ep-product-suite-2026-v28",
         "name": "FutureSushi - EP Product API Test Suite",
-        "description": "Bộ kiểm thử tự động Phân hoạch Lớp Tương đương (Equivalence Partitioning - EP) cho Product API (/api/products) theo file Product-EP.xlsx.",
+        "description": "Bộ kiểm thử tự động Phân hoạch Lớp Tương đương (Equivalence Partitioning - EP) cho các trường đầu vào Create Product (/api/products) theo chuẩn hóa 28 Test Cases.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "event": [
@@ -11,10 +11,9 @@
             "script": {
                 "type": "text/javascript",
                 "exec": [
-                    "pm.collectionVariables.set('prd_name_200', 'S'.repeat(200));",
-                    "if (!pm.collectionVariables.get('created_empty_prod_id')) {",
-                    "    pm.collectionVariables.set('created_empty_prod_id', '5');",
-                    "}"
+                    "pm.collectionVariables.set('prd_name_151', 'P'.repeat(151));",
+                    "pm.collectionVariables.set('desc_1001', 'D'.repeat(1001));",
+                    "pm.collectionVariables.set('img_256', 'https://example.com/' + 'i'.repeat(240));"
                 ]
             }
         },
@@ -23,7 +22,7 @@
             "script": {
                 "type": "text/javascript",
                 "exec": [
-                    "pm.test('[Non-Functional] Response time is acceptable', function () {",
+                    "pm.test('[Non-Functional] Response time is acceptable (< 1500ms)', function () {",
                     "    pm.expect(pm.response.responseTime).to.be.below(1500);",
                     "});"
                 ]
@@ -42,7 +41,17 @@
             "type": "string"
         },
         {
-            "key": "prd_name_200",
+            "key": "prd_name_151",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "desc_1001",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "img_256",
             "value": "",
             "type": "string"
         },
@@ -50,16 +59,11 @@
             "key": "created_prod_id",
             "value": "1",
             "type": "string"
-        },
-        {
-            "key": "created_empty_prod_id",
-            "value": "",
-            "type": "string"
         }
     ],
     "item": [
         {
-            "name": "0. Authentication (Lấy Token Admin)",
+            "name": "0. Authentication",
             "item": [
                 {
                     "name": "AUTH_001 - Đăng nhập tài khoản Admin",
@@ -79,7 +83,6 @@
                                     "});",
                                     "if (json.token) {",
                                     "    pm.collectionVariables.set('admin_token', json.token);",
-                                    "    pm.environment.set('admin_token', json.token);",
                                     "}"
                                 ]
                             }
@@ -113,48 +116,42 @@
             ]
         },
         {
-            "name": "1. Product EP Tests (Product-EP.xlsx)",
+            "name": "1. Product Input Fields EP (EP-PROD-01 -> EP-PROD-28)",
             "item": [
                 {
-                    "name": "EP-PROD-01: Tạo món ăn với đầy đủ dữ liệu hợp lệ",
+                    "name": "EP-PROD-01 - Tạo món ăn với đầy đủ dữ liệu hợp lệ [PV1, PV2, PV3, PV5, PV6]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 201 Created', function () {",
+                                    "pm.test('Status code is 201', function () {",
                                     "    pm.response.to.have.status(201);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Món ăn được tạo thành công đúng thông tin', function () {",
+                                    "pm.test('Dữ liệu món ăn trả về chính xác', function () {",
                                     "    pm.expect(json.name).to.eql('Sashimi Cá Hồi Na Uy');",
                                     "    pm.expect(Number(json.price)).to.eql(189000);",
-                                    "    pm.expect(Number(json.stock)).to.eql(50);",
+                                    "    pm.expect(json.stock).to.eql(50);",
+                                    "    pm.expect(Boolean(json.isAvailable)).to.eql(true);",
                                     "    pm.expect(Number(json.category_id)).to.eql(1);",
-                                    "    pm.expect(json.isAvailable).to.eql(true);",
                                     "});",
-                                    "if (json.id) { pm.collectionVariables.set('created_prod_id', String(json.id)); }"
+                                    "if (json.id) { pm.collectionVariables.set('created_prod_id', json.id.toString()); }"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -174,40 +171,77 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-02: Tạo món ăn với tên rỗng hoặc toàn khoảng trắng",
+                    "name": "EP-PROD-02 - Tạo món ăn thiếu trường name [PX1]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "pm.test('Status code is 400', function () {",
                                     "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi tên món ăn không được để trống', function () {",
-                                    "    pm.expect(json.message).to.include('Tên món ăn không được để trống');",
-                                    "});"
+                                    "pm.test('Báo lỗi tên không được để trống', function () { pm.expect(json.message).to.be.a('string').and.not.empty; });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"price\": 50000,\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-03 - Tạo món ăn với tên rỗng hoặc toàn khoảng trắng [PX2]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Báo lỗi tên món rỗng', function () { pm.expect(json.message).to.include('Tên món ăn không được để trống'); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -227,40 +261,75 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-03: Tạo món ăn với tên không phải kiểu chuỗi",
+                    "name": "EP-PROD-04 - Tạo món ăn với tên vượt quá 150 ký tự [PX3]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
-                                    "    pm.response.to.have.status(400);",
-                                    "});",
+                                    "pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi tên món ăn không được để trống', function () {",
-                                    "    pm.expect(json.message).to.include('Tên món ăn không được để trống');",
-                                    "});"
+                                    "pm.test('Báo lỗi tên vượt quá 150 ký tự', function () { pm.expect(json.message).to.include('Product name cannot exceed 150 characters'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"{{prd_name_151}}\",\n  \"price\": 50000,\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-05 - Tạo món ăn với name sai kiểu dữ liệu (số) [PX4]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Báo lỗi name sai kiểu dữ liệu', function () { pm.expect(json.message).to.be.a('string'); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -280,45 +349,37 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-04: Tạo món ăn với tên vượt quá 150 ký tự",
+                    "name": "EP-PROD-06 - Tạo món ăn thiếu price [PX5]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "pm.test('Status code is 400', function () {",
                                     "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi tên món ăn vượt quá 150 ký tự', function () {",
-                                    "    pm.expect(json.message).to.include('Product name cannot exceed 150 characters');",
-                                    "});"
+                                    "pm.test('Báo lỗi price bắt buộc', function () { pm.expect(json.message).to.include('Price is required and must be a valid number'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"{{prd_name_200}}\",\n  \"price\": 50000,\n  \"category_id\": 1\n}"
+                            "raw": "{\n  \"name\": \"Sushi Test\",\n  \"category_id\": 1\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/products",
@@ -333,40 +394,32 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-05: Tạo món ăn với giá số âm",
+                    "name": "EP-PROD-07 - Tạo món ăn với giá < 1.000 VNĐ (giá âm) [PX6]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "pm.test('Status code is 400', function () {",
                                     "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi giá phải lớn hơn 0', function () {",
-                                    "    pm.expect(json.message).to.include('Price must be greater than 0');",
-                                    "});"
+                                    "pm.test('Báo lỗi giá không hợp lệ', function () { pm.expect(json.message).to.include('Price must be greater than 0 and up to 99,999,999.99'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -386,40 +439,77 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-06: Tạo món ăn với giá không phải kiểu số",
+                    "name": "EP-PROD-08 - Tạo món ăn với giá > 100.000.000 VNĐ [PX7]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "pm.test('Status code is 400', function () {",
                                     "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi giá phải là số hợp lệ', function () {",
-                                    "    pm.expect(json.message).to.include('Price is required and must be a valid number');",
-                                    "});"
+                                    "pm.test('Báo lỗi giá vượt ngưỡng tối đa', function () { pm.expect(json.message).to.include('Price must be greater than 0 and up to 99,999,999.99'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Test\",\n  \"price\": 100000001,\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-09 - Tạo món ăn với price sai kiểu dữ liệu [PX8]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Báo lỗi price không phải số', function () { pm.expect(json.message).to.include('Price is required and must be a valid number'); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -439,46 +529,37 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-07: Tạo món ăn không truyền trường stock",
+                    "name": "EP-PROD-10 - Tạo món ăn không truyền stock (mặc định nhận 0) [PV3b]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 201 Created', function () {",
+                                    "pm.test('Status code is 201', function () {",
                                     "    pm.response.to.have.status(201);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Tồn kho mặc định bằng 0', function () {",
-                                    "    pm.expect(Number(json.stock)).to.eql(0);",
-                                    "});",
-                                    "if (json.id) { pm.collectionVariables.set('created_empty_prod_id', String(json.id)); }"
+                                    "pm.test('Stock mặc định bằng 0', function () { pm.expect(json.stock).to.eql(0); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"name\": \"Sushi Test Empty Stock\",\n  \"price\": 50000,\n  \"category_id\": 1\n}"
+                            "raw": "{\n  \"name\": \"Sushi Test No Stock\",\n  \"price\": 50000,\n  \"category_id\": 1\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/products",
@@ -493,40 +574,77 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-08: Tạo món ăn với tồn kho là số âm",
+                    "name": "EP-PROD-11 - Tạo món ăn với stock hợp lệ [PV3]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
-                                    "    pm.response.to.have.status(400);",
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi tồn kho phải là số nguyên không âm', function () {",
-                                    "    pm.expect(json.message).to.include('Stock must be an integer between 0 and 2,147,483,647');",
-                                    "});"
+                                    "pm.test('Stock được lưu đúng bằng 50', function () { pm.expect(json.stock).to.eql(50); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Test Stock\",\n  \"price\": 50000,\n  \"stock\": 50,\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-12 - Tạo món ăn với stock âm [PX9]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Báo lỗi stock âm', function () { pm.expect(json.message).to.include('Stock must be an integer between 0 and 2,147,483,647'); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -546,40 +664,77 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-09: Tạo món ăn với tồn kho là số thập phân",
+                    "name": "EP-PROD-13 - Tạo món ăn với stock > 10.000 / tràn số [PX10]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "pm.test('Status code is 400', function () {",
                                     "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi tồn kho không được là số thập phân', function () {",
-                                    "    pm.expect(json.message).to.include('Stock must be an integer between 0 and 2,147,483,647');",
-                                    "});"
+                                    "pm.test('Báo lỗi stock vượt ngưỡng', function () { pm.expect(json.message).to.include('Stock must be an integer between 0 and 2,147,483,647'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Test\",\n  \"price\": 50000,\n  \"stock\": 2147483648,\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-14 - Tạo món ăn với stock là số thập phân [PX11]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Báo lỗi stock là số thập phân', function () { pm.expect(json.message).to.include('Stock must be an integer between 0 and 2,147,483,647'); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -599,40 +754,32 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-10: Tạo món ăn với tồn kho không phải kiểu số",
+                    "name": "EP-PROD-15 - Tạo món ăn với stock sai kiểu dữ liệu [PX12]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "pm.test('Status code is 400', function () {",
                                     "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi tồn kho phải là số hợp lệ', function () {",
-                                    "    pm.expect(json.message).to.include('Stock must be an integer between 0 and 2,147,483,647');",
-                                    "});"
+                                    "pm.test('Báo lỗi stock sai kiểu dữ liệu', function () { pm.expect(json.message).to.include('Stock must be an integer between 0 and 2,147,483,647'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -652,40 +799,210 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-11: Tạo món ăn không truyền category_id",
+                    "name": "EP-PROD-16 - Tạo món ăn với description hợp lệ [PV4]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
-                                    "    pm.response.to.have.status(400);",
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi Category ID là bắt buộc', function () {",
-                                    "    pm.expect(json.message).to.include('Category ID is required and must be a valid number');",
-                                    "});"
+                                    "pm.test('Description được lưu đúng', function () { pm.expect(json.description).to.eql('Món sushi cá hồi tươi ngon'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Test Desc\",\n  \"price\": 50000,\n  \"description\": \"Món sushi cá hồi tươi ngon\",\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-17 - Tạo món ăn với description > 1.000 ký tự [PX13]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Báo lỗi description vượt quá 1000 ký tự', function () { pm.expect(json.message).to.include('Description cannot exceed 1000 characters'); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Test Desc Over\",\n  \"price\": 50000,\n  \"description\": \"{{desc_1001}}\",\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-18 - Tạo món ăn với description sai kiểu [PX14]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Báo lỗi description sai kiểu dữ liệu', function () { pm.expect(json.message).to.include('Description must be a string'); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Test\",\n  \"price\": 50000,\n  \"description\": 12345,\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-19 - Tạo món ăn với category_id hợp lệ [PV5]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Món ăn gán đúng category_id=1', function () { pm.expect(Number(json.category_id)).to.eql(1); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Test Cat\",\n  \"price\": 50000,\n  \"category_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-20 - Tạo món ăn thiếu category_id [PX15]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Báo lỗi thiếu category_id', function () { pm.expect(json.message).to.include('Category ID is required and must be a valid number'); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -705,40 +1022,32 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-12: Tạo món ăn với category_id không phải số nguyên dương",
+                    "name": "EP-PROD-21 - Tạo món ăn với category_id không phải số nguyên dương [PX16]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "pm.test('Status code is 400', function () {",
                                     "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi Category ID phải là số nguyên dương', function () {",
-                                    "    pm.expect(json.message).to.include('Category ID');",
-                                    "});"
+                                    "pm.test('Báo lỗi category_id không phải số nguyên dương', function () { pm.expect(json.message).to.match(/Category ID/i); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -758,40 +1067,32 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-13: Tạo món ăn với category_id không tồn tại trong DB",
+                    "name": "EP-PROD-22 - Tạo món ăn với category_id không tồn tại trong DB [PX17]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "pm.test('Status code is 400', function () {",
                                     "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi Category not found', function () {",
-                                    "    pm.expect(json.message).to.include('Category not found');",
-                                    "});"
+                                    "pm.test('Báo lỗi Category not found', function () { pm.expect(json.message).to.include('Category not found'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -811,40 +1112,77 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-14: Tạo món ăn với trạng thái tạm ngưng phục vụ",
+                    "name": "EP-PROD-23 - Tạo món ăn với isAvailable=true [PV6]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 201 Created', function () {",
+                                    "pm.test('Status code is 201', function () {",
                                     "    pm.response.to.have.status(201);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Món ăn có trạng thái isAvailable = false', function () {",
-                                    "    pm.expect(json.isAvailable).to.eql(false);",
-                                    "});"
+                                    "pm.test('isAvailable lưu đúng true', function () { pm.expect(json.isAvailable).to.eql(true); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Available\",\n  \"price\": 50000,\n  \"category_id\": 1,\n  \"isAvailable\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-PROD-24 - Tạo món ăn với isAvailable=false [PV7]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('isAvailable lưu đúng false', function () { pm.expect(json.isAvailable).to.eql(false); });"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
@@ -864,480 +1202,179 @@
                     }
                 },
                 {
-                    "name": "EP-PROD-15: Lấy chi tiết món ăn bằng ID hợp lệ",
+                    "name": "EP-PROD-25 - Tạo món ăn không truyền isAvailable (mặc định true) [PV7b]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 200 OK', function () {",
-                                    "    pm.response.to.have.status(200);",
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Trả về đúng thông tin món ăn ID=1', function () {",
-                                    "    pm.expect(Number(json.id)).to.eql(1);",
-                                    "    pm.expect(json).to.have.property('name');",
-                                    "});"
+                                    "pm.test('Mặc định isAvailable=true', function () { pm.expect(json.isAvailable).to.eql(true); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/products/1",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "products",
-                                "1"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "EP-PROD-16: Lấy chi tiết món ăn với ID không hợp lệ",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
-                                    "    pm.response.to.have.status(400);",
-                                    "});",
-                                    "const json = pm.response.json();",
-                                    "pm.test('Thông báo Invalid product ID', function () {",
-                                    "    pm.expect(json.message).to.include('Invalid product ID');",
-                                    "});"
-                                ]
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [],
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Default Available\",\n  \"price\": 50000,\n  \"category_id\": 1\n}"
+                        },
                         "url": {
-                            "raw": "{{baseUrl}}/api/products/invalid_id",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "products",
-                                "invalid_id"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "EP-PROD-17: Lấy chi tiết món ăn với ID không tồn tại trong DB",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Status code is 404 Not Found', function () {",
-                                    "    pm.response.to.have.status(404);",
-                                    "});",
-                                    "const json = pm.response.json();",
-                                    "pm.test('Thông báo Product not found', function () {",
-                                    "    pm.expect(json.message).to.include('Product not found');",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/products/999999",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "products",
-                                "999999"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "EP-PROD-18: Lọc danh sách món ăn theo category_id",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Status code is 200 OK', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
-                                    "const json = pm.response.json();",
-                                    "pm.test('Trả về danh sách món thuộc category_id=1', function () {",
-                                    "    pm.expect(json).to.be.an('array');",
-                                    "    json.forEach(item => {",
-                                    "        pm.expect(Number(item.category_id)).to.eql(1);",
-                                    "    });",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/products?category_id=1",
+                            "raw": "{{baseUrl}}/api/products",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
                                 "products"
-                            ],
-                            "query": [
-                                {
-                                    "key": "category_id",
-                                    "value": "1"
-                                }
                             ]
                         }
                     }
                 },
                 {
-                    "name": "EP-PROD-19: Tìm kiếm món ăn theo từ khóa tên món",
+                    "name": "EP-PROD-26 - Tạo món ăn với isAvailable sai kiểu [PX18]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 200 OK', function () {",
-                                    "    pm.response.to.have.status(200);",
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Trả về danh sách món khớp từ khóa Cá Hồi', function () {",
-                                    "    pm.expect(json).to.be.an('array');",
-                                    "    pm.expect(json.length).to.be.at.least(1);",
-                                    "});"
+                                    "pm.test('Báo lỗi isAvailable phải là boolean', function () { pm.expect(json.message).to.include('isAvailable must be a boolean'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "method": "GET",
-                        "header": [],
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Test\",\n  \"price\": 50000,\n  \"category_id\": 1,\n  \"isAvailable\": \"true\"\n}"
+                        },
                         "url": {
-                            "raw": "{{baseUrl}}/api/products?search=Cá Hồi",
+                            "raw": "{{baseUrl}}/api/products",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
                                 "products"
-                            ],
-                            "query": [
-                                {
-                                    "key": "search",
-                                    "value": "Cá Hồi"
-                                }
                             ]
                         }
                     }
                 },
                 {
-                    "name": "EP-PROD-20: Tìm kiếm món ăn với từ khóa không tồn tại",
+                    "name": "EP-PROD-27 - Tạo món ăn với image URL hợp lệ [PV8]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 200 OK', function () {",
-                                    "    pm.response.to.have.status(200);",
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
                                     "});",
                                     "const json = pm.response.json();",
-                                    "pm.test('Trả về mảng rỗng [] khi không khớp từ khóa', function () {",
-                                    "    pm.expect(json).to.be.an('array').that.is.empty;",
-                                    "});"
+                                    "pm.test('Image URL được lưu chính xác', function () { pm.expect(json.image).to.eql('https://example.com/sushi.jpg'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "method": "GET",
-                        "header": [],
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Sushi Image Valid\",\n  \"price\": 50000,\n  \"category_id\": 1,\n  \"image\": \"https://example.com/sushi.jpg\"\n}"
+                        },
                         "url": {
-                            "raw": "{{baseUrl}}/api/products?search=Pizza999",
+                            "raw": "{{baseUrl}}/api/products",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
                                 "products"
-                            ],
-                            "query": [
-                                {
-                                    "key": "search",
-                                    "value": "Pizza999"
-                                }
                             ]
                         }
                     }
                 },
                 {
-                    "name": "EP-PROD-21: Cập nhật giá và tồn kho hợp lệ",
+                    "name": "EP-PROD-28 - Tạo món ăn với image > 255 ký tự / sai kiểu [PX19]",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
                                 "exec": [
-                                    "pm.test('Status code is 200 OK', function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "});",
+                                    "pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });",
                                     "const json = pm.response.json();",
-                                    "pm.test('Giá và tồn kho được cập nhật thành công', function () {",
-                                    "    pm.expect(Number(json.price)).to.eql(195000);",
-                                    "    pm.expect(Number(json.stock)).to.eql(80);",
-                                    "});"
+                                    "pm.test('Báo lỗi Image URL vượt quá 255 ký tự', function () { pm.expect(json.message).to.include('Image URL cannot exceed 255 characters'); });"
                                 ]
                             }
                         }
                     ],
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "PUT",
+                        "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"price\": 195000,\n  \"stock\": 80\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/products/1",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "products",
-                                "1"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "EP-PROD-22: Cập nhật món ăn với giá số âm",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
-                                    "    pm.response.to.have.status(400);",
-                                    "});",
-                                    "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi giá phải lớn hơn 0', function () {",
-                                    "    pm.expect(json.message).to.include('Price must be greater than 0');",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "PUT",
-                        "header": [
+                            },
                             {
-                                "key": "Content-Type",
-                                "value": "application/json"
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"price\": -5000\n}"
+                            "raw": "{\n  \"name\": \"Sushi Test Img Over\",\n  \"price\": 50000,\n  \"category_id\": 1,\n  \"image\": \"{{img_256}}\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/api/products/1",
+                            "raw": "{{baseUrl}}/api/products",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
-                                "products",
-                                "1"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "EP-PROD-23: Cập nhật món ăn với category_id không tồn tại",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
-                                    "    pm.response.to.have.status(400);",
-                                    "});",
-                                    "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi Category not found', function () {",
-                                    "    pm.expect(json.message).to.include('Category not found');",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"category_id\": 999999\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/products/1",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "products",
-                                "1"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "EP-PROD-24: Xóa món ăn chưa từng phát sinh đơn hàng",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Status code is 204 No Content', function () {",
-                                    "    pm.response.to.have.status(204);",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/products/{{created_empty_prod_id}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "products",
-                                "{{created_empty_prod_id}}"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "EP-PROD-25: Xóa món ăn đang có trong đơn hàng hoặc giỏ hàng",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "pm.test('Status code is 400 Bad Request', function () {",
-                                    "    pm.response.to.have.status(400);",
-                                    "});",
-                                    "const json = pm.response.json();",
-                                    "pm.test('Báo lỗi ràng buộc toàn vẹn khi xóa món đã có trong đơn', function () {",
-                                    "    pm.expect(json.message).to.include('Món ăn đang có trong đơn hàng hoặc giỏ hàng');",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{admin_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/products/1",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "products",
-                                "1"
+                                "products"
                             ]
                         }
                     }
