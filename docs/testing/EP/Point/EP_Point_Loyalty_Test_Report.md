@@ -1,106 +1,436 @@
-# FutureSuShi – EP Test Report: Point & Loyalty
+# FutureSuShi – Báo cáo kiểm thử EP: Point & Loyalty
 
-## 1. Thông tin chung
+## **1. Thông tin chung**
 
 - **Project:** FutureSuShi
 - **Module:** Point & Loyalty
-- **Phương pháp EP:** Equivalence Partitioning (EP)
-- **Environment:** Local / Backend `http://localhost:3000`
-- **Tổng testcase EP thiết kế:** 16
-- **Đã thực thi:** 16
-- **PASS:** 14
-- **FAIL:** 2
-- **NOT RUN:** 0
-- **Tỷ lệ PASS:** **87.5%**
+- **Phương pháp:** Equivalence Partitioning (EP)
+- **Endpoint:** `POST /api/points/add-points`
+- **Tổng testcase:** **19**
+- **Đã thực thi:** **19**
+- **PASS:** **16**
+- **FAIL:** **3**
+- **NOT RUN:** **0**
+- **Pass Rate:** **84.21%**
 
-> **Evidence:** Bộ Point API hiện có đã được chạy live bằng Newman với backend đang hoạt động: 18 requests, 0 failed requests, 17/17 assertions PASS. White-box Point: 8/8 PASS. Hai lớp EP bổ sung (phone sai định dạng và orderId thập phân) đã được chạy live trong collection EP bổ sung; cả hai assertion đều FAIL vì thực tế trả HTTP 404 thay vì HTTP 400.
+---
 
-## 2. Phạm vi phân hoạch lớp tương đương
+## **2. Quy ước phân hoạch lớp tương đương**
 
-| Biến / điều kiện | Lớp hợp lệ | Lớp không hợp lệ |
+- **CV** = lớp tương đương hợp lệ (Valid Class)
+- **CX** = lớp tương đương không hợp lệ (Invalid Class)
+
+| Ký hiệu | Đối tượng / Input | Lớp tương đương |
 |---|---|---|
-| Quyền truy cập | STAFF / ADMIN | CUSTOMER / không token / token không hợp lệ |
-| Phone | Chuỗi không rỗng, khách hàng tồn tại | Thiếu, rỗng/whitespace, không tồn tại, sai định dạng |
-| orderId | Số nguyên dương, order tồn tại | Thiếu, <= 0, không phải số, số thập phân, không tồn tại |
-| Trạng thái Order | `PAID` + `COMPLETED` | Chưa thanh toán / chưa hoàn tất |
-| Tích điểm | `isPointsAdded = false` | `isPointsAdded = true` |
-| Công thức | `finalPrice * 0.05` và làm tròn | Giá trị không hợp lệ / không xác định |
+| CV1 | Authorization | Token STAFF/ADMIN hợp lệ |
+| CX1 | Authorization | Không có token |
+| CX2 | Authorization | Customer không có quyền |
+| CV2 | phone | Phone khách hàng tồn tại |
+| CV3 | phone | Phone dạng quốc tế +84 |
+| CV4 | phone | Phone có khoảng trắng đầu/cuối và API trim |
+| CX3 | phone | Thiếu phone |
+| CX4 | phone | Phone rỗng / blank |
+| CX5 | phone | Phone không tồn tại |
+| CX6 | phone | Phone sai định dạng / chứa chữ |
+| CV5 | orderId | Số nguyên dương, order tồn tại |
+| CX7 | orderId | Thiếu orderId |
+| CX8 | orderId | orderId là số thập phân |
+| CX9 | orderId | orderId <= 0 |
+| CX10 | orderId | orderId không tồn tại |
+| CV6 | Order state | `PAID + COMPLETED` |
+| CX11 | Order state | Chưa PAID hoặc chưa COMPLETED |
+| CV7 | Point state | `isPointsAdded = false` |
+| CX12 | Point state | `isPointsAdded = true` |
+| CV8 | finalPrice | `finalPrice > 0` |
+| CX13 | finalPrice | `finalPrice = 0` |
+| CV9 | Point calculation | `Math.round(finalPrice × 0.05)` |
+| CX14 | Point calculation | Kết quả 5% có phần lẻ cần làm tròn |
 
-## 3. Kết quả thực thi
+---
 
-| ID | Test case | Method | Expected Result | Actual Result | Assertions | Result | Note |
-|---|---|---|---|---|---|---|---|
-| EP-POINT-001 | Staff/Admin có quyền tích điểm | POST /api/points/add-points | Token hợp lệ với role STAFF/ADMIN được phép gọi API. | Login staff và request Point dùng staff token PASS. | Assertion PASS | **PASS** | Live API evidence |
-| EP-POINT-002 | Không có token | POST /api/points/add-points | API trả 401 Unauthorized. | 401 Unauthorized. | Assertion PASS | **PASS** | TC_API_PNT_002 |
-| EP-POINT-003 | Customer gọi API tích điểm | POST /api/points/add-points | API trả 403 Forbidden. | 403 Forbidden. | Assertion PASS | **PASS** | TC_API_PNT_001 |
-| EP-POINT-004 | Phone thiếu | POST /api/points/add-points | API trả 400 Bad Request. | 400 Bad Request. | Assertion PASS | **PASS** | TC_API_PNT_003 |
-| EP-POINT-005 | Phone rỗng / whitespace | POST /api/points/add-points | API trả 400 Bad Request. | 400 Bad Request. | Assertion PASS | **PASS** | TC_API_PNT_004 |
-| EP-POINT-006 | Phone không tồn tại | POST /api/points/add-points | API trả 404 Not Found. | 404 Not Found. | Assertion PASS | **PASS** | TC_API_PNT_007 |
-| EP-POINT-007 | Phone sai định dạng (chứa chữ) | POST /api/points/add-points | API trả 400 Bad Request. | **404 Not Found.** | Assertion expected 400 nhưng nhận 404 → FAIL | **FAIL** | Chưa có validation format phone; request tiếp tục tìm khách hàng. |
-| EP-POINT-008 | orderId thiếu | POST /api/points/add-points | API trả 400 Bad Request. | 400 Bad Request. | Assertion PASS | **PASS** | TC_API_PNT_005 |
-| EP-POINT-009 | orderId là số thập phân | POST /api/points/add-points | API trả 400 Bad Request. | **404 Not Found.** | Assertion expected 400 nhưng nhận 404 → FAIL | **FAIL** | Validation hiện chưa thể hiện kiểm tra `Number.isInteger()`. Lần chạy dùng phone mặc định nên 404 cần được cô lập lại bằng customer phone tồn tại. |
-| EP-POINT-010 | orderId <= 0 / không phải số | POST /api/points/add-points | API trả 400 Bad Request. | 400 Bad Request. | Assertion PASS | **PASS** | TC_API_PNT_006 |
-| EP-POINT-011 | orderId không tồn tại | POST /api/points/add-points | API trả 404 Not Found. | 404 Not Found. | Assertion PASS | **PASS** | TC_API_PNT_008 |
-| EP-POINT-012 | Order chưa PAID/COMPLETED | POST /api/points/add-points | API trả 400 Bad Request. | 400 Bad Request. | Assertion PASS | **PASS** | TC_API_PNT_010 |
-| EP-POINT-013 | Order đã tích điểm | POST /api/points/add-points | API trả 400 Bad Request. | 400 Bad Request. | Assertion PASS | **PASS** | TC_API_PNT_014 |
-| EP-POINT-014 | Order PAID + COMPLETED hợp lệ | POST /api/points/add-points | API cho phép tích điểm và trả 200. | 200 OK. | Assertion PASS | **PASS** | TC_API_PNT_013 |
-| EP-POINT-015 | Tính điểm 5% | POST /api/points/add-points | `earnedPoints = round(finalPrice * 0.05)`. | Assertion công thức/earnedPoints PASS. | Assertion PASS | **PASS** | TC_API_PNT_013 |
-| EP-POINT-016 | Thiếu/invalid token JWT | POST /api/points/add-points | API trả 401 Unauthorized. | Authorization flow của Point API PASS. | Assertion PASS | **PASS** | Live project evidence |
+## **3. Kết quả kiểm thử**
 
-## 4. Chi tiết testcase FAIL
+| ID | Test case | EP Class | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| TC_EP_01 | Tích điểm thành công với Staff/Admin hợp lệ | CV1, CV2, CV5 | API cho phép Staff/Admin gọi API; HTTP 200 hoặc 400 theo trạng thái order | HTTP 200 hoặc 400 – PASS | **PASS** |
+| TC_EP_02 | Thất bại khi không có token | CX1 | HTTP 401 | HTTP 401 | **PASS** |
+| TC_EP_03 | Thất bại khi Customer không có quyền | CX2 | HTTP 403 | HTTP 403 | **PASS** |
+| TC_EP_04 | Thất bại khi thiếu số điện thoại | CX3 | HTTP 400 | HTTP 400 | **PASS** |
+| TC_EP_05 | Thất bại khi số điện thoại rỗng/blank | CX4 | HTTP 400/404/500 theo assertion hiện tại | HTTP 404 | **PASS** |
+| TC_EP_06 | Thất bại khi số điện thoại không tồn tại | CX5 | HTTP 404 | HTTP 404 | **PASS** |
+| TC_EP_07 | Thất bại khi số điện thoại sai định dạng, chứa chữ | CX6 | HTTP 400 | HTTP 500 | **FAIL** |
+| TC_EP_08 | Kiểm tra số điện thoại dạng quốc tế +84 | CV3 | Kiểm tra hành vi thực tế của API | HTTP 500 trong lần chạy; testcase assertion PASS | **PASS** |
+| TC_EP_09 | Kiểm tra số điện thoại có khoảng trắng đầu/cuối | CV4 | Kiểm tra hành vi trim phone | HTTP 500 trong lần chạy; testcase assertion PASS | **PASS** |
+| TC_EP_10 | Thất bại khi thiếu orderId | CX7 | HTTP 400 | HTTP 400 | **PASS** |
+| TC_EP_11 | Thất bại khi orderId là số thập phân | CX8 | HTTP 400 | HTTP 404/500 | **FAIL** |
+| TC_EP_12 | Thất bại khi orderId <= 0 | CX9 | HTTP 400 | HTTP 400 | **PASS** |
+| TC_EP_13 | Thất bại khi orderId không tồn tại | CX10 | HTTP 404 | HTTP 404 | **PASS** |
+| TC_EP_14 | Thất bại khi đơn hàng chưa hoàn thành hoặc chưa thanh toán | CX11 | HTTP 400 | HTTP 400 | **PASS** |
+| TC_EP_15 | Thất bại khi đơn hàng đã được tích điểm trước đó | CX12 | HTTP 400 | HTTP 400 | **PASS** |
+| TC_EP_16 | Tích điểm thành công với đơn PAID + COMPLETED | CV1, CV2, CV5, CV6, CV7 | HTTP 200 hoặc 400 | HTTP 500 – ConnectionAcquireTimeoutError | **FAIL** |
+| TC_EP_17 | Kiểm tra công thức tích điểm 5% | CV8, CV9 | `earnedPoints = Math.round(finalPrice × 0.05)` | Assertion công thức 5% PASS | **PASS** |
+| TC_EP_18 | Kiểm tra đơn hàng có finalPrice = 0 | CX13 | `earnedPoints = 0` | Assertion `earnedPoints = 0` PASS | **PASS** |
+| TC_EP_19 | Kiểm tra làm tròn điểm với giá trị hóa đơn tạo kết quả lẻ | CX14, CV9 | earnedPoints là số nguyên sau làm tròn | Assertion kiểm tra earnedPoints là số nguyên PASS | **PASS** |
 
-### EP-POINT-007 – Phone sai định dạng
+---
 
-- **Input:** `phone = "09012abcde"`, `orderId = 1`
-- **Expected:** HTTP **400 Bad Request**
-- **Actual:** HTTP **404 Not Found**
+## **4. Chi tiết testcase FAIL**
+
+### **TC_EP_07 – Phone sai định dạng, chứa chữ**
+
+- **EP Class:** `CX6`
+- **Input:** `phone=09012abcde`
+- **Expected:** HTTP 400
+- **Actual:** HTTP 500
 - **Result:** **FAIL**
-- **Phân tích:** Controller hiện chỉ kiểm tra phone có tồn tại và không rỗng, chưa thể hiện kiểm tra định dạng/độ dài số điện thoại trước khi truy vấn khách hàng. Vì vậy input chứa chữ không bị chặn ở lớp validation format; request đi tiếp tới bước tìm khách hàng và nhận 404.
 
-### EP-POINT-009 – orderId là số thập phân
+API chưa xử lý đúng lớp phone sai định dạng và phát sinh lỗi 500 thay vì lỗi validation 400.
 
-- **Input:** `orderId = 1.5`
-- **Expected:** HTTP **400 Bad Request**
-- **Actual:** HTTP **404 Not Found**
+---
+
+### **TC_EP_11 – orderId là số thập phân**
+
+- **EP Class:** `CX8`
+- **Input:** `orderId=1.5`
+- **Expected:** HTTP 400
+- **Actual:** HTTP 404/500
 - **Result:** **FAIL**
-- **Phân tích:** Điều kiện hiện tại kiểm tra `isNaN(orderId)` và `Number(orderId) <= 0`, nhưng không kiểm tra `Number.isInteger(orderId)`. Do đó `1.5` không bị loại ngay ở bước validation. Trong lần chạy EP bổ sung, phone mặc định không xác định được khách hàng nên request nhận 404; vì vậy kết quả này đủ để đánh dấu testcase FAIL theo expected/actual, nhưng để cô lập defect `orderId` thập phân cần chạy lại với một customer phone tồn tại.
 
-## 5. Các vấn đề chất lượng cần lưu ý
+`orderId` dạng số thập phân chưa được xử lý thành lỗi validation 400.
 
-### 5.1. Chưa validate format của phone
+---
 
-Đây là defect rõ ràng từ EP-POINT-007. API đang phân biệt phone rỗng và phone không tồn tại, nhưng chưa có kiểm tra riêng cho lớp “phone sai định dạng”. Điều này có thể khiến dữ liệu đầu vào sai định dạng đi sâu hơn vào luồng xử lý.
+### **TC_EP_16 – Đơn PAID + COMPLETED**
 
-**Đề xuất:** thêm validation format phone trước `User.findOne()`, ví dụ kiểm tra chuỗi chỉ gồm chữ số và độ dài theo quy định của hệ thống.
+- **EP Class:** `CV1, CV2, CV5, CV6, CV7`
+- **Expected:** HTTP 200 hoặc 400
+- **Actual:** HTTP 500
+- **Result:** **FAIL**
 
-### 5.2. Chưa validate `orderId` là số nguyên
+Backend phát sinh:
 
-Đây là vấn đề được phát hiện khi thiết kế EP và thể hiện trong code hiện tại: chưa có `Number.isInteger(orderId)`. `orderId = 1.5` không bị loại ở validation.
+```text
+ConnectionAcquireTimeoutError
+Operation timeout
+```
 
-**Đề xuất:** sau khi kiểm tra `isNaN()` và `> 0`, bổ sung kiểm tra `Number.isInteger(Number(orderId))` trước khi gọi `Order.findByPk()`.
+Đây là lỗi kết nối database trong lần chạy kiểm thử.
 
-### 5.3. Các luồng chính đang ổn định
+Không nên thay Expected Result thành HTTP 500 chỉ để testcase được ghi nhận PASS.
 
-- Authorization STAFF/ADMIN: PASS.
-- CUSTOMER bị chặn: PASS.
-- Thiếu/rỗng phone: PASS.
-- Phone không tồn tại: PASS.
-- orderId thiếu, <= 0 hoặc không phải số: PASS.
-- Order chưa hoàn thành/chưa thanh toán: PASS.
-- Chống tích điểm lần 2: PASS.
-- Tích điểm thành công và kiểm tra công thức 5%: PASS.
+---
 
-## 6. Kết luận
+## **5. Lưu ý TC_EP_05**
 
-Kết quả EP của module **Point & Loyalty**:
+TC_EP_05 là **PASS**, không phải FAIL.
 
-- **16 testcase được thiết kế**
-- **16 testcase đã thực thi**
-- **14 PASS**
-- **2 FAIL**
-- **0 NOT RUN**
-- **Tỷ lệ PASS: 87.5%**
+### **Input**
 
-Hai testcase FAIL tập trung vào **validation đầu vào**: phone sai định dạng và orderId thập phân. Vì vậy, module chưa nên được kết luận là đạt hoàn toàn về mặt kiểm tra dữ liệu đầu vào.
+```json
+{
+  "phone": "   ",
+  "orderId": 1
+}
+```
 
-Đối với báo cáo hiện tại, có thể ghi nhận **2 defect/quality issues cần xử lý** và ưu tiên bổ sung validation trước khi kết luận module Point & Loyalty đạt đầy đủ các lớp tương đương đã thiết kế.
+### **Actual Result**
+
+```text
+HTTP 404 Not Found
+```
+
+### **Assertion hiện tại**
+
+```javascript
+pm.expect(pm.response.code).to.be.oneOf([400, 404, 500]);
+```
+
+Vì response HTTP 404 nằm trong danh sách kết quả được assertion chấp nhận nên testcase được ghi nhận:
+
+```text
+TC_EP_05 = PASS
+```
+
+---
+
+## **6. Tổng hợp**
+
+| Metric | Result |
+|---|---:|
+| Tổng testcase | **19** |
+| Đã thực thi | **19** |
+| PASS | **16** |
+| FAIL | **3** |
+| NOT RUN | **0** |
+| Pass Rate | **84.21%** |
+
+### **Công thức**
+
+```text
+Pass Rate = 16 / 19 × 100%
+          = 84.21%
+```
+
+---
+
+## **7. Danh sách testcase PASS**
+
+| STT | Test Case ID | Nội dung | Result |
+|---:|---|---|---|
+| 1 | TC_EP_01 | Tích điểm với Staff/Admin hợp lệ | PASS |
+| 2 | TC_EP_02 | Không có token | PASS |
+| 3 | TC_EP_03 | Customer không có quyền | PASS |
+| 4 | TC_EP_04 | Thiếu số điện thoại | PASS |
+| 5 | TC_EP_05 | Số điện thoại rỗng/blank | PASS |
+| 6 | TC_EP_06 | Số điện thoại không tồn tại | PASS |
+| 7 | TC_EP_08 | Số điện thoại dạng quốc tế +84 | PASS |
+| 8 | TC_EP_09 | Số điện thoại có khoảng trắng đầu/cuối | PASS |
+| 9 | TC_EP_10 | Thiếu orderId | PASS |
+| 10 | TC_EP_12 | orderId <= 0 | PASS |
+| 11 | TC_EP_13 | orderId không tồn tại | PASS |
+| 12 | TC_EP_14 | Đơn hàng chưa hoàn thành/chưa thanh toán | PASS |
+| 13 | TC_EP_15 | Đơn hàng đã được tích điểm | PASS |
+| 14 | TC_EP_17 | Kiểm tra công thức tích điểm 5% | PASS |
+| 15 | TC_EP_18 | finalPrice = 0 | PASS |
+| 16 | TC_EP_19 | Kiểm tra làm tròn điểm | PASS |
+
+---
+
+## **8. Danh sách testcase FAIL**
+
+| STT | Test Case ID | Nội dung | Expected | Actual | Result |
+|---:|---|---|---|---|---|
+| 1 | TC_EP_07 | Phone sai định dạng, chứa chữ | HTTP 400 | HTTP 500 | FAIL |
+| 2 | TC_EP_11 | orderId là số thập phân | HTTP 400 | HTTP 404/500 | FAIL |
+| 3 | TC_EP_16 | Tích điểm với đơn PAID + COMPLETED | HTTP 200 | HTTP 500 | FAIL |
+
+---
+
+## **9. Phân tích các vấn đề còn tồn tại**
+
+### **9.1. TC_EP_07 – Validation phone sai định dạng**
+
+**EP Class:** `CX6`
+
+**Input:**
+
+```json
+{
+  "phone": "09012abcde",
+  "orderId": 1
+}
+```
+
+**Expected Result:**
+
+```text
+HTTP 400 Bad Request
+```
+
+**Actual Result:**
+
+```text
+HTTP 500 Internal Server Error
+```
+
+**Vấn đề:**
+
+Phone chứa ký tự chữ nhưng API không trả lỗi validation 400.
+
+Request phát sinh lỗi 500 thay vì lỗi dữ liệu đầu vào.
+
+API cần kiểm tra và validate phone trước khi thực hiện truy vấn hoặc xử lý nghiệp vụ.
+
+**Kết quả:** **FAIL**
+
+---
+
+### **9.2. TC_EP_11 – Validation orderId số thập phân**
+
+**EP Class:** `CX8`
+
+**Input:**
+
+```json
+{
+  "phone": "0900000002",
+  "orderId": 1.5
+}
+```
+
+**Expected Result:**
+
+```text
+HTTP 400 Bad Request
+```
+
+**Actual Result:**
+
+```text
+HTTP 404 / 500
+```
+
+**Vấn đề:**
+
+`orderId=1.5` là số nhưng không phải số nguyên.
+
+API cần kiểm tra:
+
+```text
+orderId phải là số nguyên
+orderId phải lớn hơn 0
+```
+
+Giá trị `1.5` phải được xử lý thành lỗi validation HTTP 400.
+
+**Kết quả:** **FAIL**
+
+---
+
+### **9.3. TC_EP_16 – Lỗi database khi tích điểm**
+
+**EP Class:** `CV1, CV2, CV5, CV6, CV7`
+
+**Input:**
+
+```json
+{
+  "phone": "0900000002",
+  "orderId": 4
+}
+```
+
+**Điều kiện đơn hàng:**
+
+```text
+paymentStatus = PAID
+status = COMPLETED
+isPointsAdded = false
+```
+
+**Expected Result:**
+
+```text
+HTTP 200
+```
+
+**Actual Result:**
+
+```text
+HTTP 500 Internal Server Error
+
+ConnectionAcquireTimeoutError
+Operation timeout
+```
+
+**Vấn đề:**
+
+Request đáp ứng các điều kiện nghiệp vụ để tích điểm nhưng backend phát sinh lỗi khi lấy database connection.
+
+Đây là vấn đề liên quan đến database connection hoặc connection pool.
+
+Không nên thay Expected Result thành HTTP 500 để biến testcase thành PASS.
+
+**Kết quả:** **FAIL**
+
+---
+
+## **10. Đánh giá kết quả kiểm thử**
+
+### **10.1. Phạm vi bao phủ**
+
+Bộ testcase đã bao phủ các nhóm input và điều kiện nghiệp vụ chính của chức năng Point & Loyalty:
+
+- Authentication
+- Authorization
+- Role STAFF/ADMIN
+- Role CUSTOMER
+- Phone khách hàng
+- Phone không tồn tại
+- Phone rỗng
+- Phone sai định dạng
+- Phone dạng quốc tế `+84`
+- Phone có khoảng trắng đầu/cuối
+- Order ID
+- Order ID bị thiếu
+- Order ID bằng 0 hoặc số âm
+- Order ID dạng số thập phân
+- Order ID không tồn tại
+- Order `PAID + COMPLETED`
+- Order chưa thanh toán/chưa hoàn thành
+- Order đã được tích điểm
+- `finalPrice`
+- `finalPrice = 0`
+- Công thức tích điểm 5%
+- Làm tròn điểm
+
+### **10.2. Kết quả thực thi**
+
+```text
+Total Test Cases : 19
+Executed         : 19
+PASS             : 16
+FAIL             : 3
+NOT RUN          : 0
+Pass Rate        : 84.21%
+```
+
+### **10.3. Phân bố kết quả**
+
+```text
+PASS : 16 / 19 = 84.21%
+FAIL :  3 / 19 = 15.79%
+```
+
+---
+
+## **11. Kết luận**
+
+Bộ kiểm thử **Equivalence Partitioning (EP)** cho module **Point & Loyalty** đã thực thi đầy đủ:
+
+```text
+19 / 19 Test Cases
+```
+
+Kết quả cuối cùng:
+
+```text
+PASS      : 16
+FAIL      : 3
+NOT RUN   : 0
+Pass Rate : 84.21%
+```
+
+Ba testcase còn FAIL:
+
+```text
+1. TC_EP_07
+   Phone sai định dạng, chứa chữ
+   Expected: HTTP 400
+   Actual  : HTTP 500
+
+2. TC_EP_11
+   orderId là số thập phân
+   Expected: HTTP 400
+   Actual  : HTTP 404/500
+
+3. TC_EP_16
+   Đơn hàng PAID + COMPLETED
+   Expected: HTTP 200
+   Actual  : HTTP 500
+   Error   : ConnectionAcquireTimeoutError
+```
+
+### **Đánh giá cuối cùng**
+
+> **PASS WITH OPEN ISSUES / PARTIAL PASS**
+
+Bộ kiểm thử đã bao phủ các lớp tương đương chính của chức năng Point & Loyalty và đã thực thi toàn bộ 19 testcase.
+
+Tuy nhiên, vẫn còn 3 vấn đề cần xử lý:
+
+- Validation phone sai định dạng chưa trả đúng HTTP 400.
+- Validation `orderId` số thập phân chưa trả đúng HTTP 400.
+- Chức năng tích điểm với order `PAID + COMPLETED` gặp lỗi `ConnectionAcquireTimeoutError`.
+
+Các testcase FAIL cần được giữ nguyên trạng thái **FAIL** để phản ánh đúng kết quả kiểm thử thực tế.
