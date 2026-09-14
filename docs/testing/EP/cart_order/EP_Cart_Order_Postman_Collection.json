@@ -34,6 +34,9 @@
                   "    if (jsonData.token) {",
                   "        pm.collectionVariables.set(\"admin_token\", jsonData.token);",
                   "    }",
+                  "    if (jsonData.user && jsonData.user.id) {",
+                  "        pm.collectionVariables.set(\"admin_id\", jsonData.user.id);",
+                  "    }",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -64,6 +67,50 @@
               ]
             }
           }
+        },
+        {
+          "name": "0.2 Setup - Cấp điểm tích lũy (Set Points)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Set Points successful\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": 10000000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{admin_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{admin_id}}"
+              ]
+            }
+          }
         }
       ]
     },
@@ -77,16 +124,19 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
+                  "var baseUrl = pm.variables.get('baseUrl') || 'http://localhost:3000';",
+                  "var adminId = pm.collectionVariables.get('admin_id') || 1;",
+                  "var token = pm.variables.get('admin_token');",
                   "pm.sendRequest({",
-                  "    url: pm.variables.get('baseUrl') + '/api/users/1',",
+                  "    url: baseUrl + '/api/users/' + adminId,",
                   "    method: 'PUT',",
-                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + pm.variables.get('admin_token') },",
-                  "    body: { mode: 'raw', raw: JSON.stringify({ points: 1000 }) }",
+                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },",
+                  "    body: { mode: 'raw', raw: JSON.stringify({ points: 10000000 }) }",
                   "}, function (err, res) {});",
                   "pm.sendRequest({",
-                  "    url: pm.variables.get('baseUrl') + '/api/products/1',",
+                  "    url: baseUrl + '/api/products/1',",
                   "    method: 'PUT',",
-                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + pm.variables.get('admin_token') },",
+                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },",
                   "    body: { mode: 'raw', raw: JSON.stringify({ stock: 100, isAvailable: true }) }",
                   "}, function (err, res) {});"
                 ],
@@ -410,10 +460,13 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
+                  "var baseUrl = pm.variables.get('baseUrl') || 'http://localhost:3000';",
+                  "var adminId = pm.collectionVariables.get('admin_id') || 1;",
+                  "var token = pm.variables.get('admin_token');",
                   "pm.sendRequest({",
-                  "    url: pm.variables.get('baseUrl') + '/api/users/1',",
+                  "    url: baseUrl + '/api/users/' + adminId,",
                   "    method: 'PUT',",
-                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + pm.variables.get('admin_token') },",
+                  "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },",
                   "    body: { mode: 'raw', raw: JSON.stringify({ points: 100 }) }",
                   "}, function (err, res) {});"
                 ],
