@@ -1,0 +1,512 @@
+{
+  "info": {
+    "_postman_id": "futuresushi-ep-table-srs-aligned-2026",
+    "name": "FutureSuShi - EP Restaurant Table & QR - SRS Aligned",
+    "description": "15 representative Equivalence Partitioning test cases aligned to the supplied SRS. No execution result is embedded. SRS names qr_token; current implementation uses qrCode, so the collection explicitly tests the mapping and the SRS-vs-implementation mismatch for status values.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "existingTableId",
+      "value": "1"
+    },
+    {
+      "key": "existingQrCode",
+      "value": "QR-EP-0001"
+    }
+  ],
+  "item": [
+    {
+      "name": "EP - Restaurant Table & QR (15 SRS-Aligned Cases)",
+      "item": [
+        {
+          "name": "EP-SRS-TB-001 - tableNumber valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2500\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "const d=pm.response.json();",
+                  "pm.test('Payload has table',()=>pm.expect(d.table).to.be.an('object'));",
+                  "pm.test('tableNumber=250',()=>pm.expect(Number(d.table.tableNumber)).to.eql(250));",
+                  "pm.test('capacity=4',()=>pm.expect(Number(d.table.capacity)).to.eql(4));",
+                  "pm.test('qrCode matches',()=>pm.expect(String(d.table.qrCode)).to.eql('QR-EP-2500'));",
+                  "pm.test('status=AVAILABLE',()=>pm.expect(String(d.table.status)).to.eql('AVAILABLE'));",
+                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-002 - tableNumber duplicate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 1,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2501\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400',()=>pm.response.to.have.status(400));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "const d=pm.response.json();",
+                  "pm.test('Error message exists',()=>pm.expect(d.message).to.be.a('string'));",
+                  "pm.test('Duplicate table message',()=>pm.expect(String(d.message).toLowerCase()).to.include('đã tồn tại')); "
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-003 - tableNumber non-number",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": \"ABC\",\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2502\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "const d=pm.response.json();",
+                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string')); "
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-004 - capacity valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 251,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2510\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
+                  "const d=pm.response.json();",
+                  "pm.test('capacity=4',()=>pm.expect(Number(d.table.capacity)).to.eql(4));",
+                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-005 - capacity non-number",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 252,\n  \"capacity\": \"ABC\",\n  \"qrCode\": \"QR-EP-2520\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "const d=pm.response.json();",
+                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string'));",
+                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-006 - capacity below Min",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 253,\n  \"capacity\": 0,\n  \"qrCode\": \"QR-EP-2530\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "const d=pm.response.json();",
+                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string'));",
+                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-007 - qr_token valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 254,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-0007\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
+                  "const d=pm.response.json();",
+                  "pm.test('qrCode length >=10',()=>pm.expect(String(d.table.qrCode).length).to.be.at.least(10));",
+                  "pm.test('qrCode matches',()=>pm.expect(String(d.table.qrCode)).to.eql('QR-EP-0007'));",
+                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-008 - qr_token duplicate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 255,\n  \"capacity\": 4,\n  \"qrCode\": \"{{existingQrCode}}\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "const d=pm.response.json();",
+                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string')); ",
+                  "if(pm.response.code===201){const d=pm.response.json();if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-009 - status valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 256,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2560\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
+                  "const d=pm.response.json();",
+                  "pm.test('status=AVAILABLE',()=>pm.expect(String(d.table.status)).to.eql('AVAILABLE'));",
+                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-010 - status invalid per SRS (BOOKED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 257,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2570\",\n  \"status\": \"BOOKED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "const d=pm.response.json();",
+                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string'));",
+                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-011 - existing table_id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"OCCUPIED\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/{{existingTableId}}/status"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "pm.test('Payload has message',()=>pm.expect(pm.response.json().message).to.be.a('string')); "
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-012 - non-existing table_id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"OCCUPIED\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/999999/status"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404',()=>pm.response.to.have.status(404));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "pm.test('Payload has message',()=>pm.expect(pm.response.json().message).to.be.a('string')); "
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-013 - invalid table_id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"OCCUPIED\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/ABC/status"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "pm.test('Payload has message',()=>pm.expect(pm.response.json().message).to.be.a('string')); "
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-014 - existing QR",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/qr/{{existingQrCode}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "const d=pm.response.json();",
+                  "pm.test('Payload contains table',()=>pm.expect(d.table).to.be.an('object'));",
+                  "pm.test('QR length >=10',()=>pm.expect(String(d.table.qrCode).length).to.be.at.least(10));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EP-SRS-TB-015 - non-existing QR",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tables/qr/QR-NOT-EXIST-SRS"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404',()=>pm.response.to.have.status(404));",
+                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
+                  "pm.test('Payload has message',()=>pm.expect(pm.response.json().message).to.be.a('string')); "
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

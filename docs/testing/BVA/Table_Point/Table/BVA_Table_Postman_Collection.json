@@ -1,51 +1,18 @@
 {
   "info": {
-    "_postman_id": "futuresushi-bva-table-reviewed-2026",
+    "_postman_id": "1dcefa95-d6d9-44bf-9607-e80c0b7420ac",
     "name": "FutureSuShi - BVA Table 4n+1 - REVIEWED",
     "description": "BVA folder contains exactly 17 cases. Separate regression folder fixes leader-reviewed URLs. All BVA cases assert status, JSON, payload fields and echoed values.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57473064",
+    "_collection_link": "https://go.postman.co/collection/57473064-1dcefa95-d6d9-44bf-9607-e80c0b7420ac?source=collection_link"
   },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:3000"
-    },
-    {
-      "key": "existingTableId",
-      "value": "1"
-    }
-  ],
   "item": [
     {
       "name": "1. BVA 4n+1 - EXACTLY 17 TEST CASES",
       "item": [
         {
           "name": "BVA-TB-001 - Baseline / Nominal",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 600,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-BASE-600\",\n  \"status\": \"AVAILABLE\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/tables"
-            }
-          },
           "event": [
             {
               "listen": "prerequest",
@@ -59,6 +26,7 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
                   "pm.test('Response is JSON',()=>pm.response.to.be.json);",
@@ -74,25 +42,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-002 - tableNumber Min",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 1,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-1\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 600,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-BASE-600\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -100,13 +61,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\"tableNumber\":10,\"capacity\":4,\"qrCode\":\"QR_TB_10\"}"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-002 - tableNumber Min",
           "event": [
             {
               "listen": "prerequest",
@@ -136,25 +97,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-003 - tableNumber Min+1",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 2,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-2\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 1,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-1\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -162,13 +116,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\"tableNumber\":10,\"capacity\":4,\"qrCode\":\"QR_TB_10\"}"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-003 - tableNumber Min+1",
           "event": [
             {
               "listen": "prerequest",
@@ -198,25 +152,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-004 - tableNumber Max-1",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 999,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-999\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 2,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-2\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -224,13 +171,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\"tableNumber\":10,\"capacity\":4,\"qrCode\":\"QR_TB_10\"}"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-004 - tableNumber Max-1",
           "event": [
             {
               "listen": "prerequest",
@@ -260,25 +207,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-005 - tableNumber Max",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 1000,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-1000\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 999,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-999\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -286,13 +226,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\"tableNumber\":10,\"capacity\":4,\"qrCode\":\"QR_TB_10\"}"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-005 - tableNumber Max",
           "event": [
             {
               "listen": "prerequest",
@@ -322,25 +262,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-006 - capacity Min",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 606,\n  \"capacity\": 1,\n  \"qrCode\": \"BVA-CAP-6\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 1000,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-TN-1000\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -348,9 +281,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-006 - capacity Min",
           "event": [
             {
               "listen": "prerequest",
@@ -380,25 +317,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-007 - capacity Min+1",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 607,\n  \"capacity\": 2,\n  \"qrCode\": \"BVA-CAP-7\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 606,\n  \"capacity\": 1,\n  \"qrCode\": \"BVA-CAP-6\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -406,9 +336,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-007 - capacity Min+1",
           "event": [
             {
               "listen": "prerequest",
@@ -438,25 +372,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-008 - capacity Max-1",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 608,\n  \"capacity\": 19,\n  \"qrCode\": \"BVA-CAP-8\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 607,\n  \"capacity\": 2,\n  \"qrCode\": \"BVA-CAP-7\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -464,9 +391,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-008 - capacity Max-1",
           "event": [
             {
               "listen": "prerequest",
@@ -496,25 +427,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-009 - capacity Max",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 609,\n  \"capacity\": 20,\n  \"qrCode\": \"BVA-CAP-9\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 608,\n  \"capacity\": 19,\n  \"qrCode\": \"BVA-CAP-8\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -522,9 +446,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-009 - capacity Max",
           "event": [
             {
               "listen": "prerequest",
@@ -554,25 +482,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-010 - qrCode length Min",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 610,\n  \"capacity\": 4,\n  \"qrCode\": \"Q\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 609,\n  \"capacity\": 20,\n  \"qrCode\": \"BVA-CAP-9\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -580,9 +501,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-010 - qrCode length Min",
           "event": [
             {
               "listen": "prerequest",
@@ -612,25 +537,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-011 - qrCode length Min+1",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 611,\n  \"capacity\": 4,\n  \"qrCode\": \"QR\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 610,\n  \"capacity\": 4,\n  \"qrCode\": \"Q\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -638,9 +556,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-011 - qrCode length Min+1",
           "event": [
             {
               "listen": "prerequest",
@@ -670,25 +592,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-012 - qrCode length Max-1",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 612,\n  \"capacity\": 4,\n  \"qrCode\": \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 611,\n  \"capacity\": 4,\n  \"qrCode\": \"QR\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -696,9 +611,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-012 - qrCode length Max-1",
           "event": [
             {
               "listen": "prerequest",
@@ -728,25 +647,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-013 - qrCode length Max",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 613,\n  \"capacity\": 4,\n  \"qrCode\": \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 612,\n  \"capacity\": 4,\n  \"qrCode\": \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -754,9 +666,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
+          "response": []
+        },
+        {
+          "name": "BVA-TB-013 - qrCode length Max",
           "event": [
             {
               "listen": "prerequest",
@@ -786,25 +702,18 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-TB-014 - status Min",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 614,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-STATUS-14\",\n  \"status\": \"AVAILABLE\"\n}",
+              "raw": "{\n  \"tableNumber\": 613,\n  \"capacity\": 4,\n  \"qrCode\": \"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ\",\n  \"status\": \"AVAILABLE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -812,274 +721,22 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": ""
             }
           },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 614,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-STATUS-14\\\",\\n  \\\"status\\\": \\\"AVAILABLE\\\"\\n}\");"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-TB-015 - status Min+1",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 615,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-STATUS-15\",\n  \"status\": \"BOOKED\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/tables"
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 615,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-STATUS-15\\\",\\n  \\\"status\\\": \\\"BOOKED\\\"\\n}\");"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-TB-016 - status Max-1",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 616,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-STATUS-16\",\n  \"status\": \"OCCUPIED\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/tables"
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 616,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-STATUS-16\\\",\\n  \\\"status\\\": \\\"OCCUPIED\\\"\\n}\");"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-TB-017 - status Max",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tableNumber\": 617,\n  \"capacity\": 4,\n  \"qrCode\": \"BVA-STATUS-17\",\n  \"status\": \"CLEANING\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/tables"
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.variables.set('bvaBody', \"{\\n  \\\"tableNumber\\\": 617,\\n  \\\"capacity\\\": 4,\\n  \\\"qrCode\\\": \\\"BVA-STATUS-17\\\",\\n  \\\"status\\\": \\\"CLEANING\\\"\\n}\");"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
-                  "const d=pm.response.json(); const e=JSON.parse(pm.variables.get('bvaBody'));",
-                  "pm.test('Payload has message',()=>pm.expect(d).to.have.property('message'));",
-                  "pm.test('Payload has table object',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber matches input',()=>pm.expect(Number(d.table.tableNumber)).to.eql(Number(e.tableNumber)));",
-                  "pm.test('capacity matches input',()=>pm.expect(Number(d.table.capacity)).to.eql(Number(e.capacity)));",
-                  "pm.test('qrCode matches input',()=>pm.expect(String(d.table.qrCode)).to.eql(String(e.qrCode)));",
-                  "pm.test('status matches input',()=>pm.expect(String(d.table.status)).to.eql(String(e.status)));",
-                  "if(d.table && d.table.id){pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
-                ]
-              }
-            }
-          ]
+          "response": []
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
     },
     {
-      "name": "2. Regression - URL fixes (NOT counted in BVA)",
-      "item": [
-        {
-          "name": "REG-WB-010 - Update Table Status URL fixed",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"status\":\"OCCUPIED\"}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/tables/{{existingTableId}}/status"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200',()=>pm.response.to.have.status(200)); pm.test('Response is JSON',()=>pm.response.to.be.json); pm.test('Payload has message',()=>pm.expect(pm.response.json()).to.have.property('message'));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "REG-WB-015 - Delete Table URL fixed",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/tables/{{existingTableId}}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200',()=>pm.response.to.have.status(200)); pm.test('Response is JSON',()=>pm.response.to.be.json); pm.test('Payload has message',()=>pm.expect(pm.response.json()).to.have.property('message'));"
-                ]
-              }
-            }
-          ]
-        }
-      ]
+      "key": "existingTableId",
+      "value": "1"
     }
   ]
 }

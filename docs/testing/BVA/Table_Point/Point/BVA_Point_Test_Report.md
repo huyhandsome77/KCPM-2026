@@ -6,35 +6,27 @@
 * Module: Point / Tích điểm khách hàng
 * Phương pháp: Boundary Value Analysis (BVA)
 * Thiết kế: 4n+1
-* Số biến được thiết kế: 3 (`phone`, `finalPrice`, `orderId`)
-* Tổng số testcase thiết kế: 13
+* Số biến được thiết kế: 1 (`current_balance`)
+* Tổng số testcase thiết kế: 5
 * Môi trường: Local (`http://localhost:3000`)
-* Tài khoản test: `admin`
-* Mật khẩu test: `123`
+* Công cụ: Postman
+* Endpoint: `POST /api/points/add-points`
 
 ## 2. Tình trạng thực thi
 
-**Trạng thái: PARTIALLY EXECUTED**
+**Trạng thái: FULLY EXECUTED**
 
-Chỉ có testcase `BVA-POINT-001` được ghi nhận kết quả thực tế từ ảnh Postman đã cung cấp. 12 testcase còn lại chưa có bằng chứng thực thi nên được giữ `NOT RUN`, không tự quy đổi thành PASS hoặc FAIL.
+Đã thực thi toàn bộ 5/5 testcase BVA theo bộ testcase mới. Kết quả PASS/FAIL được ghi nhận theo execution thực tế.
 
 ## 3. Kết quả thực tế
 
-| Test Case | Nội dung | HTTP | Assertion | Kết quả |
-|---|---|---:|---:|---|
-| BVA-POINT-001 | Baseline – phone `0363046054`, orderId `1` | 400 | 4/9 PASS | **FAIL** |
-| BVA-POINT-002 | Phone Min | — | Chưa chạy | NOT RUN |
-| BVA-POINT-003 | Phone Min+1 | — | Chưa chạy | NOT RUN |
-| BVA-POINT-004 | Phone Max-1 | — | Chưa chạy | NOT RUN |
-| BVA-POINT-005 | Phone Max | — | Chưa chạy | NOT RUN |
-| BVA-POINT-006 | finalPrice Min | — | Chưa chạy | NOT RUN |
-| BVA-POINT-007 | finalPrice Min+1 | — | Chưa chạy | NOT RUN |
-| BVA-POINT-008 | finalPrice Max-1 | — | Chưa chạy | NOT RUN |
-| BVA-POINT-009 | finalPrice Max | — | Chưa chạy | NOT RUN |
-| BVA-POINT-010 | orderId Min | — | Chưa chạy | NOT RUN |
-| BVA-POINT-011 | orderId Min+1 | — | Chưa chạy | NOT RUN |
-| BVA-POINT-012 | orderId Max-1 | — | Chưa chạy | NOT RUN |
-| BVA-POINT-013 | orderId Max | — | Chưa chạy | NOT RUN |
+| Test Case | Nội dung | HTTP | Kết quả |
+|---|---|---:|---|
+| BVA-POINT-001 | Baseline – `current_balance = 5,000,000` | 200 | **PASS** |
+| BVA-POINT-002 | `current_balance` Min = 0 | 200 | **PASS** |
+| BVA-POINT-003 | `current_balance` Min+1 = 1 | 200 | **PASS** |
+| BVA-POINT-004 | `current_balance` Max-1 = 9,999,999 | 200 | **FAIL** |
+| BVA-POINT-005 | `current_balance` Max = 10,000,000 | 200 | **FAIL** |
 
 ## 4. Chi tiết BVA-POINT-001
 
@@ -43,7 +35,9 @@ Chỉ có testcase `BVA-POINT-001` được ghi nhận kết quả thực tế t
 ```json
 {
   "phone": "0363046054",
-  "orderId": "1"
+  "orderId": "29",
+  "current_balance": 5000000,
+  "finalPrice": 50000
 }
 ```
 
@@ -51,19 +45,124 @@ Chỉ có testcase `BVA-POINT-001` được ghi nhận kết quả thực tế t
 
 ```json
 {
-  "message": "Đơn hàng này chưa hoàn thành hoặc chưa thanh toán"
+  "message": "Tích điểm thành công cho khách hàng Nguyễn Phước Thịnh",
+  "earnedPoints": 2500,
+  "totalPoints": 5002500
 }
 ```
 
-* HTTP Status: `400 Bad Request`
-* Postman Test Results: `4/9` assertions PASS
+* HTTP Status: `200 OK`
+* Kết quả testcase: **PASS**
+
+### Nhận xét
+
+Tích điểm thành công. Với `finalPrice = 50,000 VNĐ`, số điểm nhận được là:
+
+`50,000 / 100 × 5 = 2,500 điểm`
+
+Số dư mới là `5,002,500`, vẫn nằm trong miền `[0, 10,000,000]`.
+
+## 5. Chi tiết BVA-POINT-002
+
+### Input
+
+`current_balance = 0`, `finalPrice = 50,000 VNĐ`
+
+### Actual Response
+
+```json
+{
+  "message": "Tích điểm thành công cho khách hàng Nguyễn Phước Thịnh",
+  "earnedPoints": 2500,
+  "totalPoints": 2500
+}
+```
+
+* HTTP Status: `200 OK`
+* Kết quả testcase: **PASS**
+
+### Nhận xét
+
+Giá trị biên dưới được xử lý đúng; số dư sau tích điểm là `2,500`.
+
+## 6. Chi tiết BVA-POINT-003
+
+### Input
+
+`current_balance = 1`, `finalPrice = 50,000 VNĐ`
+
+### Actual Response
+
+```json
+{
+  "message": "Tích điểm thành công cho khách hàng Nguyễn Phước Thịnh",
+  "earnedPoints": 2500,
+  "totalPoints": 2501
+}
+```
+
+* HTTP Status: `200 OK`
+* Kết quả testcase: **PASS**
+
+### Nhận xét
+
+Giá trị ngay trên biên dưới được xử lý đúng; số dư sau tích điểm là `2,501`.
+
+## 7. Chi tiết BVA-POINT-004
+
+### Input
+
+`current_balance = 9,999,999`, `finalPrice = 50,000 VNĐ`
+
+### Actual Response
+
+```json
+{
+  "message": "Tích điểm thành công cho khách hàng Nguyễn Phước Thịnh",
+  "earnedPoints": 2500,
+  "totalPoints": 10002499
+}
+```
+
+* HTTP Status: `200 OK`
 * Kết quả testcase: **FAIL**
 
 ### Nhận xét
 
-Order ID `1` không đáp ứng điều kiện để tích điểm theo phản hồi thực tế của API: đơn hàng chưa hoàn thành hoặc chưa thanh toán. Đây là kết quả kiểm thử thực tế, không sửa testcase để ép PASS.
+Số dư sau tích điểm là `10,002,499`, vượt Max `10,000,000`.
 
-## 5. Authentication
+`9,999,999 + 2,500 = 10,002,499`
+
+API vẫn cho phép cộng điểm và không chặn overflow.
+
+## 8. Chi tiết BVA-POINT-005
+
+### Input
+
+`current_balance = 10,000,000`, `finalPrice = 50,000 VNĐ`
+
+### Actual Response
+
+```json
+{
+  "message": "Tích điểm thành công cho khách hàng Nguyễn Phước Thịnh",
+  "earnedPoints": 2500,
+  "totalPoints": 10002500
+}
+```
+
+* HTTP Status: `200 OK`
+* Kết quả testcase: **FAIL**
+
+### Nhận xét
+
+Số dư sau tích điểm là `10,002,500`, vượt Max `10,000,000`.
+
+`10,000,000 + 2,500 = 10,002,500`
+
+API vẫn cho phép cộng điểm và không chặn overflow tại giá trị Max.
+
+## 9. Authentication
 
 * `POST /api/auth/login`
 * Account: `admin`
@@ -72,20 +171,31 @@ Order ID `1` không đáp ứng điều kiện để tích điểm theo phản h
 * Postman Test Results: `4/4 PASS`
 * Authentication: **PASS**
 
-## 6. Tổng hợp
+## 10. Tổng hợp
 
-* Tổng testcase thiết kế: **13**
-* Đã thực thi: **1**
-* PASS testcase: **0**
-* FAIL testcase: **1**
-* NOT RUN: **12**
-* Pass rate trên testcase đã thực thi: **0%**
-* Không tính 12 testcase NOT RUN vào pass rate.
+* Tổng testcase thiết kế: **5**
+* Đã thực thi: **5**
+* PASS testcase: **3**
+* FAIL testcase: **2**
+* NOT RUN: **0**
+* Pass rate: **60%**
+* Fail rate: **40%**
 
-## 7. Kết luận
+## 11. Phát hiện / Defect
 
-Bộ BVA Point đã được thiết kế đủ 13 testcase theo cấu trúc 4n+1. Tuy nhiên, tại thời điểm lập báo cáo, dữ liệu Order phục vụ các boundary chưa được tạo/chuẩn bị đầy đủ nên chưa thể thực thi toàn bộ bộ test.
+* **Defect chính:** API không đảm bảo `current_balance` sau tích điểm không vượt quá `10,000,000`.
+* **BVA-POINT-004:** `9,999,999 + 2,500 = 10,002,499 > 10,000,000` → **FAIL**.
+* **BVA-POINT-005:** `10,000,000 + 2,500 = 10,002,500 > 10,000,000` → **FAIL**.
+* **SRS gap:** SRS quy định miền `current_balance [0, 10,000,000]` nhưng chưa nêu rõ khi cộng điểm vượt Max phải reject, cap hay xử lý theo cách khác.
 
-Kết quả hiện tại được ghi nhận trung thực: `BVA-POINT-001` FAIL do Order ID `1` chưa thỏa điều kiện PAID + COMPLETED; 12 testcase còn lại là `NOT RUN`.
+## 12. Kết luận
 
-**Không sử dụng kết quả giả định cho các testcase chưa chạy.**
+Bộ BVA Point đã được thiết kế và thực thi đầy đủ 5 testcase theo cấu trúc 4n+1 với biến `current_balance`.
+
+Kết quả cho thấy chức năng hoạt động đúng tại Baseline, Min và Min+1. Hai testcase tại vùng biên trên **FAIL** do API vẫn cho phép số dư vượt quá `10,000,000`.
+
+### Đề xuất
+
+Bổ sung xử lý overflow và quy định rõ expected behavior trong SRS; sau đó retest `BVA-POINT-004` và `BVA-POINT-005`.
+
+**Ghi chú:** Kết quả báo cáo sử dụng execution thực tế của bộ test mới, thay thế hoàn toàn phần test sớm 13 testcase trước đó.

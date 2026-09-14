@@ -6,8 +6,8 @@
 cd backend
 npm install   # Lần đầu
 
-npm test              # Chạy toàn bộ (381 TCs - PASS 100%)
-npm run test:coverage # Xem độ phủ code (100% Lines)
+npm test              # Chạy toàn bộ 
+npm run test:coverage # Xem độ phủ code 
 npm run test:whitebox # Chạy riêng White-box
 npm run test:bva      # Chạy riêng BVA (Giá trị biên)
 npm run test:state    # Chạy riêng State Transition
@@ -37,5 +37,5 @@ npm run test:kitchen     # Bếp (Kanban chế biến món)
 npm run test:staff       # Phục vụ (Đơn hàng, Bàn ăn, Thu tiền)
 npm run test:reservation # Đặt bàn
 npm run test:review      # Đánh giá
-npm run test:auth        # Đăng ký / Đăng nhập / Quét QR
+npm run test:auth        # Đăng ký / Đăng nhập
 ```

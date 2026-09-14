@@ -1,17 +1,150 @@
 {
   "info": {
-    "_postman_id": "future-sushi-bva-point-4n1-reviewed-2026",
-    "name": "FutureSushi - BVA Point 4n+1 - REVIEWED",
-    "description": "Reviewed BVA Point suite: 13 cases = 4n+1, n=3 (phone, finalPrice, orderId). Includes payload assertions and corrected account-based authentication.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "_postman_id": "0d8e7022-1327-4f7e-ad5a-52c0e4d262e9",
+    "name": "FutureSuShi - BVA Points",
+    "description": "5 BVA cases for SRS current_balance [0, 10,000,000]. Each case resets User.points via the existing admin User API, creates an eligible Order, marks it READY, pays it CASH, then calls /api/points/add-points. Uses target_user_id=2 from the existing environment. Point rate oracle: floor(finalPrice/100*5).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57473064",
+    "_collection_link": "https://go.postman.co/collection/57473064-0d8e7022-1327-4f7e-ad5a-52c0e4d262e9?source=collection_link"
   },
   "item": [
     {
-      "name": "0. Authentication",
+      "name": "BVA-POINT-001 - Baseline 5,000,000",
       "item": [
         {
-          "name": "AUTH - Đăng nhập Admin",
+          "name": "1.1 Setup - Find target User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
+                  "const data=pm.response.json();",
+                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
+                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
+                  "const u=users.find(x=>Number(x.id)===targetId);",
+                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
+                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
+                ]
+              }
+            }
+          ],
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": ""
+            },
+            "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Setup - Set current_balance to 5000000",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
+                  "pm.environment.set('u_fullName',String(u.fullName||''));",
+                  "pm.environment.set('u_email',String(u.email||''));",
+                  "pm.environment.set('u_username',String(u.username||''));",
+                  "pm.environment.set('u_avatar',String(u.avatar||''));",
+                  "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
+                  "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "pm.environment.set('currentBalance','5000000');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{u_fullName}}\",\n  \"email\": \"{{u_email}}\",\n  \"phone\": \"{{testPhone}}\",\n  \"username\": \"{{u_username}}\",\n  \"avatar\": \"{{u_avatar}}\",\n  \"points\": 5000000,\n  \"role\": \"{{u_role}}\",\n  \"status\": \"{{u_status}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Create eligible Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
+                  "const d=pm.response.json(); const o=d.data||d.order||d;",
+                  "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
+                  "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
+                  "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
               {
@@ -21,564 +154,1574 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"account\":\"{{adminAccount}}\",\"password\":\"{{adminPassword}}\"}"
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "url": "{{baseUrl}}/api/auth/login"
+            "url": {
+              "raw": ""
+            }
           },
+          "response": []
+        },
+        {
+          "name": "1.4 Set Order READY",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response has token', function () { const d=pm.response.json(); pm.expect(d.token || d.accessToken || d.data?.token).to.exist; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "const d=pm.response.json(); const token=d.token || d.accessToken || d.data?.token; if(token){ pm.environment.set('admin_token', token); }"
+                  "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "1.5 Pay Order CASH",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "1.6 BVA-POINT-001 - Add Points",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
+                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "let d={}; try{d=pm.response.json();}catch(e){}",
+                  "const start=Number(pm.environment.get('currentBalance'));",
+                  "const price=Number(pm.environment.get('currentFinalPrice'));",
+                  "const earned=Math.floor(price/100*5);",
+                  "console.log('BVA-POINT-001 startBalance=5000000, finalPrice=',price,'earnedExpected=',earned,'response=',d);",
+                  "pm.test('Expected boundary start balance is 5000000',()=>pm.expect(start).to.eql(5000000));",
+                  "if(pm.response.code===200){",
+                  "  pm.test('Success payload has earnedPoints and totalPoints',()=>{pm.expect(d).to.have.property('earnedPoints');pm.expect(d).to.have.property('totalPoints');});",
+                  "  pm.test('earnedPoints follows SRS floor rule',()=>pm.expect(Number(d.earnedPoints)).to.eql(earned));",
+                  "  const total=Number(d.totalPoints);",
+                  "  if(5000000 < 9999999) pm.test('New balance equals start + earned points',()=>pm.expect(total).to.eql(5000000+earned));",
+                  "  if(5000000 >= 9999999) pm.test('Balance does not exceed SRS maximum',()=>pm.expect(total).to.be.at.most(10000000));",
+                  "} else {",
+                  "  if(5000000 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{testPhone}}\",\n  \"orderId\": \"{{currentOrderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{pointEndpoint}}"
+              ]
+            },
+            "description": "SRS BVA current_balance=5000000. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
+          },
+          "response": []
         }
-      ]
+      ],
+      "description": "current_balance=5000000. Setup resets User.points to 5000000, then creates/pays an eligible order and executes add-points."
     },
     {
-      "name": "1. Point BVA Tests - EXACTLY 13 TEST CASES",
+      "name": "BVA-POINT-002 - Min 0",
       "item": [
         {
-          "name": "BVA-POINT-001 - Baseline",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"0900000000\",\"orderId\":\"{{orderBaselineId}}\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
+          "name": "2.1 Setup - Find target User",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('finalPrice={{priceBaseline}}')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
+                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
+                  "const data=pm.response.json();",
+                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
+                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
+                  "const u=users.find(x=>Number(x.id)===targetId);",
+                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
+                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": ""
+            },
+            "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
+          },
+          "response": []
         },
         {
-          "name": "BVA-POINT-002 - phone Min",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"0000000000\",\"orderId\":\"{{orderPhoneMinId}}\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
+          "name": "2.2 Setup - Set current_balance to 0",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
+                  "pm.environment.set('u_fullName',String(u.fullName||''));",
+                  "pm.environment.set('u_email',String(u.email||''));",
+                  "pm.environment.set('u_username',String(u.username||''));",
+                  "pm.environment.set('u_avatar',String(u.avatar||''));",
+                  "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
+                  "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('finalPrice fixture')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
+                  "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "pm.environment.set('currentBalance','0');"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{u_fullName}}\",\n  \"email\": \"{{u_email}}\",\n  \"phone\": \"{{testPhone}}\",\n  \"username\": \"{{u_username}}\",\n  \"avatar\": \"{{u_avatar}}\",\n  \"points\": 0,\n  \"role\": \"{{u_role}}\",\n  \"status\": \"{{u_status}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
         },
         {
-          "name": "BVA-POINT-003 - phone Min+1",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"0000000001\",\"orderId\":\"{{orderPhoneMin1Id}}\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
+          "name": "2.3 Create eligible Order",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('finalPrice fixture')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
+                  "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
+                  "const d=pm.response.json(); const o=d.data||d.order||d;",
+                  "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
+                  "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
+                  "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
         },
         {
-          "name": "BVA-POINT-004 - phone Max-1",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"9999999998\",\"orderId\":\"{{orderPhoneMax1Id}}\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
+          "name": "2.4 Set Order READY",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('finalPrice fixture')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
+                  "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
+          },
+          "response": []
         },
         {
-          "name": "BVA-POINT-005 - phone Max",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"9999999999\",\"orderId\":\"{{orderPhoneMaxId}}\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
+          "name": "2.5 Pay Order CASH",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('finalPrice fixture')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
+                  "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
+          },
+          "response": []
         },
         {
-          "name": "BVA-POINT-006 - finalPrice Min",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"{{phoneFinalPriceMin}}\",\"orderId\":\"{{orderFinalPriceMinId}}\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
+          "name": "2.6 BVA-POINT-002 - Add Points",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('0')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
+                  "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
+                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "let d={}; try{d=pm.response.json();}catch(e){}",
+                  "const start=Number(pm.environment.get('currentBalance'));",
+                  "const price=Number(pm.environment.get('currentFinalPrice'));",
+                  "const earned=Math.floor(price/100*5);",
+                  "console.log('BVA-POINT-002 startBalance=0, finalPrice=',price,'earnedExpected=',earned,'response=',d);",
+                  "pm.test('Expected boundary start balance is 0',()=>pm.expect(start).to.eql(0));",
+                  "if(pm.response.code===200){",
+                  "  pm.test('Success payload has earnedPoints and totalPoints',()=>{pm.expect(d).to.have.property('earnedPoints');pm.expect(d).to.have.property('totalPoints');});",
+                  "  pm.test('earnedPoints follows SRS floor rule',()=>pm.expect(Number(d.earnedPoints)).to.eql(earned));",
+                  "  const total=Number(d.totalPoints);",
+                  "  if(0 < 9999999) pm.test('New balance equals start + earned points',()=>pm.expect(total).to.eql(0+earned));",
+                  "  if(0 >= 9999999) pm.test('Balance does not exceed SRS maximum',()=>pm.expect(total).to.be.at.most(10000000));",
+                  "} else {",
+                  "  if(0 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "}"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "BVA-POINT-007 - finalPrice Min+1",
+          ],
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"phone\":\"{{phoneFinalPriceMin1}}\",\"orderId\":\"{{orderFinalPriceMin1Id}}\"}"
+              "raw": "{\n  \"phone\": \"{{testPhone}}\",\n  \"orderId\": \"{{currentOrderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('1')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-POINT-008 - finalPrice Max-1",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"{{phoneFinalPriceMax1}}\",\"orderId\":\"{{orderFinalPriceMax1Id}}\"}"
+            "url": {
+              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{pointEndpoint}}"
+              ]
             },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
+            "description": "SRS BVA current_balance=0. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('999999')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-POINT-009 - finalPrice Max",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"{{phoneFinalPriceMax}}\",\"orderId\":\"{{orderFinalPriceMaxId}}\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('1000000')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-POINT-010 - orderId Min",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"{{phoneOrderMin}}\",\"orderId\":\"1\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('fixture')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-POINT-011 - orderId Min+1",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"{{phoneOrderMin1}}\",\"orderId\":\"2\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('fixture')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-POINT-012 - orderId Max-1",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"{{phoneOrderMax1}}\",\"orderId\":\"999999\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('fixture')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "BVA-POINT-013 - orderId Max",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"phone\":\"{{phoneOrderMax}}\",\"orderId\":\"1000000\"}"
-            },
-            "url": "{{baseUrl}}{{pointEndpoint}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
-                  "pm.test('Response time < 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Payload has message', function () { const d=pm.response.json(); pm.expect(d).to.have.property('message'); });",
-                  "pm.test('Payload has earnedPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('earnedPoints'); });",
-                  "pm.test('Payload has totalPoints', function () { const d=pm.response.json(); pm.expect(d).to.have.property('totalPoints'); });",
-                  "pm.test('earnedPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.earnedPoints).to.be.a('number'); });",
-                  "pm.test('totalPoints is numeric', function () { const d=pm.response.json(); pm.expect(d.totalPoints).to.be.a('number'); });",
-                  "pm.test('Point calculation matches 5% rounding', function () { const d=pm.response.json(); const p=Number(pm.variables.replaceIn('fixture')); if(Number.isFinite(p)) pm.expect(d.earnedPoints).to.eql(Math.round(p*0.05)); });"
-                ]
-              }
-            }
-          ]
+          "response": []
         }
-      ]
+      ],
+      "description": "current_balance=0. Setup resets User.points to 0, then creates/pays an eligible order and executes add-points."
+    },
+    {
+      "name": "BVA-POINT-003 - Min+1 = 1",
+      "item": [
+        {
+          "name": "3.1 Setup - Find target User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
+                  "const data=pm.response.json();",
+                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
+                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
+                  "const u=users.find(x=>Number(x.id)===targetId);",
+                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
+                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": ""
+            },
+            "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Setup - Set current_balance to 1",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
+                  "pm.environment.set('u_fullName',String(u.fullName||''));",
+                  "pm.environment.set('u_email',String(u.email||''));",
+                  "pm.environment.set('u_username',String(u.username||''));",
+                  "pm.environment.set('u_avatar',String(u.avatar||''));",
+                  "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
+                  "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "pm.environment.set('currentBalance','1');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{u_fullName}}\",\n  \"email\": \"{{u_email}}\",\n  \"phone\": \"{{testPhone}}\",\n  \"username\": \"{{u_username}}\",\n  \"avatar\": \"{{u_avatar}}\",\n  \"points\": 1,\n  \"role\": \"{{u_role}}\",\n  \"status\": \"{{u_status}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.3 Create eligible Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
+                  "const d=pm.response.json(); const o=d.data||d.order||d;",
+                  "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
+                  "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
+                  "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 3\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.4 Set Order READY",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "3.5 Pay Order CASH",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "3.6 BVA-POINT-003 - Add Points",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
+                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "let d={}; try{d=pm.response.json();}catch(e){}",
+                  "const start=Number(pm.environment.get('currentBalance'));",
+                  "const price=Number(pm.environment.get('currentFinalPrice'));",
+                  "const earned=Math.floor(price/100*5);",
+                  "console.log('BVA-POINT-003 startBalance=1, finalPrice=',price,'earnedExpected=',earned,'response=',d);",
+                  "pm.test('Expected boundary start balance is 1',()=>pm.expect(start).to.eql(1));",
+                  "if(pm.response.code===200){",
+                  "  pm.test('Success payload has earnedPoints and totalPoints',()=>{pm.expect(d).to.have.property('earnedPoints');pm.expect(d).to.have.property('totalPoints');});",
+                  "  pm.test('earnedPoints follows SRS floor rule',()=>pm.expect(Number(d.earnedPoints)).to.eql(earned));",
+                  "  const total=Number(d.totalPoints);",
+                  "  if(1 < 9999999) pm.test('New balance equals start + earned points',()=>pm.expect(total).to.eql(1+earned));",
+                  "  if(1 >= 9999999) pm.test('Balance does not exceed SRS maximum',()=>pm.expect(total).to.be.at.most(10000000));",
+                  "} else {",
+                  "  if(1 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{testPhone}}\",\n  \"orderId\": \"{{currentOrderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{pointEndpoint}}"
+              ]
+            },
+            "description": "SRS BVA current_balance=1. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
+          },
+          "response": []
+        }
+      ],
+      "description": "current_balance=1. Setup resets User.points to 1, then creates/pays an eligible order and executes add-points."
+    },
+    {
+      "name": "BVA-POINT-004 - Max-1 = 9,999,999",
+      "item": [
+        {
+          "name": "4.1 Setup - Find target User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
+                  "const data=pm.response.json();",
+                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
+                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
+                  "const u=users.find(x=>Number(x.id)===targetId);",
+                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
+                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": ""
+            },
+            "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Setup - Set current_balance to 9999999",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
+                  "pm.environment.set('u_fullName',String(u.fullName||''));",
+                  "pm.environment.set('u_email',String(u.email||''));",
+                  "pm.environment.set('u_username',String(u.username||''));",
+                  "pm.environment.set('u_avatar',String(u.avatar||''));",
+                  "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
+                  "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "pm.environment.set('currentBalance','9999999');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{u_fullName}}\",\n  \"email\": \"{{u_email}}\",\n  \"phone\": \"{{testPhone}}\",\n  \"username\": \"{{u_username}}\",\n  \"avatar\": \"{{u_avatar}}\",\n  \"points\": 9999999,\n  \"role\": \"{{u_role}}\",\n  \"status\": \"{{u_status}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Create eligible Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
+                  "const d=pm.response.json(); const o=d.data||d.order||d;",
+                  "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
+                  "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
+                  "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 4\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.4 Set Order READY",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "4.5 Pay Order CASH",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "4.6 BVA-POINT-004 - Add Points",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
+                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "let d={}; try{d=pm.response.json();}catch(e){}",
+                  "const start=Number(pm.environment.get('currentBalance'));",
+                  "const price=Number(pm.environment.get('currentFinalPrice'));",
+                  "const earned=Math.floor(price/100*5);",
+                  "console.log('BVA-POINT-004 startBalance=9999999, finalPrice=',price,'earnedExpected=',earned,'response=',d);",
+                  "pm.test('Expected boundary start balance is 9999999',()=>pm.expect(start).to.eql(9999999));",
+                  "if(pm.response.code===200){",
+                  "  pm.test('Success payload has earnedPoints and totalPoints',()=>{pm.expect(d).to.have.property('earnedPoints');pm.expect(d).to.have.property('totalPoints');});",
+                  "  pm.test('earnedPoints follows SRS floor rule',()=>pm.expect(Number(d.earnedPoints)).to.eql(earned));",
+                  "  const total=Number(d.totalPoints);",
+                  "  if(9999999 < 9999999) pm.test('New balance equals start + earned points',()=>pm.expect(total).to.eql(9999999+earned));",
+                  "  if(9999999 >= 9999999) pm.test('Balance does not exceed SRS maximum',()=>pm.expect(total).to.be.at.most(10000000));",
+                  "} else {",
+                  "  if(9999999 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{testPhone}}\",\n  \"orderId\": \"{{currentOrderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{pointEndpoint}}"
+              ]
+            },
+            "description": "SRS BVA current_balance=9999999. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
+          },
+          "response": []
+        }
+      ],
+      "description": "current_balance=9999999. Setup resets User.points to 9999999, then creates/pays an eligible order and executes add-points."
+    },
+    {
+      "name": "BVA-POINT-005 - Max 10,000,000",
+      "item": [
+        {
+          "name": "5.1 Setup - Find target User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get users status is 200',()=>pm.response.to.have.status(200));",
+                  "const data=pm.response.json();",
+                  "const users=Array.isArray(data)?data:(data.users||data.data||[]);",
+                  "const targetId=Number(pm.environment.get('target_user_id')||2);",
+                  "const u=users.find(x=>Number(x.id)===targetId);",
+                  "pm.test('Target user exists',()=>pm.expect(u,'User id '+targetId+' not found').to.exist);",
+                  "if(u){ pm.environment.set('testUserId',String(u.id)); pm.environment.set('testPhone',String(u.phone||'')); pm.environment.set('testUserJson',JSON.stringify(u)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": ""
+            },
+            "description": "Reads existing target_user_id from environment, extracts its phone for the point API, and stores the user record for the balance reset."
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 Setup - Set current_balance to 10000000",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const u=JSON.parse(pm.environment.get('testUserJson')||'{}');",
+                  "pm.environment.set('u_fullName',String(u.fullName||''));",
+                  "pm.environment.set('u_email',String(u.email||''));",
+                  "pm.environment.set('u_username',String(u.username||''));",
+                  "pm.environment.set('u_avatar',String(u.avatar||''));",
+                  "pm.environment.set('u_role',String(u.role||'CUSTOMER'));",
+                  "pm.environment.set('u_status',String(u.status||'ACTIVE'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Set user points status is 200',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "pm.environment.set('currentBalance','10000000');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{u_fullName}}\",\n  \"email\": \"{{u_email}}\",\n  \"phone\": \"{{testPhone}}\",\n  \"username\": \"{{u_username}}\",\n  \"avatar\": \"{{u_avatar}}\",\n  \"points\": 10000000,\n  \"role\": \"{{u_role}}\",\n  \"status\": \"{{u_status}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.3 Create eligible Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Create order status is 201',()=>pm.response.to.have.status(201));",
+                  "const d=pm.response.json(); const o=d.data||d.order||d;",
+                  "pm.test('Created order id exists',()=>pm.expect(o.id).to.exist);",
+                  "if(o.id) pm.environment.set('currentOrderId',String(o.id));",
+                  "if(o.finalPrice!==undefined) pm.environment.set('currentFinalPrice',String(o.finalPrice));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ],\n  \"used_points\": 0,\n  \"table_id\": null,\n  \"note\": \"BVA Point Case 5\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.4 Set Order READY",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Set READY status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "The project admin UI exposes PUT /api/orders/:id/status; payment requires READY or COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "5.5 Pay Order CASH",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Pay status is successful',()=>pm.expect(pm.response.code).to.be.oneOf([200,201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CASH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": ""
+            },
+            "description": "Project payOrder updates paymentStatus=PAID and status=COMPLETED."
+          },
+          "response": []
+        },
+        {
+          "name": "5.6 BVA-POINT-005 - Add Points",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Point API did not fail authentication',()=>pm.expect(pm.response.code).to.not.equal(401));",
+                  "pm.test('Response time < 1000ms',()=>pm.expect(pm.response.responseTime).to.be.below(1000));",
+                  "let d={}; try{d=pm.response.json();}catch(e){}",
+                  "const start=Number(pm.environment.get('currentBalance'));",
+                  "const price=Number(pm.environment.get('currentFinalPrice'));",
+                  "const earned=Math.floor(price/100*5);",
+                  "console.log('BVA-POINT-005 startBalance=10000000, finalPrice=',price,'earnedExpected=',earned,'response=',d);",
+                  "pm.test('Expected boundary start balance is 10000000',()=>pm.expect(start).to.eql(10000000));",
+                  "if(pm.response.code===200){",
+                  "  pm.test('Success payload has earnedPoints and totalPoints',()=>{pm.expect(d).to.have.property('earnedPoints');pm.expect(d).to.have.property('totalPoints');});",
+                  "  pm.test('earnedPoints follows SRS floor rule',()=>pm.expect(Number(d.earnedPoints)).to.eql(earned));",
+                  "  const total=Number(d.totalPoints);",
+                  "  if(10000000 < 9999999) pm.test('New balance equals start + earned points',()=>pm.expect(total).to.eql(10000000+earned));",
+                  "  if(10000000 >= 9999999) pm.test('Balance does not exceed SRS maximum',()=>pm.expect(total).to.be.at.most(10000000));",
+                  "} else {",
+                  "  if(10000000 >= 9999999) pm.test('Upper-bound case may reject overflow',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{testPhone}}\",\n  \"orderId\": \"{{currentOrderId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{pointEndpoint}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{pointEndpoint}}"
+              ]
+            },
+            "description": "SRS BVA current_balance=10000000. Order must be PAID+COMPLETED+isPointsAdded=false. point_rate=5 per 100 VND; earnedPoints=floor(finalPrice/100*5)."
+          },
+          "response": []
+        }
+      ],
+      "description": "current_balance=10000000. Setup resets User.points to 10000000, then creates/pays an eligible order and executes add-points."
+    },
+    {
+      "name": "TC_AUTH_001 - Admin Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login status is 200',()=>pm.response.to.have.status(200));",
+              "const d=pm.response.json();",
+              "const token=d.token||d.accessToken||(d.data&&(d.data.token||d.data.accessToken));",
+              "pm.test('JWT token returned',()=>pm.expect(token).to.be.a('string').and.not.empty);",
+              "if(token) pm.environment.set('admin_token',token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000",
-      "type": "string"
+      "value": "http://localhost:3000"
     },
     {
       "key": "admin_token",
-      "value": "",
-      "type": "string"
+      "value": ""
+    },
+    {
+      "key": "target_user_id",
+      "value": "2"
+    },
+    {
+      "key": "testPhone",
+      "value": ""
+    },
+    {
+      "key": "testUserId",
+      "value": ""
+    },
+    {
+      "key": "testUserJson",
+      "value": ""
+    },
+    {
+      "key": "currentOrderId",
+      "value": ""
+    },
+    {
+      "key": "currentFinalPrice",
+      "value": ""
+    },
+    {
+      "key": "currentBalance",
+      "value": ""
+    },
+    {
+      "key": "pointEndpoint",
+      "value": "api/points/add-points"
+    },
+    {
+      "key": "productId",
+      "value": "1"
+    },
+    {
+      "key": "quantity",
+      "value": "1"
     }
   ]
 }

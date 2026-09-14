@@ -1,0 +1,978 @@
+{
+    "info": {
+        "_postman_id": "ep-category-suite-2026-standardized",
+        "name": "FutureSushi - EP Category API Test Suite",
+        "description": "Bộ kiểm thử tự động Phân hoạch Lớp Tương đương (Equivalence Partitioning - EP) chuẩn hóa 17 Test Cases cho Category API (/api/categories) theo file EP_Category_Test_Report.md và Category-EP-Updated.xlsx.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "pm.collectionVariables.set('cat_name_130', 'A'.repeat(130));",
+                    "pm.collectionVariables.set('cat_desc_501', 'D'.repeat(501));",
+                    "pm.collectionVariables.set('cat_image_260', 'https://example.com/' + 'i'.repeat(240));",
+                    "pm.collectionVariables.set('cat_search_101', 'S'.repeat(101));",
+                    "if (!pm.collectionVariables.get('created_empty_cat_id')) {",
+                    "    pm.collectionVariables.set('created_empty_cat_id', '2');",
+                    "}"
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "pm.test('[Non-Functional] Response time is acceptable (< 1500ms)', function () {",
+                    "    pm.expect(pm.response.responseTime).to.be.below(1500);",
+                    "});"
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "admin_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "cat_name_130",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "cat_desc_501",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "cat_image_260",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "cat_search_101",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "created_cat_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "created_empty_cat_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "0. Authentication (Lấy Token Admin)",
+            "item": [
+                {
+                    "name": "AUTH_001 - Đăng nhập tài khoản Admin",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 200 OK', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Đăng nhập thành công và trả về admin token', function () {",
+                                    "    pm.expect(json).to.have.property('token');",
+                                    "    pm.expect(json.token).to.be.a('string').and.not.empty;",
+                                    "});",
+                                    "if (json.token) {",
+                                    "    pm.collectionVariables.set('admin_token', json.token);",
+                                    "    pm.environment.set('admin_token', json.token);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "1. Category EP Tests (EP-CAT-01 -> EP-CAT-17)",
+            "item": [
+                {
+                    "name": "EP-CAT-01: Tạo Category với đầy đủ dữ liệu hợp lệ [CV1, CV2, CV4]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 201 Created', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Tạo danh mục thành công với đầy đủ thông tin (CV1, CV2, CV4)', function () {",
+                                    "    pm.expect(json.name).to.eql('Nigiri Sushi');",
+                                    "    pm.expect(json.description).to.eql('Sushi nắm truyền thống');",
+                                    "    pm.expect(json.image).to.eql('https://example.com/nigiri.jpg');",
+                                    "    pm.expect(json.id).to.exist;",
+                                    "    pm.expect(Number(json.id)).to.be.above(0);",
+                                    "});",
+                                    "if (json.id) { pm.collectionVariables.set('created_cat_id', String(json.id)); }"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Nigiri Sushi\",\n  \"description\": \"Sushi nắm truyền thống\",\n  \"image\": \"https://example.com/nigiri.jpg\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-02: Tạo Category chỉ truyền name [CV1, CV3, CV5]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 201 Created', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Tạo danh mục thành công, description và image nhận null (CV3, CV5)', function () {",
+                                    "    pm.expect(json.name).to.eql('Maki Sushi');",
+                                    "    pm.expect(json.description).to.be.null;",
+                                    "    pm.expect(json.image).to.be.null;",
+                                    "    pm.expect(json.id).to.exist;",
+                                    "});",
+                                    "if (json.id) { pm.collectionVariables.set('created_empty_cat_id', String(json.id)); }"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Maki Sushi\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-03: Tạo Category với name rỗng hoặc toàn khoảng trắng [CX2]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Hệ thống từ chối tên rỗng/khoảng trắng (CX2)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.include('Category name is required and cannot be empty');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"   \"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-04: Tạo Category không truyền thuộc tính name [CX1, CV2]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Hệ thống bắt lỗi thiếu trường name (CX1)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.include('Category name is required and cannot be empty');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"description\": \"Không có tên danh mục\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-05: Tạo Category với name sai kiểu dữ liệu [CX4]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Hệ thống từ chối name sai kiểu dữ liệu (CX4)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.include('Category name is required and cannot be empty');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": 12345\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-06: Tạo Category với name dài hơn 100 ký tự [CX3]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Hệ thống chặn độ dài name vượt quá 100 ký tự (CX3)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.include('Category name cannot exceed 100 characters');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"{{cat_name_130}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-07: Tạo Category với description dài hơn 500 ký tự [CX5]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Hệ thống từ chối description vượt quá 500 ký tự (CX5)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.include('Category description cannot exceed 500 characters');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Category Test Desc 501\",\n  \"description\": \"{{cat_desc_501}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-08: Tạo Category với image vượt quá 255 ký tự [CX6]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Hệ thống từ chối URL image vượt quá 255 ký tự (CX6)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.include('Category image URL cannot exceed 255 characters');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Category Test Image 260\",\n  \"image\": \"{{cat_image_260}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-09: Lấy danh sách Category không truyền search [CV6]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 200 OK', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Trả về mảng danh mục kèm productCount (CV6)', function () {",
+                                    "    pm.expect(json).to.be.an('array');",
+                                    "    if (json.length > 0) {",
+                                    "        pm.expect(json[0]).to.have.property('id');",
+                                    "        pm.expect(json[0]).to.have.property('name');",
+                                    "        pm.expect(json[0]).to.have.property('productCount');",
+                                    "        pm.expect(json[0].productCount).to.be.a('number');",
+                                    "    }",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-10: Tìm kiếm Category với từ khóa có kết quả [CV7]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 200 OK', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Trả về danh sách danh mục khớp từ khóa Sushi (CV7)', function () {",
+                                    "    pm.expect(json).to.be.an('array');",
+                                    "    pm.expect(json.length).to.be.above(0);",
+                                    "    const matched = json.some(c => (c.name && c.name.toLowerCase().includes('sushi')) || (c.description && c.description.toLowerCase().includes('sushi')));",
+                                    "    pm.expect(matched).to.be.true;",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories?search=Sushi",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "Sushi"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-11: Tìm kiếm Category với từ khóa không có kết quả [CV8]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 200 OK', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Trả về mảng rỗng [] khi không khớp từ khóa (CV8)', function () {",
+                                    "    pm.expect(json).to.be.an('array');",
+                                    "    pm.expect(json.length).to.eql(0);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories?search=Pizza999",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "Pizza999"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-12: Tìm kiếm Category với từ khóa dài hơn 100 ký tự [CX7]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Hệ thống từ chối từ khóa tìm kiếm vượt quá 100 ký tự (CX7)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.include('Search query cannot exceed 100 characters');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories?search={{cat_search_101}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "{{cat_search_101}}"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-13: Lấy chi tiết / Cập nhật Category với ID hợp lệ và tồn tại [CV9, CV1, CV2]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 200 OK', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Cập nhật thông tin danh mục thành công với ID=1 (CV9, CV1, CV2)', function () {",
+                                    "    pm.expect(json.name).to.eql('Nigiri Cao Cấp');",
+                                    "    pm.expect(json.description).to.eql('Sushi nắm truyền thống cao cấp');",
+                                    "    pm.expect(Number(json.id)).to.eql(1);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Nigiri Cao Cấp\",\n  \"description\": \"Sushi nắm truyền thống cao cấp\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-14: Lấy chi tiết Category với ID sai định dạng [CX8]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Thông báo lỗi ID không hợp lệ: Invalid category ID (CX8)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.eql('Invalid category ID');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories/invalid_id",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories",
+                                "invalid_id"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-15: Thao tác với ID đúng định dạng nhưng không tồn tại [CX9]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 404 Not Found', function () {",
+                                    "    pm.response.to.have.status(404);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Thông báo không tìm thấy bản ghi: Not found (CX9)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.eql('Not found');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories/999999",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories",
+                                "999999"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-16: Xóa Category không có sản phẩm liên kết [CV10]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 204 No Content', function () {",
+                                    "    pm.response.to.have.status(204);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories/{{created_empty_cat_id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories",
+                                "{{created_empty_cat_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "EP-CAT-17: Xóa Category đang chứa sản phẩm liên kết [CX10]",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status code is 400 Bad Request', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "const json = pm.response.json();",
+                                    "pm.test('Hệ thống kích hoạt ràng buộc khóa ngoại và từ chối xóa (CX10)', function () {",
+                                    "    pm.expect(json).to.have.property('message');",
+                                    "    pm.expect(json.message).to.include('Không thể xóa danh mục đang có sản phẩm liên kết');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{admin_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/categories/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "categories",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

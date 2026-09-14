@@ -60,6 +60,43 @@ describe('WHITE-BOX TEST CASES FOR ORDER & PAYMENT', () => {
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
+  test('WB-ORD-02B: items exceeds 50 items limit (TC_EP_08)', async () => {
+    const res = makeResponse();
+    const items51 = Array(51).fill({ product_id: 1, quantity: 1 });
+    await controller.createOrder({ body: { items: items51 } }, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Số loại món không được vượt quá 50" });
+  });
+
+  test('WB-ORD-02C: note exceeds 200 characters (TC_EP_04)', async () => {
+    const res = makeResponse();
+    const longNote = "A".repeat(201);
+    await controller.createOrder({ body: { note: longNote, items: [{ product_id: 1, quantity: 1 }] } }, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Ghi chú món ăn không được vượt quá 200 ký tự" });
+  });
+
+  test('WB-ORD-02D: used_points is negative (TC_EP_10)', async () => {
+    const res = makeResponse();
+    await controller.createOrder({ body: { used_points: -100, items: [{ product_id: 1, quantity: 1 }] } }, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Điểm sử dụng không hợp lệ (phải lớn hơn hoặc bằng 0)" });
+  });
+
+  test('WB-ORD-02E: item quantity is 0 or negative (TC_EP_06)', async () => {
+    const res = makeResponse();
+    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 0 }] } }, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Số lượng món không hợp lệ (phải lớn hơn 0)" });
+  });
+
+  test('WB-ORD-02F: item quantity exceeds 99 (TC_EP_09)', async () => {
+    const res = makeResponse();
+    await controller.createOrder({ body: { items: [{ product_id: 1, quantity: 100 }] } }, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "Số lượng mỗi món không được vượt quá 99 phần" });
+  });
+
   test('WB-ORD-03: Product not found by ID', async () => {
     models.Product.findByPk.mockResolvedValue(null);
     const res = makeResponse();

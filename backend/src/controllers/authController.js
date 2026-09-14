@@ -11,14 +11,53 @@ exports.register = async (req, res) => {
         if (!fullName || typeof fullName !== 'string' || fullName.trim() === '') {
             return res.status(400).json({ message: "Vui lòng nhập Họ và tên đầy đủ!" });
         }
+        if (fullName.trim().length > 100) {
+            return res.status(400).json({ message: "Họ và tên không được vượt quá 100 ký tự!" });
+        }
+
         if (!phone || typeof phone !== 'string' || phone.trim() === '') {
             return res.status(400).json({ message: "Vui lòng nhập Số điện thoại hợp lệ!" });
         }
+        const phoneTrimmed = phone.trim();
+        if (!/^\d+$/.test(phoneTrimmed)) {
+            return res.status(400).json({ message: "Số điện thoại chỉ được chứa chữ số!" });
+        }
+        if (phoneTrimmed.length < 10 || phoneTrimmed.length > 12) {
+            return res.status(400).json({ message: "Số điện thoại phải có từ 10 đến 12 chữ số!" });
+        }
+        if (!phoneTrimmed.startsWith('0')) {
+            return res.status(400).json({ message: "Số điện thoại không hợp lệ! Phải bắt đầu bằng chữ số 0." });
+        }
+
         if (!username || typeof username !== 'string' || username.trim() === '') {
             return res.status(400).json({ message: "Vui lòng nhập Tên đăng nhập!" });
         }
+        if (username.length < 3 || username.length > 40) {
+            return res.status(400).json({ message: "Tên đăng nhập phải có từ 3 đến 40 ký tự!" });
+        }
+        if (/\s/.test(username)) {
+            return res.status(400).json({ message: "Tên đăng nhập không được chứa khoảng trắng!" });
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            return res.status(400).json({ message: "Tên đăng nhập không được chứa ký tự đặc biệt!" });
+        }
+
         if (!password || typeof password !== 'string' || password.trim() === '') {
             return res.status(400).json({ message: "Vui lòng nhập Mật khẩu!" });
+        }
+        if (password.length < 8 || password.length > 16) {
+            return res.status(400).json({ message: "Mật khẩu phải có độ dài từ 8 đến 16 ký tự!" });
+        }
+
+        if (email !== undefined && email !== null && typeof email === 'string' && email.trim() !== '') {
+            const emailTrimmed = email.trim();
+            if (emailTrimmed.length > 100) {
+                return res.status(400).json({ message: "Email không được vượt quá 100 ký tự!" });
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailTrimmed)) {
+                return res.status(400).json({ message: "Email không đúng định dạng!" });
+            }
         }
 
         const orConditions = [{ phone: phone.trim() }, { username: username.trim() }];
