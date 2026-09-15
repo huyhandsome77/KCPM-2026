@@ -21,8 +21,10 @@
                   "    var res = pm.response.json();",
                   "    pm.expect(res).to.have.property('token');",
                   "    pm.collectionVariables.set('admin_token', res.token);",
+                  "    pm.environment.set('admin_token', res.token);",
                   "    if (res.user && res.user.id) {",
                   "        pm.collectionVariables.set('admin_id', res.user.id);",
+                  "        pm.environment.set('admin_id', res.user.id);",
                   "    }",
                   "});"
                 ],

@@ -91,10 +91,42 @@ exports.getAllTables = async (req, res, next) => {
     }
 };
 
+const VALID_TABLE_STATUSES = ['AVAILABLE', 'OCCUPIED', 'CLEANING'];
+
+const findTableByIdOrNumber = async (id) => {
+    const numId = Number(id);
+    if (isNaN(numId) || !Number.isInteger(numId) || numId <= 0) {
+        return null;
+    }
+    let table = await RestaurantTable.findByPk(numId);
+    if (!table) {
+        table = await RestaurantTable.findOne({ where: { tableNumber: numId } });
+    }
+    return table;
+};
+
 exports.createTable = async (req, res, next) => {
     try {
         const { tableNumber, capacity, qrCode, status } = req.body;
-        const num = Number(tableNumber || 1);
+
+        // Validate tableNumber
+        if (tableNumber === undefined || tableNumber === null || isNaN(tableNumber) || !Number.isInteger(Number(tableNumber)) || Number(tableNumber) < 1 || Number(tableNumber) > 500) {
+            return res.status(400).json({ message: "Số bàn không hợp lệ (phải là số nguyên từ 1 đến 500)" });
+        }
+        const num = Number(tableNumber);
+
+        // Validate capacity
+        if (capacity !== undefined && capacity !== null) {
+            if (isNaN(capacity) || !Number.isInteger(Number(capacity)) || Number(capacity) < 1 || Number(capacity) > 50) {
+                return res.status(400).json({ message: "Sức chứa bàn không hợp lệ (phải là số nguyên từ 1 đến 50)" });
+            }
+        }
+        const cap = capacity !== undefined && capacity !== null ? Number(capacity) : 4;
+
+        // Validate status
+        if (status && !VALID_TABLE_STATUSES.includes(status)) {
+            return res.status(400).json({ message: `Trạng thái bàn không hợp lệ. Trạng thái cho phép: ${VALID_TABLE_STATUSES.join(', ')}` });
+        }
 
         // Check if tableNumber exists
         const existing = await RestaurantTable.findOne({ where: { tableNumber: num } });
@@ -102,10 +134,17 @@ exports.createTable = async (req, res, next) => {
             return res.status(400).json({ message: `Bàn #${num} đã tồn tại trong hệ thống!` });
         }
 
+        // Check if qrCode exists
+        const qr = qrCode || `T${num}`;
+        const existingQR = await RestaurantTable.findOne({ where: { qrCode: qr } });
+        if (existingQR) {
+            return res.status(400).json({ message: `Mã QR '${qr}' đã tồn tại trong hệ thống!` });
+        }
+
         const newTable = await RestaurantTable.create({
             tableNumber: num,
-            capacity: Number(capacity || 4),
-            qrCode: qrCode || `T${num}`,
+            capacity: cap,
+            qrCode: qr,
             status: status || 'AVAILABLE'
         });
         res.status(201).json({ message: 'Tạo bàn mới thành công', table: newTable });
@@ -119,17 +158,39 @@ exports.updateTable = async (req, res, next) => {
         const { id } = req.params;
         const { tableNumber, capacity, qrCode, status } = req.body;
 
-        let table = await RestaurantTable.findByPk(id);
-        if (!table) {
-            table = await RestaurantTable.findOne({
-                where: {
-                    [Op.or]: [{ id: id }, { tableNumber: id }]
-                }
-            });
-        }
-
+        const table = await findTableByIdOrNumber(id);
         if (!table) {
             return res.status(404).json({ message: 'Không tìm thấy bàn ăn' });
+        }
+
+        if (tableNumber !== undefined && tableNumber !== null) {
+            if (isNaN(tableNumber) || !Number.isInteger(Number(tableNumber)) || Number(tableNumber) < 1 || Number(tableNumber) > 500) {
+                return res.status(400).json({ message: "Số bàn không hợp lệ (phải là số nguyên từ 1 đến 500)" });
+            }
+            const num = Number(tableNumber);
+            if (num !== table.tableNumber) {
+                const existing = await RestaurantTable.findOne({ where: { tableNumber: num } });
+                if (existing) {
+                    return res.status(400).json({ message: `Bàn #${num} đã tồn tại trong hệ thống!` });
+                }
+            }
+        }
+
+        if (capacity !== undefined && capacity !== null) {
+            if (isNaN(capacity) || !Number.isInteger(Number(capacity)) || Number(capacity) < 1 || Number(capacity) > 50) {
+                return res.status(400).json({ message: "Sức chứa bàn không hợp lệ (phải là số nguyên từ 1 đến 50)" });
+            }
+        }
+
+        if (status && !VALID_TABLE_STATUSES.includes(status)) {
+            return res.status(400).json({ message: `Trạng thái bàn không hợp lệ. Trạng thái cho phép: ${VALID_TABLE_STATUSES.join(', ')}` });
+        }
+
+        if (qrCode && qrCode !== table.qrCode) {
+            const existingQR = await RestaurantTable.findOne({ where: { qrCode } });
+            if (existingQR) {
+                return res.status(400).json({ message: `Mã QR '${qrCode}' đã tồn tại trong hệ thống!` });
+            }
         }
 
         if (status === 'AVAILABLE') {
@@ -149,8 +210,8 @@ exports.updateTable = async (req, res, next) => {
         }
 
         await table.update({
-            tableNumber: tableNumber !== undefined ? Number(tableNumber) : table.tableNumber,
-            capacity: capacity !== undefined ? Number(capacity) : table.capacity,
+            tableNumber: tableNumber !== undefined && tableNumber !== null ? Number(tableNumber) : table.tableNumber,
+            capacity: capacity !== undefined && capacity !== null ? Number(capacity) : table.capacity,
             qrCode: qrCode || table.qrCode,
             status: status || table.status
         });
@@ -166,17 +227,13 @@ exports.updateTableStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        let table = await RestaurantTable.findByPk(id);
-        if (!table) {
-            table = await RestaurantTable.findOne({
-                where: {
-                    [Op.or]: [{ id: id }, { tableNumber: id }]
-                }
-            });
-        }
-
+        const table = await findTableByIdOrNumber(id);
         if (!table) {
             return res.status(404).json({ message: 'Không tìm thấy bàn ăn' });
+        }
+
+        if (!status || !VALID_TABLE_STATUSES.includes(status)) {
+            return res.status(400).json({ message: `Trạng thái không hợp lệ. Trạng thái cho phép: ${VALID_TABLE_STATUSES.join(', ')}` });
         }
 
         if (status === 'AVAILABLE') {
@@ -205,15 +262,7 @@ exports.updateTableStatus = async (req, res, next) => {
 exports.deleteTable = async (req, res, next) => {
     try {
         const { id } = req.params;
-        let table = await RestaurantTable.findByPk(id);
-
-        if (!table) {
-            table = await RestaurantTable.findOne({
-                where: {
-                    [Op.or]: [{ id: id }, { tableNumber: id }]
-                }
-            });
-        }
+        const table = await findTableByIdOrNumber(id);
 
         if (!table) {
             return res.status(404).json({ message: 'Không tìm thấy bàn ăn với mã này trong hệ thống' });

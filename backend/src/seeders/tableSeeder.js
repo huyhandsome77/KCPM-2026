@@ -8,7 +8,7 @@ const seedTables = async () => {
             for (let i = 1; i <= 12; i++) {
                 tables.push({
                     tableNumber: i,
-                    qrCode: `TABLE_${i}`,
+                    qrCode: `QR_TABLE_${String(i).padStart(3, '0')}`,
                     capacity: 4,
                     status: 'AVAILABLE'
                 });

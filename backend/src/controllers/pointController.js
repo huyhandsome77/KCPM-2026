@@ -5,7 +5,8 @@ exports.addPointsFromOrder = async (req, res, next) => {
     try {
         const { phone, orderId } = req.body || {};
 
-        if (!phone || typeof phone !== 'string' || phone.trim() === '') {
+        const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+        if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone.trim())) {
             return res.status(400).json({ message: "Vui lòng nhập Số điện thoại hợp lệ" });
         }
 
