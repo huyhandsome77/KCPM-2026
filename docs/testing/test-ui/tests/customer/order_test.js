@@ -61,7 +61,8 @@ Scenario("Khách giảm số lượng món ăn", async ({ I }) => {
 
   I.wait(2);
 
-  I.see("Chưa có món ăn.");
+  // UI mới hiển thị "Giỏ hàng đang trống"
+  I.see("Giỏ hàng đang trống");
 });
 
 Scenario("Khách đặt món khi giỏ hàng trống", async ({ I }) => {
@@ -72,9 +73,9 @@ Scenario("Khách đặt món khi giỏ hàng trống", async ({ I }) => {
   I.click("#checkoutBtn");
 
   I.wait(2);
+
   I.see("Giỏ hàng đang trống");
 });
-
 
 
 const TEST_ACCOUNT = {
@@ -105,5 +106,6 @@ Scenario("Người dùng đăng nhập và đặt món thành công", async ({ I
 
   I.wait(3);
 
-  I.see("Chưa có món ăn.");
+  // Sau khi đặt món thành công, giỏ hàng được reset
+  I.see("Giỏ hàng đang trống");
 });

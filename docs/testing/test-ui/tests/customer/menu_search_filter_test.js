@@ -7,14 +7,21 @@ Before(({ I }) => {
   I.amOnPage(INDEX_URL);
   I.wait(2);
 
-  // Mở chức năng QR
-  I.click("#openQrBtn");
-  I.wait(1);
+  // Mở chức năng QR theo giao diện mới
+  I.executeScript(() => {
+    if (typeof window.openQrScanner === "function") {
+      window.openQrScanner();
+    } else {
+      throw new Error("Không tìm thấy hàm openQrScanner().");
+    }
+  });
+
+  I.wait(2);
 
   // Nhập QR hợp lệ
   I.fillField(
     "#qrLinkInput",
-    "http://127.0.0.1:5500/customer/table/T5"
+    "http://localhost:3000/customer/table/T5"
   );
 
   // Xác nhận QR
@@ -159,13 +166,9 @@ Scenario("TC05 - Kết hợp tìm kiếm và lọc danh mục", async ({ I }) =>
     return options.length > 0
       ? {
           value: options[0].value,
-          name: optionText(options[0])
+          name: options[0].textContent.trim()
         }
       : null;
-
-    function optionText(option) {
-      return option.textContent.trim();
-    }
   });
 
   if (!category) {

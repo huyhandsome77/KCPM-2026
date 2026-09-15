@@ -641,3 +641,702 @@
 }
 
 
+/*==================================================
+                MY REVIEWS - SETTING
+==================================================*/
+
+.my-reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+
+/*================ REVIEW CARD =================*/
+
+.my-review-card {
+
+    background: #18181b;
+
+    border: 1px solid rgba(255,255,255,.08);
+
+    border-radius: 18px;
+
+    padding: 22px;
+
+    transition: .25s;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,.18);
+
+}
+
+
+.my-review-card:hover {
+
+    border-color: rgba(214,40,40,.45);
+
+    transform: translateY(-3px);
+
+    box-shadow: 0 15px 30px rgba(0,0,0,.25);
+
+}
+
+
+/*================ REVIEW HEADER =================*/
+
+.my-review-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 20px;
+
+}
+
+
+.my-review-header h3 {
+
+    color: #ffffff;
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    margin: 0 0 8px;
+
+}
+
+
+/*================ STARS =================*/
+
+.my-review-stars {
+
+    color: #ffb703;
+
+    font-size: 20px;
+
+    letter-spacing: 2px;
+
+    line-height: 1;
+
+}
+
+
+/*================ RATING =================*/
+
+.review-rating {
+
+    color: var(--accent);
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+}
+
+
+/*================ CONTENT =================*/
+
+.my-review-content {
+
+    color: #d0d0d0;
+
+    font-size: 15px;
+
+    line-height: 1.8;
+
+    margin: 18px 0 12px;
+
+}
+
+
+/*================ DATE =================*/
+
+.my-review-card small {
+
+    display: block;
+
+    color: #888;
+
+    font-size: 13px;
+
+}
+
+
+/*==================================================
+                EMPTY REVIEW
+==================================================*/
+
+.setting-empty {
+
+    text-align: center;
+
+    padding: 50px 20px;
+
+    color: var(--muted);
+
+}
+
+
+.setting-empty i {
+
+    display: block;
+
+    font-size: 42px;
+
+    color: var(--accent);
+
+    margin-bottom: 18px;
+
+}
+
+
+.setting-empty h3 {
+
+    color: #ffffff;
+
+    font-size: 20px;
+
+    margin-bottom: 8px;
+
+}
+
+
+.setting-empty p {
+
+    color: #999;
+
+    line-height: 1.7;
+
+}
+
+
+/*==================================================
+                LOADING
+==================================================*/
+
+.setting-loading {
+
+    text-align: center;
+
+    padding: 40px 20px;
+
+    color: var(--muted);
+
+}
+
+
+.setting-loading i {
+
+    color: var(--accent);
+
+    margin-right: 8px;
+
+}
+
+
+/*==================================================
+                RESPONSIVE
+==================================================*/
+
+@media (max-width: 768px) {
+
+    .my-review-card {
+
+        padding: 18px;
+
+    }
+
+
+    .my-review-header {
+
+        flex-direction: column;
+
+        gap: 10px;
+
+    }
+
+
+    .review-rating {
+
+        font-size: 14px;
+
+    }
+
+
+    .my-review-stars {
+
+        font-size: 18px;
+
+    }
+
+}
+
+/*==================================================
+                    POINTS
+==================================================*/
+
+.points-detail{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.points-detail-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.points-label{
+    color:var(--accent);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:2px;
+}
+
+.points-detail-header h2{
+    margin:5px 0;
+    font-size:28px;
+}
+
+.points-detail-header p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.points-big-icon{
+    width:48px;
+    height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:14px;
+    background:rgba(255,183,3,.12);
+    color:#ffb703;
+    font-size:20px;
+}
+
+
+/* TỔNG ĐIỂM */
+
+.points-main-card{
+    padding:25px;
+    border-radius:18px;
+    color:white;
+    background:linear-gradient(135deg,#d62828,#ff595e);
+    box-shadow:0 10px 25px rgba(214,40,40,.18);
+}
+
+.points-card-label{
+    font-size:10px;
+    letter-spacing:1.5px;
+    opacity:.85;
+}
+
+.points-number{
+    margin:8px 0;
+    font-size:45px;
+    font-weight:800;
+}
+
+.points-number small{
+    font-size:14px;
+    font-weight:500;
+}
+
+.points-main-card p{
+    margin:0;
+    font-size:12px;
+    opacity:.9;
+}
+
+
+/* HẠNG THÀNH VIÊN */
+
+.points-member-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:18px;
+    background:#1d1d20;
+    color:#fff;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+}
+
+.points-member-icon{
+    width:42px;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:12px;
+    background:rgba(255,183,3,.12);
+    color:#ffb703;
+}
+
+.points-member-info span{
+    color:#999;
+    font-size:9px;
+    letter-spacing:1px;
+}
+
+.points-member-info h3{
+    margin:3px 0 0;
+    color:#fff;
+    font-size:16px;
+}
+
+.member-badge{
+    padding:5px 9px;
+    border-radius:15px;
+    background:#29292d;
+    color:#ddd;
+    font-size:9px;
+    font-weight:700;
+}
+
+
+/* TIẾN TRÌNH */
+
+.points-progress-card,
+.points-history-card{
+    padding:20px;
+    background:#1d1d20;
+    color:#fff;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+}
+
+.points-progress-title,
+.history-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.points-progress-title h3,
+.history-header h3{
+    margin:0;
+    color:#fff;
+    font-size:16px;
+}
+
+.points-progress-title p{
+    margin:4px 0 0;
+    color:#999;
+    font-size:11px;
+}
+
+.points-progress-title strong{
+    color:var(--accent);
+    font-size:13px;
+}
+
+.progress-bar{
+    height:8px;
+    margin-top:15px;
+    overflow:hidden;
+    border-radius:20px;
+    background:#303033;
+}
+
+.progress-fill{
+    height:100%;
+    border-radius:20px;
+    background:linear-gradient(90deg,#d62828,#ff595e);
+}
+
+.progress-footer{
+    display:flex;
+    justify-content:space-between;
+    margin-top:7px;
+    color:#999;
+    font-size:10px;
+}
+
+
+/* LỊCH SỬ */
+
+.history-header{
+    margin-bottom:4px;
+}
+
+.history-header span{
+    color:var(--muted);
+    font-size:11px;
+}
+
+.point-history-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:13px 0;
+    border-bottom:1px solid #eee;
+}
+
+.point-history-item:last-child{
+    border-bottom:none;
+}
+
+.history-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.history-icon{
+    width:36px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:rgba(214,40,40,.08);
+    color:var(--accent);
+    font-size:13px;
+}
+
+.history-left strong{
+    display:block;
+    font-size:13px;
+}
+
+.history-left small{
+    display:block;
+    margin-top:2px;
+    color:var(--muted);
+    font-size:10px;
+}
+
+.point-plus{
+    color:#2a9d8f;
+    font-size:14px;
+    font-weight:700;
+}
+
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+    .points-detail-header h2{
+        font-size:23px;
+    }
+
+    .points-number{
+        font-size:40px;
+    }
+
+    .points-progress-title{
+        align-items:flex-start;
+    }
+
+}
+
+
+/* ==================================================
+   ORDER HISTORY
+================================================== */
+
+.orders-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+
+/* ORDER CARD */
+
+.order-history-card {
+    background: #242428;
+    border: 1px solid #343438;
+    border-radius: 16px;
+    padding: 20px;
+    transition: 0.2s ease;
+}
+
+.order-history-card:hover {
+    border-color: #e63946;
+    transform: translateY(-2px);
+}
+
+
+/* HEADER */
+
+.order-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #36363a;
+}
+
+.order-history-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.order-history-id {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.order-history-date {
+    color: #999999;
+    font-size: 13px;
+}
+
+
+/* STATUS */
+
+.order-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* trạng thái */
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.status-confirmed {
+    background: rgba(33, 150, 243, 0.15);
+    color: #42a5f5;
+}
+
+.status-preparing {
+    background: rgba(255, 152, 0, 0.15);
+    color: #ff9800;
+}
+
+.status-ready {
+    background: rgba(0, 188, 212, 0.15);
+    color: #26c6da;
+}
+
+.status-completed {
+    background: rgba(76, 175, 80, 0.15);
+    color: #66bb6a;
+}
+
+.status-cancelled {
+    background: rgba(244, 67, 54, 0.15);
+    color: #ef5350;
+}
+
+
+/* INFO */
+
+.order-history-info {
+    display: flex;
+    gap: 25px;
+    padding: 15px 0;
+    color: #cccccc;
+    font-size: 14px;
+}
+
+.order-history-info div {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.order-history-info i {
+    color: #e63946;
+}
+
+
+/* ITEMS */
+
+.order-history-items {
+    background: #1d1d20;
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+.order-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    color: #dddddd;
+    font-size: 14px;
+}
+
+.order-history-item + .order-history-item {
+    border-top: 1px solid #303034;
+}
+
+.order-history-item strong {
+    color: #ffffff;
+}
+
+
+/* FOOTER */
+
+.order-history-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 15px;
+    border-top: 1px solid #36363a;
+}
+
+.order-history-footer span {
+    color: #aaaaaa;
+    font-size: 14px;
+}
+
+.order-history-footer strong {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    .order-history-header {
+        flex-direction: column;
+    }
+
+    .order-status {
+        align-self: flex-start;
+    }
+
+    .order-history-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .order-history-card {
+        padding: 15px;
+    }
+
+}

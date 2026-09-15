@@ -61,3 +61,74 @@ exports.addPointsFromOrder = async (req, res, next) => {
         return res.status(500).json({ message: "Lỗi hệ thống khi tích điểm", error: error.message });
     }
 };
+
+/*GET MY POINTS*/
+
+exports.getMyPoints = async (req, res) => {
+
+    try {
+
+        const userId = req.user.id;
+
+        const user = await User.findByPk(userId, {
+            attributes: [
+                'id',
+                'fullName',
+                'username',
+                'points'
+            ]
+        });
+
+        if (!user) {
+
+            return res.status(404).json({
+                message: "Không tìm thấy tài khoản."
+            });
+
+        }
+
+        const points = user.points || 0;
+
+        const nextRankPoints = 500;
+
+        const progress = Math.min(
+            Math.round(
+                (points / nextRankPoints) * 100
+            ),
+            100
+        );
+
+        return res.status(200).json({
+
+            points,
+
+            rank: "MEMBER",
+
+            nextRank: "SILVER",
+
+            nextRankPoints,
+
+            progress
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Get My Points Error:",
+            error
+        );
+
+        return res.status(500).json({
+
+            message:
+                "Lỗi khi lấy thông tin tích điểm.",
+
+            error:
+                error.message
+
+        });
+
+    }
+
+};

@@ -453,6 +453,9 @@ async function loadHeader() {
 
 updateHeader();
 
+// Load điểm sau khi header đã được render
+await loadHeaderPoints();
+
 if (
     typeof setupQrEvents === "function"
 ) {
@@ -540,4 +543,109 @@ if (document.readyState === 'loading') {
     document.addEventListener("DOMContentLoaded", loadHeader);
 } else {
     loadHeader();
+}
+
+
+/*==================================================
+                LOAD HEADER POINTS
+==================================================*/
+
+async function loadHeaderPoints() {
+
+    const headerPoints =
+        document.getElementById(
+            "headerPoints"
+        );
+
+
+    /*================ HEADER NOT READY ================*/
+
+    if (!headerPoints) {
+
+        return;
+
+    }
+
+
+    /*================ DEFAULT ================*/
+
+    headerPoints.textContent =
+        "0";
+
+
+    /*================ TOKEN ================*/
+
+    const token =
+        localStorage.getItem(
+            TOKEN_KEY
+        );
+
+
+    /*================ NOT LOGIN ================*/
+
+    if (!token) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE}/api/points/me`,
+                {
+
+                    method:
+                        "GET",
+
+                    headers: {
+
+                        Authorization:
+                            `Bearer ${token}`,
+
+                        "Content-Type":
+                            "application/json"
+
+                    }
+
+                }
+            );
+
+
+        if (!response.ok) {
+
+            return;
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        /*
+         * Dùng ?? thay vì ||
+         * để điểm = 0 vẫn hiển thị đúng.
+         */
+
+        headerPoints.textContent =
+            data.points ?? 0;
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Không thể tải điểm header:",
+            error
+        );
+
+
+        headerPoints.textContent =
+            "0";
+
+    }
+
 }

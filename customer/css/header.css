@@ -1,304 +1,373 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
 
-.header{
+    width: 100%;
+    height: 80px;
 
-    position:fixed;
+    background: #111111ee;
+    backdrop-filter: blur(14px);
 
-    top:0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-    left:0;
+    padding: 0 70px;
 
-    width:100%;
+    z-index: 999;
 
-    height:80px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .12);
 
-    background:#111111ee;
-
-    backdrop-filter:blur(14px);
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    padding:0 70px;
-
-    z-index:999;
-
-    box-shadow:0 4px 18px rgba(0,0,0,.12);
-
+    box-sizing: border-box;
 }
 
-/*================ LOGO ================*/
 
-.logo{
+/*==================================================
+                    LOGO
+==================================================*/
 
-    display:flex;
-
-    align-items:center;
-
-    gap:14px;
-
+.logo {
+    display: flex;
+    align-items: center;
 }
 
-.logo img{
-
-    width:55px;
-
-    height:55px;
-
-    object-fit:cover;
-
-    border-radius:50%;
-
-    border:2px solid rgba(255,255,255,.2);
-
+.logo a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
-.logo span{
+.logo img {
+    width: 55px;
+    height: 55px;
 
-    font-size:30px;
+    object-fit: cover;
 
-    font-weight:700;
+    border-radius: 50%;
 
-    color:white;
-
-    letter-spacing:.5px;
-
+    border: 2px solid rgba(255,255,255,.2);
 }
 
-.logo span::after{
+.logo span {
+    font-size: 30px;
+    font-weight: 700;
 
-    content:"";
+    color: white;
 
-    display:block;
-
-    width:45px;
-
-    height:3px;
-
-    background:var(--accent);
-
-    margin-top:4px;
-
-    border-radius:20px;
-
+    letter-spacing: .5px;
 }
 
-/*================ MENU ================*/
+.logo span::after {
+    content: "";
 
-.header nav{
+    display: block;
 
-    display:flex;
+    width: 45px;
+    height: 3px;
 
-    align-items:center;
+    background: var(--accent);
 
-    gap:38px;
+    margin-top: 4px;
 
+    border-radius: 20px;
 }
 
-.header nav a{
 
-    position:relative;
+/*==================================================
+                    MENU
+==================================================*/
 
-    color:white;
+.header nav {
+    display: flex;
+    align-items: center;
 
-    font-size:16px;
-
-    font-weight:500;
-
-    transition:.25s;
-
+    gap: 38px;
 }
 
-.header nav a:hover{
+.header nav a {
+    position: relative;
 
-    color:var(--accent);
+    color: white;
 
+    font-size: 16px;
+    font-weight: 500;
+
+    transition: .25s;
 }
 
-.header nav a::after{
-
-    content:"";
-
-    position:absolute;
-
-    left:0;
-
-    bottom:-8px;
-
-    width:0;
-
-    height:2px;
-
-    background:var(--accent);
-
-    transition:.25s;
-
+.header nav a:hover {
+    color: var(--accent);
 }
 
-.header nav a:hover::after{
+.header nav a::after {
+    content: "";
 
-    width:100%;
+    position: absolute;
 
+    left: 0;
+    bottom: -8px;
+
+    width: 0;
+    height: 2px;
+
+    background: var(--accent);
+
+    transition: .25s;
 }
 
-/*================ USER ================*/
-
-.user-box{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:16px;
-
-    color:white;
-
-    font-weight:500;
-
+.header nav a:hover::after {
+    width: 100%;
 }
 
-.user-box i{
 
-    width:40px;
+/*==================================================
+                    USER AREA
+==================================================*/
 
-    height:40px;
+.user-box {
+    display: flex;
+    align-items: center;
 
-    display:flex;
+    gap: 14px;
 
-    justify-content:center;
+    color: white;
+    font-weight: 500;
 
-    align-items:center;
-
-    border-radius:50%;
-
-    background:rgba(255,255,255,.12);
-
-    color:white;
-
+    flex-shrink: 0;
 }
 
-.logout-btn{
 
-    padding:11px 22px;
+/*==================================================
+                    USER ICON
+==================================================*/
 
-    border-radius:30px;
+.user-box > i {
+    width: 40px;
+    height: 40px;
 
-    background:linear-gradient(135deg,#d62828,#ff595e);
+    display: flex;
 
-    color:white;
+    justify-content: center;
+    align-items: center;
 
-    font-weight:600;
+    border-radius: 50%;
 
-    transition:.25s;
+    background: rgba(255,255,255,.12);
 
+    color: white;
 }
 
-.logout-btn:hover{
 
-    transform:translateY(-2px);
+/*==================================================
+                    USERNAME
+==================================================*/
 
-    box-shadow:0 8px 18px rgba(214,40,40,.25);
+#username {
+    max-width: 150px;
 
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    color: white;
+
+    font-size: 16px;
 }
 
-/*================ MOBILE BUTTON ================*/
 
-.menu-toggle{
 
-    display:none;
 
-    color:white;
+/*==================================================
+                    SETTINGS
+==================================================*/
 
-    font-size:26px;
+.settings-link {
+    width: 40px;
+    height: 40px;
 
-    cursor:pointer;
+    display: flex;
 
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.12);
+
+    color: white;
+
+    flex-shrink: 0;
 }
 
-/*================ RESPONSIVE ================*/
+.settings-icon {
+    display: flex;
 
-@media(max-width:1000px){
-
-.header{
-
-padding:0 28px;
-
+    align-items: center;
+    justify-content: center;
 }
 
-.header nav{
+.settings-icon i {
+    width: auto !important;
+    height: auto !important;
 
-gap:20px;
+    background: transparent !important;
 
+    color: white;
+
+    font-size: 15px;
 }
 
-.logo span{
 
-font-size:24px;
+/*==================================================
+                    LOGOUT
+==================================================*/
 
+.logout-btn {
+    padding: 11px 22px;
+
+    border-radius: 30px;
+
+    background: linear-gradient(
+        135deg,
+        #d62828,
+        #ff595e
+    );
+
+    color: white;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    transition: .25s;
+
+    flex-shrink: 0;
 }
 
+.logout-btn:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 18px
+        rgba(214,40,40,.25);
 }
 
-@media(max-width:850px){
 
-.header nav{
+/*==================================================
+                    MOBILE BUTTON
+==================================================*/
 
-display:none;
+.menu-toggle {
+    display: none;
 
+    color: white;
+
+    font-size: 26px;
+
+    cursor: pointer;
 }
 
-.menu-toggle{
 
-display:block;
+/*==================================================
+                    RESPONSIVE
+==================================================*/
 
+@media (max-width: 1200px) {
+
+    .header {
+        padding: 0 35px;
+    }
+
+    .header nav {
+        gap: 22px;
+    }
+
+    .logo span {
+        font-size: 26px;
+    }
+
+    #username {
+        max-width: 120px;
+    }
 }
 
-.logout-btn{
 
-padding:10px 18px;
+@media (max-width: 1000px) {
 
-font-size:14px;
+    .header {
+        padding: 0 28px;
+    }
 
+    .header nav {
+        gap: 18px;
+    }
+
+    .logo span {
+        font-size: 24px;
+    }
+
+    #username {
+        max-width: 100px;
+    }
 }
 
+
+@media (max-width: 850px) {
+
+    .header nav {
+        display: none;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .logout-btn {
+        padding: 10px 18px;
+
+        font-size: 14px;
+    }
 }
 
-@media(max-width:600px){
 
-.header{
+@media (max-width: 600px) {
 
-height:72px;
+    .header {
+        height: 72px;
 
-padding:0 16px;
+        padding: 0 16px;
+    }
 
+    .logo img {
+        width: 45px;
+        height: 45px;
+    }
+
+    .logo span {
+        font-size: 20px;
+    }
+
+    #username {
+        display: none;
+    }
+
+    .logout-btn {
+        display: none;
+    }
+
+    .points-header {
+        min-width: 40px;
+    }
+
+    #headerPoints {
+        font-size: 12px !important;
+    }
+
+    .points-header > i {
+        font-size: 14px !important;
+    }
 }
 
-.logo img{
-
-width:45px;
-
-height:45px;
-
-}
-
-.logo span{
-
-font-size:20px;
-
-}
-
-.user-box span{
-
-display:none;
-
-}
-
-.logout-btn{
-
-display:none;
-
-}
-
-}

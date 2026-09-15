@@ -2,67 +2,67 @@
                     SETTING PAGE
 ==================================================*/
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+document.addEventListener("DOMContentLoaded", () => {
 
-        updateHeader();
+    updateHeader();
 
-        const items =
-            document.querySelectorAll(
-                ".setting-item[data-section]"
-            );
+    const items =
+        document.querySelectorAll(
+            ".setting-item[data-section]"
+        );
 
-        items.forEach(item => {
+    items.forEach(item => {
 
-            item.addEventListener(
-                "click",
-                () => {
+        item.addEventListener("click", () => {
 
-                    const section =
-                        item.dataset.section;
+            const section =
+                item.dataset.section;
 
-                    openSettingSection(
-                        section
+            openSettingSection(section);
+
+            setTimeout(() => {
+
+                const settingContent =
+                    document.getElementById(
+                        "settingContent"
                     );
 
+                if (settingContent) {
+
+                    settingContent.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+
                 }
-            );
+
+            }, 100);
 
         });
 
+    });
 
-        /*==========================================
-                    LOGOUT
-        ==========================================*/
 
-        const logoutBtn =
-            document.getElementById(
-                "settingLogout"
-            );
+    /*================ LOGOUT ================*/
 
-        if (logoutBtn) {
+    const logoutBtn =
+        document.getElementById("settingLogout");
 
-            logoutBtn.addEventListener(
-                "click",
-                () => {
+    if (logoutBtn) {
 
-                    if (
-                        typeof logout ===
-                        "function"
-                    ) {
+        logoutBtn.addEventListener("click", () => {
 
-                        logout();
+            if (typeof logout === "function") {
 
-                    }
+                logout();
 
-                }
-            );
+            }
 
-        }
+        });
 
     }
-);
+
+});
 
 
 /*==================================================
@@ -84,18 +84,14 @@ function checkSettingLogin() {
         "Vui lòng đăng nhập trước."
     );
 
-    setTimeout(
-        () => {
+    setTimeout(() => {
 
-            window.location.href =
-                "login.html";
+        window.location.href =
+            "login.html";
 
-        },
-        700
-    );
+    }, 700);
 
     return false;
-
 }
 
 
@@ -106,7 +102,9 @@ function checkSettingLogin() {
 async function openSettingSection(section) {
 
     if (!checkSettingLogin()) {
+
         return;
+
     }
 
     const content =
@@ -115,7 +113,9 @@ async function openSettingSection(section) {
         );
 
     if (!content) {
+
         return;
+
     }
 
 
@@ -145,6 +145,13 @@ async function openSettingSection(section) {
         case "reviews":
 
             await renderReviews(content);
+
+            break;
+
+
+        case "points":
+
+            renderPoints(content);
 
             break;
 
@@ -187,6 +194,7 @@ function renderAccount(content) {
         `;
 
         return;
+
     }
 
 
@@ -195,8 +203,6 @@ function renderAccount(content) {
         <div class="setting-panel">
 
             <div class="setting-panel-title">
-
-                <i class="fa-solid fa-user"></i>
 
                 <h2>
                     Thông tin tài khoản
@@ -208,9 +214,6 @@ function renderAccount(content) {
             <form
                 id="accountForm"
                 class="setting-form">
-
-
-                <!-- HỌ TÊN -->
 
                 <div>
 
@@ -227,8 +230,6 @@ function renderAccount(content) {
                 </div>
 
 
-                <!-- USERNAME -->
-
                 <div>
 
                     <label>
@@ -244,8 +245,6 @@ function renderAccount(content) {
                 </div>
 
 
-                <!-- EMAIL -->
-
                 <div>
 
                     <label>
@@ -260,8 +259,6 @@ function renderAccount(content) {
 
                 </div>
 
-
-                <!-- PHONE -->
 
                 <div>
 
@@ -288,7 +285,6 @@ function renderAccount(content) {
 
                 </button>
 
-
             </form>
 
         </div>
@@ -296,18 +292,15 @@ function renderAccount(content) {
     `;
 
 
-    const form =
-        document.getElementById(
-            "accountForm"
+    document
+        .getElementById("accountForm")
+        .addEventListener(
+            "submit",
+            updateAccount
         );
 
-
-    form.addEventListener(
-        "submit",
-        updateAccount
-    );
-
 }
+
 
 /*==================================================
                 ESCAPE HTML
@@ -316,137 +309,34 @@ function renderAccount(content) {
 function escapeSettingHtml(value) {
 
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
-
-/*==================================================
-                UPDATE ACCOUNT
-==================================================*/
-
-async function updateAccount(event) {
-
-    event.preventDefault();
-
-
-    const fullName =
-        document.getElementById(
-            "accountFullName"
-        ).value.trim();
-
-
-    const username =
-        document.getElementById(
-            "accountUsername"
-        ).value.trim();
-
-
-    const email =
-        document.getElementById(
-            "accountEmail"
-        ).value.trim();
-
-
-    const phone =
-        document.getElementById(
-            "accountPhone"
-        ).value.trim();
-
-
-    if (!fullName) {
-
-        showToast(
-            "Vui lòng nhập họ và tên."
-        );
-
-        return;
-
-    }
-
-
-    if (!email) {
-
-        showToast(
-            "Vui lòng nhập email."
-        );
-
-        return;
-
-    }
-
-
-    try {
-
-        const result =
-            await api(
-                "/api/users/profile",
-                {
-                    method: "PUT",
-
-                    body: JSON.stringify({
-
-                        fullName,
-                        username,
-                        email,
-                        phone
-
-                    })
-
-                }
-            );
-
-
-
-        const updatedUser =
-            result.user ||
-            result;
-
-
-        localStorage.setItem(
-            USER_KEY,
-            JSON.stringify(
-                updatedUser
-            )
-        );
-
-
-        state.user =
-            updatedUser;
-
-
-        updateHeader();
-
-
-        showToast(
-            result.message ||
-            "Cập nhật thông tin thành công."
-        );
-
-
-        renderAccount(
-            document.getElementById(
-                "settingContent"
-            )
-        );
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        showToast(
-            error.message ||
-            "Không thể cập nhật thông tin."
-        );
-
-    }
-
-}
 
 /*==================================================
                     ORDERS
@@ -468,6 +358,7 @@ async function renderOrders(content) {
 
             </div>
 
+
             <div class="setting-loading">
 
                 <i class="fa-solid fa-spinner fa-spin"></i>
@@ -483,11 +374,17 @@ async function renderOrders(content) {
 
     try {
 
+        /*
+         * Chỉ lấy đơn hàng của
+         * tài khoản đang đăng nhập
+         */
         const orders =
             await api(
-                "/api/orders"
+                "/api/orders/my-orders"
             );
 
+
+        /*================ EMPTY ================*/
 
         if (
             !orders ||
@@ -498,11 +395,28 @@ async function renderOrders(content) {
 
                 <div class="setting-panel">
 
-                    <div class="setting-empty">
+                    <div class="setting-panel-title">
 
                         <i class="fa-solid fa-receipt"></i>
 
-                        Bạn chưa có đơn hàng nào.
+                        <h2>
+                            Lịch sử đơn hàng
+                        </h2>
+
+                    </div>
+
+
+                    <div class="setting-empty">
+
+                        <i class="fa-solid fa-bag-shopping"></i>
+
+                        <h3>
+                            Chưa có đơn hàng
+                        </h3>
+
+                        <p>
+                            Bạn chưa có đơn hàng nào.
+                        </p>
 
                     </div>
 
@@ -513,6 +427,272 @@ async function renderOrders(content) {
             return;
 
         }
+
+
+        /*================ RENDER ORDERS ================*/
+
+        content.innerHTML = `
+
+            <div class="setting-panel">
+
+                <div class="setting-panel-title">
+
+                    <i class="fa-solid fa-receipt"></i>
+
+                    <h2>
+                        Lịch sử đơn hàng
+                    </h2>
+
+                </div>
+
+
+                <div class="orders-history-list">
+
+                    ${orders.map(order => {
+
+                        /*================ DATE ================*/
+
+                        const date =
+                            order.created_at
+
+                            ? new Date(
+                                order.created_at
+                            ).toLocaleString(
+                                "vi-VN"
+                            )
+
+                            : "Không rõ";
+
+
+                        /*================ TOTAL ================*/
+
+                        const total =
+                            Number(
+                                order.finalPrice || 0
+                            ).toLocaleString(
+                                "vi-VN"
+                            );
+
+
+                        /*================ STATUS ================*/
+
+                        const status =
+                            order.status ||
+                            "PENDING";
+
+
+                        /*================ PAYMENT ================*/
+
+                        const paymentStatus =
+                            order.paymentStatus ||
+                            "UNPAID";
+
+
+                        /*================ ITEM COUNT ================*/
+
+                        const itemCount =
+                            order.OrderItems
+
+                            ? order.OrderItems.reduce(
+                                (
+                                    sum,
+                                    item
+                                ) => {
+
+                                    return (
+                                        sum +
+                                        Number(
+                                            item.quantity ||
+                                            0
+                                        )
+                                    );
+
+                                },
+                                0
+                            )
+
+                            : 0;
+
+
+                        return `
+
+                            <div class="order-history-card">
+
+
+                                <!-- HEADER -->
+
+                                <div
+                                    class="order-history-header"
+                                >
+
+                                    <div
+                                        class="order-history-heading"
+                                    >
+
+                                        <span
+                                            class="order-history-id"
+                                        >
+
+                                            Đơn hàng #${order.id}
+
+                                        </span>
+
+
+                                        <span
+                                            class="order-history-date"
+                                        >
+
+                                            ${date}
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <span
+                                        class="order-status status-${status.toLowerCase()}"
+                                    >
+
+                                        ${getOrderStatusText(status)}
+
+                                    </span>
+
+                                </div>
+
+
+                                <!-- INFO -->
+
+                                <div
+                                    class="order-history-info"
+                                >
+
+                                    <div>
+
+                                        <i
+                                            class="fa-solid fa-utensils"
+                                        ></i>
+
+                                        <span>
+
+                                            ${itemCount} món
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <i
+                                            class="fa-solid fa-credit-card"
+                                        ></i>
+
+                                        <span>
+
+                                            ${getPaymentStatusText(
+                                                paymentStatus
+                                            )}
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ITEMS -->
+
+                                ${
+                                    order.OrderItems &&
+                                    order.OrderItems.length
+
+                                    ? `
+
+                                        <div
+                                            class="order-history-items"
+                                        >
+
+                                            ${
+                                                order.OrderItems
+                                                    .map(item => `
+
+                                                        <div
+                                                            class="order-history-item"
+                                                        >
+
+                                                            <span>
+
+                                                                ${
+                                                                    item.Product?.name ||
+                                                                    "Sản phẩm"
+                                                                }
+
+                                                            </span>
+
+
+                                                            <strong>
+
+                                                                x${item.quantity}
+
+                                                            </strong>
+
+                                                        </div>
+
+                                                    `)
+                                                    .join("")
+                                            }
+
+                                        </div>
+
+                                    `
+
+                                    : ""
+                                }
+
+
+                                <!-- FOOTER -->
+
+                                <div
+                                    class="order-history-footer"
+                                >
+
+                                    <span>
+
+                                        Tổng tiền
+
+                                    </span>
+
+
+                                    <strong>
+
+                                        ${total}đ
+
+                                    </strong>
+
+                                </div>
+
+
+                            </div>
+
+                        `;
+
+                    }).join("")}
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    catch (error) {
+
+        console.error(
+            "Load orders error:",
+            error
+        );
 
 
         content.innerHTML = `
@@ -529,84 +709,20 @@ async function renderOrders(content) {
 
                 </div>
 
-                ${orders.map(order => `
-
-                    <div class="history-item">
-
-                        <div class="history-top">
-
-                            <span class="history-title">
-
-                                Đơn hàng #${order.id}
-
-                            </span>
-
-                            <span class="history-date">
-
-                                ${
-                                    order.created_at
-                                    ? new Date(
-                                        order.created_at
-                                    ).toLocaleString(
-                                        "vi-VN"
-                                    )
-                                    : ""
-                                }
-
-                            </span>
-
-                        </div>
-
-
-                        <div class="history-info">
-
-                            Trạng thái:
-
-                            <strong>
-                                ${
-                                    order.status ||
-                                    "Đang xử lý"
-                                }
-                            </strong>
-
-                        </div>
-
-
-                        <div class="history-price">
-
-                            ${
-                                Number(
-                                    order.total_amount ||
-                                    order.total ||
-                                    0
-                                ).toLocaleString(
-                                    "vi-VN"
-                                )
-                            }đ
-
-                        </div>
-
-                    </div>
-
-                `).join("")}
-
-            </div>
-
-        `;
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        content.innerHTML = `
-
-            <div class="setting-panel">
 
                 <div class="setting-empty">
 
-                    Không thể tải lịch sử đơn hàng.
+                    <i
+                        class="fa-solid fa-triangle-exclamation"
+                    ></i>
+
+                    <h3>
+                        Không thể tải đơn hàng
+                    </h3>
+
+                    <p>
+                        ${error.message}
+                    </p>
 
                 </div>
 
@@ -615,6 +731,71 @@ async function renderOrders(content) {
         `;
 
     }
+
+}
+
+
+/*==================================================
+              ORDER STATUS
+==================================================*/
+
+function getOrderStatusText(status) {
+
+    const statusMap = {
+
+        PENDING:
+            "Chờ xác nhận",
+
+        CONFIRMED:
+            "Đã xác nhận",
+
+        PREPARING:
+            "Đang chuẩn bị",
+
+        READY:
+            "Sẵn sàng",
+
+        COMPLETED:
+            "Hoàn thành",
+
+        CANCELLED:
+            "Đã hủy"
+
+    };
+
+
+    return (
+        statusMap[status] ||
+        status
+    );
+
+}
+
+
+/*==================================================
+             PAYMENT STATUS
+==================================================*/
+
+function getPaymentStatusText(status) {
+
+    const paymentMap = {
+
+        UNPAID:
+            "Chưa thanh toán",
+
+        PAID:
+            "Đã thanh toán",
+
+        REFUNDED:
+            "Đã hoàn tiền"
+
+    };
+
+
+    return (
+        paymentMap[status] ||
+        status
+    );
 
 }
 
@@ -638,6 +819,7 @@ async function renderBookings(content) {
                 </h2>
 
             </div>
+
 
             <div class="setting-loading">
 
@@ -671,9 +853,13 @@ async function renderBookings(content) {
 
                     <div class="setting-empty">
 
-                        <i class="fa-solid fa-calendar-xmark"></i>
+                        <i
+                            class="fa-solid fa-calendar-xmark"
+                        ></i>
 
-                        Bạn chưa có lịch đặt bàn.
+                        <p>
+                            Bạn chưa có lịch đặt bàn.
+                        </p>
 
                     </div>
 
@@ -701,27 +887,39 @@ async function renderBookings(content) {
                 </div>
 
 
-                ${bookings.map(booking => `
+                ${bookings.map(
+                    booking => `
 
-                    <div class="history-item">
+                    <div
+                        class="history-item"
+                    >
 
-                        <div class="history-top">
+                        <div
+                            class="history-top"
+                        >
 
-                            <span class="history-title">
+                            <span
+                                class="history-title"
+                            >
 
                                 Đặt bàn #${booking.id}
 
                             </span>
 
-                            <span class="history-date">
+
+                            <span
+                                class="history-date"
+                            >
 
                                 ${
                                     booking.created_at
+
                                     ? new Date(
                                         booking.created_at
                                     ).toLocaleString(
                                         "vi-VN"
                                     )
+
                                     : ""
                                 }
 
@@ -730,7 +928,9 @@ async function renderBookings(content) {
                         </div>
 
 
-                        <div class="history-info">
+                        <div
+                            class="history-info"
+                        >
 
                             Thời gian:
 
@@ -743,6 +943,7 @@ async function renderBookings(content) {
 
                             <br>
 
+
                             Số người:
 
                             ${
@@ -754,20 +955,24 @@ async function renderBookings(content) {
 
                             <br>
 
+
                             Trạng thái:
 
                             <strong>
+
                                 ${
                                     booking.status ||
                                     "Đang xử lý"
                                 }
+
                             </strong>
 
                         </div>
 
                     </div>
 
-                `).join("")}
+                `
+                ).join("")}
 
             </div>
 
@@ -775,9 +980,11 @@ async function renderBookings(content) {
 
     }
 
+
     catch (error) {
 
         console.error(error);
+
 
         content.innerHTML = `
 
@@ -818,6 +1025,7 @@ async function renderReviews(content) {
 
             </div>
 
+
             <div class="setting-loading">
 
                 <i class="fa-solid fa-spinner fa-spin"></i>
@@ -833,16 +1041,11 @@ async function renderReviews(content) {
 
     try {
 
-        const reviews =
-            await api(
-                "/api/reviews"
-            );
+        const user =
+            getCurrentUser();
 
 
-        if (
-            !reviews ||
-            reviews.length === 0
-        ) {
+        if (!user) {
 
             content.innerHTML = `
 
@@ -850,9 +1053,17 @@ async function renderReviews(content) {
 
                     <div class="setting-empty">
 
-                        <i class="fa-regular fa-star"></i>
+                        <i
+                            class="fa-solid fa-user-lock"
+                        ></i>
 
-                        Bạn chưa có đánh giá nào.
+                        <h3>
+                            Vui lòng đăng nhập
+                        </h3>
+
+                        <p>
+                            Bạn cần đăng nhập để xem đánh giá.
+                        </p>
 
                     </div>
 
@@ -864,6 +1075,74 @@ async function renderReviews(content) {
 
         }
 
+
+        /*================ API CŨ ================*/
+
+        const data =
+            await api(
+                "/api/reviews"
+            );
+
+
+        const reviews =
+            data.reviews || [];
+
+
+        /*================ LỌC THEO USER ================*/
+
+        const myReviews =
+            reviews.filter(
+                review => {
+
+                    return (
+                        String(
+                            review.user_id
+                        ) ===
+                        String(
+                            user.id
+                        )
+                    );
+
+                }
+            );
+
+
+        /*================ KHÔNG CÓ REVIEW ================*/
+
+        if (
+            myReviews.length === 0
+        ) {
+
+            content.innerHTML = `
+
+                <div class="setting-panel">
+
+                    <div class="setting-empty">
+
+                        <i
+                            class="fa-regular fa-star"
+                        ></i>
+
+                        <h3>
+                            Chưa có đánh giá
+                        </h3>
+
+                        <p>
+                            Bạn chưa gửi đánh giá nào.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        /*================ HIỂN THỊ REVIEW ================*/
 
         content.innerHTML = `
 
@@ -880,49 +1159,114 @@ async function renderReviews(content) {
                 </div>
 
 
-                ${reviews.map(review => {
+                <div
+                    class="my-reviews-list"
+                >
 
-                    const rating =
-                        Number(
-                            review.rating || 0
-                        );
+                    ${
+                        myReviews
+                            .map(review => {
 
-                    const stars =
-                        "★".repeat(rating) +
-                        "☆".repeat(
-                            Math.max(
-                                0,
-                                5 - rating
-                            )
-                        );
+                                const rating =
+                                    Number(
+                                        review.rating ||
+                                        0
+                                    );
 
 
-                    return `
+                                const stars =
+                                    "★".repeat(
+                                        rating
+                                    ) +
+                                    "☆".repeat(
+                                        Math.max(
+                                            0,
+                                            5 - rating
+                                        )
+                                    );
 
-                        <div class="history-item">
 
-                            <div class="review-stars">
+                                return `
 
-                                ${stars}
+                                    <div
+                                        class="my-review-card"
+                                    >
 
-                            </div>
+                                        <div
+                                            class="my-review-header"
+                                        >
+
+                                            <div>
+
+                                                <h3>
+
+                                                    ${
+                                                        review.dish_name ||
+                                                        "FutureSuShi"
+                                                    }
+
+                                                </h3>
 
 
-                            <div class="review-comment">
+                                                <div
+                                                    class="my-review-stars"
+                                                >
 
-                                ${
-                                    review.comment ||
-                                    review.content ||
-                                    "Không có nội dung."
-                                }
+                                                    ${stars}
 
-                            </div>
+                                                </div>
 
-                        </div>
+                                            </div>
 
-                    `;
 
-                }).join("")}
+                                            <span
+                                                class="review-rating"
+                                            >
+
+                                                ${rating}/5
+
+                                            </span>
+
+                                        </div>
+
+
+                                        <p
+                                            class="my-review-content"
+                                        >
+
+                                            ${
+                                                review.content ||
+                                                "Không có nội dung."
+                                            }
+
+                                        </p>
+
+
+                                        <small>
+
+                                            ${
+                                                review.created_at
+
+                                                ? new Date(
+                                                    review.created_at
+                                                ).toLocaleString(
+                                                    "vi-VN"
+                                                )
+
+                                                : ""
+                                            }
+
+                                        </small>
+
+                                    </div>
+
+                                `;
+
+                            })
+                            .join("")
+                    }
+
+                </div>
 
             </div>
 
@@ -930,9 +1274,14 @@ async function renderReviews(content) {
 
     }
 
+
     catch (error) {
 
-        console.error(error);
+        console.error(
+            "Load reviews error:",
+            error
+        );
+
 
         content.innerHTML = `
 
@@ -940,13 +1289,511 @@ async function renderReviews(content) {
 
                 <div class="setting-empty">
 
-                    Không thể tải đánh giá.
+                    <i
+                        class="fa-solid fa-triangle-exclamation"
+                    ></i>
+
+                    <h3>
+                        Không thể tải đánh giá
+                    </h3>
+
+                    <p>
+                        ${error.message}
+                    </p>
 
                 </div>
 
             </div>
 
         `;
+
+    }
+
+}
+
+
+/*==================================================
+                    POINTS
+==================================================*/
+
+function renderPoints(content) {
+
+    content.innerHTML = `
+
+        <div class="setting-panel">
+
+            <div class="setting-panel-title">
+
+                <i class="fa-solid fa-coins"></i>
+
+                <h2>
+                    Điểm tích lũy
+                </h2>
+
+            </div>
+
+
+            <div class="points-detail">
+
+
+                <!-- HEADER -->
+
+                <div
+                    class="points-detail-header"
+                >
+
+                    <div>
+
+                        <span
+                            class="points-label"
+                        >
+
+                            LOYALTY POINTS
+
+                        </span>
+
+
+                        <h2>
+                            Điểm tích lũy
+                        </h2>
+
+
+                        <p>
+
+                            Theo dõi điểm thưởng của bạn
+                            tại FutureSuShi.
+
+                        </p>
+
+                    </div>
+
+
+                    <div
+                        class="points-big-icon"
+                    >
+
+                        <i
+                            class="fa-solid fa-coins"
+                        ></i>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TOTAL POINT -->
+
+                <div
+                    class="points-main-card"
+                >
+
+                    <span
+                        class="points-card-label"
+                    >
+
+                        TỔNG ĐIỂM HIỆN TẠI
+
+                    </span>
+
+
+                    <div
+                        class="points-number"
+                        id="settingPoints"
+                    >
+
+                        Đang tải...
+
+                    </div>
+
+
+                    <p>
+
+                        Điểm thưởng hiện có của bạn.
+
+                    </p>
+
+                </div>
+
+
+                <!-- MEMBER -->
+
+                <div
+                    class="points-member-card"
+                >
+
+                    <div
+                        class="points-member-icon"
+                    >
+
+                        <i
+                            class="fa-solid fa-medal"
+                        ></i>
+
+                    </div>
+
+
+                    <div
+                        class="points-member-info"
+                    >
+
+                        <span>
+                            HẠNG THÀNH VIÊN
+                        </span>
+
+
+                        <h3
+                            id="settingRank"
+                        >
+
+                            Đang tải...
+
+                        </h3>
+
+                    </div>
+
+
+                    <span
+                        class="member-badge"
+                        id="settingRankBadge"
+                    >
+
+                        MEMBER
+
+                    </span>
+
+                </div>
+
+
+                <!-- PROGRESS -->
+
+                <div
+                    class="points-progress-card"
+                >
+
+                    <div
+                        class="points-progress-title"
+                    >
+
+                        <div>
+
+                            <h3>
+                                Tiến trình lên hạng
+                            </h3>
+
+
+                            <p
+                                id="settingNextRank"
+                            >
+
+                                Đang tải...
+
+                            </p>
+
+                        </div>
+
+
+                        <strong
+                            id="settingPointProgress"
+                        >
+
+                            0 / 500
+
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        class="progress-bar"
+                    >
+
+                        <div
+                            class="progress-fill"
+                            id="settingProgressBar"
+                            style="width:0%"
+                        ></div>
+
+                    </div>
+
+
+                    <div
+                        class="progress-footer"
+                    >
+
+                        <span
+                            id="settingProgressPercent"
+                        >
+
+                            0%
+
+                        </span>
+
+
+                        <span
+                            id="settingRemaining"
+                        >
+
+                            Đang tải...
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    loadMyPoints();
+
+}
+
+
+/*==================================================
+                LOAD MY POINTS
+==================================================*/
+
+async function loadMyPoints() {
+
+    try {
+
+        const token =
+            localStorage.getItem(
+                "appdatmon_customer_token"
+            );
+
+
+        if (!token) {
+
+            showToast(
+                "Vui lòng đăng nhập để xem điểm."
+            );
+
+            return;
+
+        }
+
+
+        const response =
+            await fetch(
+                "http://localhost:3000/api/points/me",
+                {
+                    method: "GET",
+
+                    headers: {
+
+                        "Authorization":
+                            `Bearer ${token}`,
+
+                        "Content-Type":
+                            "application/json"
+
+                    }
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                "Không thể lấy thông tin điểm."
+            );
+
+        }
+
+
+        const points =
+            data.points || 0;
+
+
+        const nextRankPoints =
+            data.nextRankPoints || 500;
+
+
+        const progress =
+            data.progress || 0;
+
+
+        const remaining =
+            Math.max(
+                nextRankPoints - points,
+                0
+            );
+
+
+        /*================ TOTAL POINT ================*/
+
+        const pointsElement =
+            document.getElementById(
+                "settingPoints"
+            );
+
+
+        if (pointsElement) {
+
+            pointsElement.innerHTML =
+                `${points} <small>điểm</small>`;
+
+        }
+
+
+        /*================ RANK ================*/
+
+        const rankElement =
+            document.getElementById(
+                "settingRank"
+            );
+
+
+        if (rankElement) {
+
+            rankElement.textContent =
+                data.rank ||
+                "MEMBER";
+
+        }
+
+
+        /*================ BADGE ================*/
+
+        const badgeElement =
+            document.getElementById(
+                "settingRankBadge"
+            );
+
+
+        if (badgeElement) {
+
+            badgeElement.textContent =
+                data.rank ||
+                "MEMBER";
+
+        }
+
+
+        /*================ NEXT RANK ================*/
+
+        const nextRankElement =
+            document.getElementById(
+                "settingNextRank"
+            );
+
+
+        if (nextRankElement) {
+
+            nextRankElement.textContent =
+                `${
+                    data.rank ||
+                    "MEMBER"
+                } → ${
+                    data.nextRank ||
+                    "SILVER"
+                }`;
+
+        }
+
+
+        /*================ PROGRESS TEXT ================*/
+
+        const progressText =
+            document.getElementById(
+                "settingPointProgress"
+            );
+
+
+        if (progressText) {
+
+            progressText.textContent =
+                `${points} / ${nextRankPoints}`;
+
+        }
+
+
+        /*================ PROGRESS BAR ================*/
+
+        const progressBar =
+            document.getElementById(
+                "settingProgressBar"
+            );
+
+
+        if (progressBar) {
+
+            progressBar.style.width =
+                `${progress}%`;
+
+        }
+
+
+        /*================ PROGRESS PERCENT ================*/
+
+        const progressPercent =
+            document.getElementById(
+                "settingProgressPercent"
+            );
+
+
+        if (progressPercent) {
+
+            progressPercent.textContent =
+                `${progress}%`;
+
+        }
+
+
+        /*================ REMAINING ================*/
+
+        const remainingElement =
+            document.getElementById(
+                "settingRemaining"
+            );
+
+
+        if (remainingElement) {
+
+            if (
+                remaining === 0
+            ) {
+
+                remainingElement.textContent =
+                    "Đã đạt hạng tiếp theo";
+
+            }
+
+            else {
+
+                remainingElement.textContent =
+                    `Còn ${remaining} điểm`;
+
+            }
+
+        }
+
+    }
+
+
+    catch (error) {
+
+        console.error(
+            "Load points error:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Không thể tải thông tin tích điểm."
+        );
 
     }
 
@@ -976,7 +1823,8 @@ function renderChangePassword(content) {
 
             <form
                 id="changePasswordForm"
-                class="setting-form">
+                class="setting-form"
+            >
 
 
                 <div>
@@ -985,11 +1833,13 @@ function renderChangePassword(content) {
                         Mật khẩu hiện tại
                     </label>
 
+
                     <input
                         id="currentPassword"
                         type="password"
                         placeholder="Nhập mật khẩu hiện tại"
-                        required>
+                        required
+                    >
 
                 </div>
 
@@ -1000,11 +1850,13 @@ function renderChangePassword(content) {
                         Mật khẩu mới
                     </label>
 
+
                     <input
                         id="newPassword"
                         type="password"
                         placeholder="Nhập mật khẩu mới"
-                        required>
+                        required
+                    >
 
                 </div>
 
@@ -1015,20 +1867,25 @@ function renderChangePassword(content) {
                         Xác nhận mật khẩu mới
                     </label>
 
+
                     <input
                         id="confirmPassword"
                         type="password"
                         placeholder="Nhập lại mật khẩu mới"
-                        required>
+                        required
+                    >
 
                 </div>
 
 
                 <button
                     type="submit"
-                    class="btn btn-primary">
+                    class="btn btn-primary"
+                >
 
-                    <i class="fa-solid fa-key"></i>
+                    <i
+                        class="fa-solid fa-key"
+                    ></i>
 
                     Đổi mật khẩu
 
@@ -1083,6 +1940,8 @@ async function changePassword(event) {
         ).value;
 
 
+    /*================ EMPTY CHECK ================*/
+
     if (
         !currentPassword ||
         !newPassword ||
@@ -1098,6 +1957,8 @@ async function changePassword(event) {
     }
 
 
+    /*================ MATCH CHECK ================*/
+
     if (
         newPassword !==
         confirmPassword
@@ -1112,7 +1973,11 @@ async function changePassword(event) {
     }
 
 
-    if (newPassword.length < 6) {
+    /*================ LENGTH CHECK ================*/
+
+    if (
+        newPassword.length < 6
+    ) {
 
         showToast(
             "Mật khẩu mới phải có ít nhất 6 ký tự."
@@ -1129,15 +1994,17 @@ async function changePassword(event) {
             await api(
                 "/api/auth/change-password",
                 {
-                    method:"PUT",
 
-                    body:JSON.stringify({
+                    method: "PUT",
 
-                        currentPassword,
+                    body:
+                        JSON.stringify({
 
-                        newPassword
+                            currentPassword,
 
-                    })
+                            newPassword
+
+                        })
 
                 }
             );
@@ -1149,15 +2016,19 @@ async function changePassword(event) {
         );
 
 
-        document.getElementById(
-            "changePasswordForm"
-        ).reset();
+        document
+            .getElementById(
+                "changePasswordForm"
+            )
+            .reset();
 
     }
+
 
     catch (error) {
 
         console.error(error);
+
 
         showToast(
             error.message ||
