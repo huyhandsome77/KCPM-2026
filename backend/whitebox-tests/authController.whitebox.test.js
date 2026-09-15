@@ -243,6 +243,148 @@ describe('White-box Testing: authController (Branch, Statement & Path Coverage)'
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ message: 'Vui lòng nhập Họ và tên đầy đủ!' });
     });
+
+    test('[WB-AUTH-REG-12] Branch: Full name length > 100 characters -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'A'.repeat(101),
+          phone: '0912345678',
+          username: 'validuser',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Họ và tên không được vượt quá 100 ký tự!');
+    });
+
+    test('[WB-AUTH-REG-13] Branch: Phone contains non-digits -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          phone: '0912345abc',
+          username: 'validuser',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Số điện thoại chỉ được chứa chữ số!');
+    });
+
+    test('[WB-AUTH-REG-14] Branch: Phone length < 10 or > 12 -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          phone: '0912345',
+          username: 'validuser',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Số điện thoại phải có từ 10 đến 12 chữ số!');
+    });
+
+    test('[WB-AUTH-REG-15] Branch: Phone does not start with 0 -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          phone: '1912345678',
+          username: 'validuser',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Số điện thoại không hợp lệ! Phải bắt đầu bằng chữ số 0.');
+    });
+
+    test('[WB-AUTH-REG-16] Branch: Username length < 3 or > 40 -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          phone: '0912345678',
+          username: 'ab',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Tên đăng nhập phải có từ 3 đến 40 ký tự!');
+    });
+
+    test('[WB-AUTH-REG-17] Branch: Username contains whitespace -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          phone: '0912345678',
+          username: 'user name',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Tên đăng nhập không được chứa khoảng trắng!');
+    });
+
+    test('[WB-AUTH-REG-18] Branch: Username contains special characters -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          phone: '0912345678',
+          username: 'user@name!',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Tên đăng nhập không được chứa ký tự đặc biệt!');
+    });
+
+    test('[WB-AUTH-REG-19] Branch: Password length < 8 or > 16 -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          phone: '0912345678',
+          username: 'validuser',
+          password: '123'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Mật khẩu phải có độ dài từ 8 đến 16 ký tự!');
+    });
+
+    test('[WB-AUTH-REG-20] Branch: Email length > 100 characters -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          email: 'a'.repeat(95) + '@gmail.com',
+          phone: '0912345678',
+          username: 'validuser',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Email không được vượt quá 100 ký tự!');
+    });
+
+    test('[WB-AUTH-REG-21] Branch: Email invalid format regex -> 400', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          fullName: 'Test User',
+          email: 'not-an-email',
+          phone: '0912345678',
+          username: 'validuser',
+          password: 'Password123@'
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Email không đúng định dạng!');
+    });
   });
 
   // =========================================================================

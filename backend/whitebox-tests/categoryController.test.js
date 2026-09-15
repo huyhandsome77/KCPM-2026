@@ -448,5 +448,55 @@ describe('White-Box Testing: Category Controller (Kiểm thử Hộp trắng Mod
             expect(res.status).toHaveBeenCalledWith(500);
             expect(res.json).toHaveBeenCalledWith({ message: 'Database error' });
         });
+
+        test('[WB-CAT-27] createCategory: Description không phải string hoặc vượt quá 500 ký tự -> 400', async () => {
+            req.body = { name: 'Món mới', description: 12345 };
+            await categoryController.createCategory(req, res);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Category description cannot exceed 500 characters" });
+
+            req.body.description = 'D'.repeat(501);
+            await categoryController.createCategory(req, res);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Category description cannot exceed 500 characters" });
+        });
+
+        test('[WB-CAT-28] createCategory: Image URL không phải string hoặc vượt quá 255 ký tự -> 400', async () => {
+            req.body = { name: 'Món mới', image: 999 };
+            await categoryController.createCategory(req, res);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Category image URL cannot exceed 255 characters" });
+
+            req.body.image = 'http://' + 'i'.repeat(260);
+            await categoryController.createCategory(req, res);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Category image URL cannot exceed 255 characters" });
+        });
+
+        test('[WB-CAT-29] updateCategory: Description không phải string hoặc vượt quá 500 ký tự -> 400', async () => {
+            req.params.id = '1';
+            req.body = { description: 12345 };
+            await categoryController.updateCategory(req, res);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Category description cannot exceed 500 characters" });
+
+            req.body.description = 'D'.repeat(501);
+            await categoryController.updateCategory(req, res);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Category description cannot exceed 500 characters" });
+        });
+
+        test('[WB-CAT-30] updateCategory: Image URL không phải string hoặc vượt quá 255 ký tự -> 400', async () => {
+            req.params.id = '1';
+            req.body = { image: 999 };
+            await categoryController.updateCategory(req, res);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Category image URL cannot exceed 255 characters" });
+
+            req.body.image = 'http://' + 'i'.repeat(260);
+            await categoryController.updateCategory(req, res);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: "Category image URL cannot exceed 255 characters" });
+        });
     });
 });

@@ -136,6 +136,9 @@ describe('Table Controller - updateTable', () => {
             RestaurantTable.findByPk
                 .mockResolvedValue(mockTable);
 
+            RestaurantTable.findOne
+                .mockResolvedValue(null);
+
 
             await tableController.updateTable(
                 req,
@@ -144,15 +147,10 @@ describe('Table Controller - updateTable', () => {
             );
 
 
-            // Tìm thấy bằng ID nên không cần fallback
+            // Tìm thấy bằng ID
             expect(
                 RestaurantTable.findByPk
             ).toHaveBeenCalledWith(5);
-
-
-            expect(
-                RestaurantTable.findOne
-            ).not.toHaveBeenCalled();
 
 
             expect(
@@ -223,7 +221,11 @@ describe('Table Controller - updateTable', () => {
 
 
             RestaurantTable.findOne
-                .mockResolvedValue(mockTable);
+                .mockResolvedValueOnce(mockTable)
+                .mockResolvedValue(null);
+
+            Order.findOne
+                .mockResolvedValue(null);
 
 
             await tableController.updateTable(
@@ -472,6 +474,9 @@ describe('Table Controller - updateTable', () => {
             RestaurantTable.findByPk
                 .mockResolvedValue(mockTable);
 
+            RestaurantTable.findOne
+                .mockResolvedValue(null);
+
 
             await tableController.updateTable(
                 req,
@@ -536,6 +541,9 @@ describe('Table Controller - updateTable', () => {
 
             RestaurantTable.findByPk
                 .mockResolvedValue(mockTable);
+
+            RestaurantTable.findOne
+                .mockResolvedValue(null);
 
 
             await tableController.updateTable(

@@ -126,7 +126,7 @@ describe('White-Box Testing: tableController (100% Coverage Suite)', () => {
     });
 
     test('[WB-TBL-05] Tạo bàn mới thành công với giá trị mặc định -> 201', async () => {
-      req.body = {};
+      req.body = { tableNumber: 1 };
       RestaurantTable.findOne.mockResolvedValue(null);
       RestaurantTable.create.mockResolvedValue({ id: 1, tableNumber: 1, capacity: 4, qrCode: 'T1', status: 'AVAILABLE' });
 
@@ -142,6 +142,7 @@ describe('White-Box Testing: tableController (100% Coverage Suite)', () => {
     });
 
     test('[WB-TBL-06] Database Exception trong createTable -> next(error)', async () => {
+      req.body = { tableNumber: 10 };
       const error = new Error('Insert error');
       RestaurantTable.findOne.mockRejectedValue(error);
 
@@ -155,7 +156,7 @@ describe('White-Box Testing: tableController (100% Coverage Suite)', () => {
   // =========================================================================
   describe('updateTable', () => {
     test('[WB-TBL-07] Cập nhật bàn tìm theo tableNumber qua fallback findOne', async () => {
-      req.params = { id: 'TBL_9' };
+      req.params = { id: 9 };
       req.body = { tableNumber: 9, capacity: 6, qrCode: 'T9', status: 'AVAILABLE' };
 
       const mockTable = {
@@ -168,7 +169,7 @@ describe('White-Box Testing: tableController (100% Coverage Suite)', () => {
       };
 
       RestaurantTable.findByPk.mockResolvedValue(null);
-      RestaurantTable.findOne.mockResolvedValue(mockTable);
+      RestaurantTable.findOne.mockResolvedValueOnce(mockTable).mockResolvedValue(null);
       Order.findOne.mockResolvedValue(null); // không có active order chưa thanh toán
 
       await tableController.updateTable(req, res, next);
@@ -407,6 +408,119 @@ describe('White-Box Testing: tableController (100% Coverage Suite)', () => {
         message: "Lỗi khi nạp dữ liệu bàn"
       }));
       errSpy.mockRestore();
+    });
+  });
+
+  // =========================================================================
+  // 7. Additional Branch Coverage Tests (Validation & Edge Cases)
+  // =========================================================================
+  describe('Additional Validation & Edge Cases', () => {
+    test('[WB-TBL-25] createTable: Trạng thái bàn không hợp lệ -> 400', async () => {
+      req.body = { tableNumber: 5, status: 'INVALID_STATUS' };
+      await tableController.createTable(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Trạng thái bàn không hợp lệ')
+      }));
+    });
+
+    test('[WB-TBL-26] createTable: Mã QR đã tồn tại trong hệ thống -> 400', async () => {
+      req.body = { tableNumber: 5, qrCode: 'T5_EXISTING' };
+      RestaurantTable.findOne
+        .mockResolvedValueOnce(null) // tableNumber check
+        .mockResolvedValueOnce({ id: 2, qrCode: 'T5_EXISTING' }); // qrCode check
+
+      await tableController.createTable(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Mã QR 'T5_EXISTING' đã tồn tại trong hệ thống!" });
+    });
+
+    test('[WB-TBL-27] updateTable: tableNumber không hợp lệ (< 1 hoặc > 500) -> 400', async () => {
+      req.params = { id: 1 };
+      req.body = { tableNumber: 501 };
+      const mockTable = { id: 1, tableNumber: 1, update: jest.fn() };
+      RestaurantTable.findByPk.mockResolvedValue(mockTable);
+
+      await tableController.updateTable(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Số bàn không hợp lệ (phải là số nguyên từ 1 đến 500)" });
+    });
+
+    test('[WB-TBL-28] updateTable: tableNumber bị trùng với bàn khác -> 400', async () => {
+      req.params = { id: 1 };
+      req.body = { tableNumber: 2 };
+      const mockTable = { id: 1, tableNumber: 1, update: jest.fn() };
+      RestaurantTable.findByPk.mockResolvedValue(mockTable);
+      RestaurantTable.findOne.mockResolvedValue({ id: 2, tableNumber: 2 }); // existing table
+
+      await tableController.updateTable(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Bàn #2 đã tồn tại trong hệ thống!" });
+    });
+
+    test('[WB-TBL-29] updateTable: capacity không hợp lệ (< 1 hoặc > 50) -> 400', async () => {
+      req.params = { id: 1 };
+      req.body = { capacity: 0 };
+      const mockTable = { id: 1, tableNumber: 1, update: jest.fn() };
+      RestaurantTable.findByPk.mockResolvedValue(mockTable);
+
+      await tableController.updateTable(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Sức chứa bàn không hợp lệ (phải là số nguyên từ 1 đến 50)" });
+    });
+
+    test('[WB-TBL-30] updateTable: status không hợp lệ -> 400', async () => {
+      req.params = { id: 1 };
+      req.body = { status: 'INVALID_STATUS' };
+      const mockTable = { id: 1, tableNumber: 1, update: jest.fn() };
+      RestaurantTable.findByPk.mockResolvedValue(mockTable);
+
+      await tableController.updateTable(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Trạng thái bàn không hợp lệ')
+      }));
+    });
+
+    test('[WB-TBL-31] updateTable: qrCode bị trùng với bàn khác -> 400', async () => {
+      req.params = { id: 1 };
+      req.body = { qrCode: 'T2_DUP' };
+      const mockTable = { id: 1, tableNumber: 1, qrCode: 'T1', update: jest.fn() };
+      RestaurantTable.findByPk.mockResolvedValue(mockTable);
+      RestaurantTable.findOne.mockResolvedValue({ id: 2, qrCode: 'T2_DUP' });
+
+      await tableController.updateTable(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Mã QR 'T2_DUP' đã tồn tại trong hệ thống!" });
+    });
+
+    test('[WB-TBL-32] updateTableStatus: status rỗng hoặc không hợp lệ -> 400', async () => {
+      req.params = { id: 1 };
+      req.body = { status: 'INVALID_STATUS' };
+      const mockTable = { id: 1, tableNumber: 1, update: jest.fn() };
+      RestaurantTable.findByPk.mockResolvedValue(mockTable);
+
+      await tableController.updateTableStatus(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Trạng thái không hợp lệ')
+      }));
+    });
+
+    test('[WB-TBL-33] findTableByIdOrNumber: ID âm hoặc không phải số nguyên -> 404', async () => {
+      req.params = { id: -5 };
+      await tableController.deleteTable(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "Không tìm thấy bàn ăn với mã này trong hệ thống" });
     });
   });
 });

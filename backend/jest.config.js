@@ -16,7 +16,12 @@ module.exports = {
     'src/controllers/**/*.js',
     'src/middlewares/**/*.js',
     '!src/models/**',
-    '!src/configs/**'
+    '!src/configs/**',
+    '!src/routes/**',
+    '!src/docs/**',
+    '!src/app.js',
+    '!**/helpers/**',
+    '!**/mocks/**'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html']

@@ -261,15 +261,15 @@ describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Modu
       expect(res.status).toHaveBeenCalledWith(400);
     });
 
-    test('[WB-PRD-15] [BVA-PRD-009 & 011 & 012] Price: Số âm (-0.01), Tràn số (> 99999999.99), Chuỗi rác ("mot-tram-k") -> 400', async () => {
+    test('[WB-PRD-15] [BVA-PRD-009 & 011 & 012] Price: Số âm (-0.01), Tràn số (> 100,000,000), Chuỗi rác ("mot-tram-k") -> 400', async () => {
       // Price negative
       req.body = { name: 'Sushi', price: -0.01, category_id: 1 };
       await productController.createProduct(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Price must be greater than 0 and up to 99,999,999.99' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Price must be greater than 0 and up to 100,000,000' });
 
       // Price overflow
-      req.body = { name: 'Sushi', price: 100000000.00, category_id: 1 };
+      req.body = { name: 'Sushi', price: 100000000.01, category_id: 1 };
       await productController.createProduct(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
 
@@ -610,6 +610,92 @@ describe('White-Box Testing: Product Controller (Kiểm thử Hộp trắng Modu
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
         message: expect.stringContaining('Ràng buộc toàn vẹn dữ liệu')
       }));
+    });
+
+    test('[WB-PRD-36] createProduct: Description không phải string hoặc vượt quá 1000 ký tự -> 400', async () => {
+      req.body = { name: 'Sushi', price: 50000, category_id: 1, description: 12345 };
+      await productController.createProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Description must be a string" });
+
+      req.body.description = 'A'.repeat(1001);
+      await productController.createProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Description cannot exceed 1000 characters" });
+    });
+
+    test('[WB-PRD-37] createProduct: Image không phải string hoặc vượt quá 255 ký tự -> 400', async () => {
+      req.body = { name: 'Sushi', price: 50000, category_id: 1, image: 999 };
+      await productController.createProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Image URL must be a string" });
+
+      req.body.image = 'http://' + 'a'.repeat(260);
+      await productController.createProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Image URL cannot exceed 255 characters" });
+    });
+
+    test('[WB-PRD-38] createProduct: isAvailable không phải boolean -> 400', async () => {
+      req.body = { name: 'Sushi', price: 50000, category_id: 1, isAvailable: 'not-a-bool' };
+      await productController.createProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "isAvailable must be a boolean" });
+    });
+
+    test('[WB-PRD-39] updateProduct: Description không phải string hoặc > 1000 chars -> 400', async () => {
+      req.params.id = '1';
+      req.body = { description: 12345 };
+      Product.findByPk.mockResolvedValue({ id: 1, name: 'Sushi' });
+
+      await productController.updateProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Description must be a string" });
+
+      req.body.description = 'B'.repeat(1001);
+      await productController.updateProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Description cannot exceed 1000 characters" });
+    });
+
+    test('[WB-PRD-40] updateProduct: Image không phải string hoặc > 255 chars -> 400', async () => {
+      req.params.id = '1';
+      req.body = { image: 12345 };
+      Product.findByPk.mockResolvedValue({ id: 1, name: 'Sushi' });
+
+      await productController.updateProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Image URL must be a string" });
+
+      req.body.image = 'http://' + 'x'.repeat(260);
+      await productController.updateProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Image URL cannot exceed 255 characters" });
+    });
+
+    test('[WB-PRD-41] updateProduct: Price <= 0 hoặc > 100,000,000 -> 400', async () => {
+      req.params.id = '1';
+      req.body = { price: -100 };
+      Product.findByPk.mockResolvedValue({ id: 1, name: 'Sushi' });
+
+      await productController.updateProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Price must be greater than 0 and up to 100,000,000" });
+
+      req.body.price = 100000000.01;
+      await productController.updateProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    test('[WB-PRD-42] updateProduct: Category không tồn tại -> 400', async () => {
+      req.params.id = '1';
+      req.body = { category_id: 999 };
+      Product.findByPk.mockResolvedValue({ id: 1, name: 'Sushi' });
+      Category.findByPk.mockResolvedValue(null);
+
+      await productController.updateProduct(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "Category not found" });
     });
   });
 });
