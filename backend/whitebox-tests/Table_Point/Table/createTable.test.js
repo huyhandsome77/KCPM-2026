@@ -185,7 +185,7 @@ describe('Table Controller - createTable', () => {
     // ========================================================
 
     test(
-        'TB-BVA-001: tableNumber = 0 sử dụng giá trị mặc định 1',
+        'TB-BVA-001: tableNumber = 0 không hợp lệ trả về 400',
         async () => {
 
             const req = {
@@ -200,51 +200,25 @@ describe('Table Controller - createTable', () => {
             const res = createMockResponse();
             const next = createMockNext();
 
-
-            RestaurantTable.findOne
-                .mockResolvedValue(null);
-
-
-            RestaurantTable.create
-                .mockResolvedValue({
-                    id: 1,
-                    tableNumber: 1,
-                    capacity: 4,
-                    qrCode: 'T0',
-                    status: 'AVAILABLE'
-                });
-
-
             await tableController.createTable(
                 req,
                 res,
                 next
             );
 
+            expect(
+                res.status
+            ).toHaveBeenCalledWith(400);
 
             expect(
-                RestaurantTable.findOne
+                res.json
             ).toHaveBeenCalledWith({
-                where: {
-                    tableNumber: 1
-                }
+                message: 'Số bàn không hợp lệ (phải là số nguyên từ 1 đến 500)'
             });
-
 
             expect(
                 RestaurantTable.create
-            ).toHaveBeenCalledWith({
-                tableNumber: 1,
-                capacity: 4,
-                qrCode: 'T0',
-                status: 'AVAILABLE'
-            });
-
-
-            expect(
-                res.status
-            ).toHaveBeenCalledWith(201);
-
+            ).not.toHaveBeenCalled();
 
             expect(
                 next
@@ -260,7 +234,7 @@ describe('Table Controller - createTable', () => {
     // ========================================================
 
     test(
-        'TB-BVA-002: capacity = 0 sử dụng giá trị mặc định 4',
+        'TB-BVA-002: capacity = 0 không hợp lệ trả về 400',
         async () => {
 
             const req = {
@@ -275,42 +249,25 @@ describe('Table Controller - createTable', () => {
             const res = createMockResponse();
             const next = createMockNext();
 
-
-            RestaurantTable.findOne
-                .mockResolvedValue(null);
-
-
-            RestaurantTable.create
-                .mockResolvedValue({
-                    id: 5,
-                    tableNumber: 5,
-                    capacity: 4,
-                    qrCode: 'T5',
-                    status: 'AVAILABLE'
-                });
-
-
             await tableController.createTable(
                 req,
                 res,
                 next
             );
 
+            expect(
+                res.status
+            ).toHaveBeenCalledWith(400);
+
+            expect(
+                res.json
+            ).toHaveBeenCalledWith({
+                message: 'Sức chứa bàn không hợp lệ (phải là số nguyên từ 1 đến 50)'
+            });
 
             expect(
                 RestaurantTable.create
-            ).toHaveBeenCalledWith({
-                tableNumber: 5,
-                capacity: 4,
-                qrCode: 'T5',
-                status: 'AVAILABLE'
-            });
-
-
-            expect(
-                res.status
-            ).toHaveBeenCalledWith(201);
-
+            ).not.toHaveBeenCalled();
 
             expect(
                 next

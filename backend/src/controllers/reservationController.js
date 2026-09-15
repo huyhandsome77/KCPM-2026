@@ -9,21 +9,15 @@ exports.createReservation = async (req, res, next) => {
         const startTime = new Date(reservationTime);
         const durationHours = 2;
         const endTime = new Date(startTime.getTime() + durationHours * 60 * 60 * 1000);
+        const overlapStartWindow = new Date(startTime.getTime() - durationHours * 60 * 60 * 1000);
 
         const overlappingReservations = await Reservation.findAll({
             where: {
                 status: { [Op.in]: ['CONFIRMED', 'CHECKED_IN'] },
-                [Op.and]: [
-                    {
-                        reservationTime: {
-                            [Op.lt]: endTime
-                        }
-                    },
-                    sequelize.where(
-                        sequelize.fn('DATE_ADD', sequelize.col('reservationTime'), sequelize.literal(`INTERVAL ${durationHours} HOUR`)),
-                        { [Op.gt]: startTime }
-                    )
-                ]
+                reservationTime: {
+                    [Op.gt]: overlapStartWindow,
+                    [Op.lt]: endTime
+                }
             },
             attributes: ['table_id'],
             transaction: t
@@ -96,7 +90,7 @@ exports.checkIn = async (req, res, next) => {
         const resTime = new Date(reservation.reservationTime);
         const diffMins = (now - resTime) / 60000;
 
-        if (diffMins < -30 || diffMins > 30) {
+        if (Math.round(diffMins) < -30 || Math.round(diffMins) > 30) {
             await t.rollback();
             return res.status(400).json({
                 message: "Chỉ có thể nhấn nhận bàn trong khoảng 30 phút trước hoặc 30 phút sau giờ đặt bàn!"

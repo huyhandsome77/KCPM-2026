@@ -38,6 +38,7 @@
                   "    }",
                   "    if (jsonData.user && jsonData.user.id) {",
                   "        pm.collectionVariables.set(\"admin_id\", jsonData.user.id);",
+                  "        pm.environment.set(\"admin_id\", jsonData.user.id);",
                   "    }",
                   "});"
                 ],
@@ -467,8 +468,9 @@
                 "exec": [
                   "var token = pm.environment.get('admin_token') || pm.collectionVariables.get('admin_token') || pm.globals.get('admin_token');",
                   "var baseUrl = pm.environment.get('baseUrl') || pm.collectionVariables.get('baseUrl') || 'http://localhost:3000';",
+                  "var adminId = pm.environment.get('admin_id') || pm.collectionVariables.get('admin_id') || 94;",
                   "pm.sendRequest({",
-                  "    url: baseUrl + '/api/users/1',",
+                  "    url: baseUrl + '/api/users/' + adminId,",
                   "    method: 'PUT',",
                   "    header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },",
                   "    body: { mode: 'raw', raw: JSON.stringify({ points: 100 }) }",

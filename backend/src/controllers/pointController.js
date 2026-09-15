@@ -5,11 +5,12 @@ exports.addPointsFromOrder = async (req, res, next) => {
     try {
         const { phone, orderId } = req.body || {};
 
-        if (!phone || typeof phone !== 'string' || phone.trim() === '') {
+        const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+        if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone.trim())) {
             return res.status(400).json({ message: "Vui lòng nhập Số điện thoại hợp lệ" });
         }
 
-        if (orderId === undefined || orderId === null || isNaN(orderId) || Number(orderId) <= 0) {
+        if (orderId === undefined || orderId === null || isNaN(orderId) || Number(orderId) <= 0 || !Number.isInteger(Number(orderId))) {
             return res.status(400).json({ message: "Mã hóa đơn không hợp lệ (phải là số nguyên dương)" });
         }
 
@@ -33,16 +34,20 @@ exports.addPointsFromOrder = async (req, res, next) => {
 
         t = await sequelize.transaction();
 
+        const MAX_POINTS = 10000000;
         const pointRate = 0.05;
         const finalPrice = parseFloat(order.finalPrice || order.totalPrice || 0);
         const earnedPoints = Math.round(finalPrice * pointRate);
+        const previousPoints = user.points || 0;
+        const currentPoints = Math.min(MAX_POINTS, previousPoints + earnedPoints);
+        const actualPointsToAdd = Math.max(0, currentPoints - previousPoints);
 
-        await user.increment('points', { by: earnedPoints, transaction: t });
+        if (actualPointsToAdd > 0) {
+            await user.increment('points', { by: actualPointsToAdd, transaction: t });
+        }
         await order.update({ isPointsAdded: true }, { transaction: t });
 
         await t.commit();
-
-        const currentPoints = (user.points || 0) + earnedPoints;
 
         return res.status(200).json({
             message: `Tích điểm thành công cho khách hàng ${user.fullName}`,

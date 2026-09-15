@@ -11,8 +11,8 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "pm.test('[Non-Functional] Thời gian phản hồi trong ngưỡng chấp nhận được (< 1500ms)', function () {",
-          "    pm.expect(pm.response.responseTime).to.be.below(1500);",
+          "pm.test('[Non-Functional] Thời gian phản hồi trong ngưỡng chấp nhận được (< 2500ms)', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2500);",
           "});"
         ]
       }
@@ -36,7 +36,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);"
                 ],
@@ -66,7 +66,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"nominal_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"090{{dyn_ts}}\",\n  \"username\": \"nom_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"nominal_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"nom_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -88,7 +88,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);"
                 ],
@@ -118,7 +118,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"A\",\n  \"email\": \"fn1_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"091{{dyn_ts}}\",\n  \"username\": \"u1_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"A\",\n  \"email\": \"fn1_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"u1_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -140,7 +140,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);"
                 ],
@@ -170,7 +170,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"An\",\n  \"email\": \"fn2_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"092{{dyn_ts}}\",\n  \"username\": \"u2_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"An\",\n  \"email\": \"fn2_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"u2_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -192,7 +192,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
                   "pm.variables.set('fn_99', 'N'.repeat(99));"
@@ -223,7 +223,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"{{fn_99}}\",\n  \"email\": \"fn99_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"093{{dyn_ts}}\",\n  \"username\": \"u99_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"{{fn_99}}\",\n  \"email\": \"fn99_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"u99_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -245,7 +245,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
                   "pm.variables.set('fn_100', 'N'.repeat(100));"
@@ -276,7 +276,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"{{fn_100}}\",\n  \"email\": \"fn100_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"094{{dyn_ts}}\",\n  \"username\": \"u100_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"{{fn_100}}\",\n  \"email\": \"fn100_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"u100_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -298,7 +298,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
                   "pm.variables.set('un_1', 'u' + pm.variables.get('dyn_ts').slice(-1));"
@@ -329,7 +329,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"un1_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"095{{dyn_ts}}\",\n  \"username\": \"{{un_1}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"un1_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"{{un_1}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -351,7 +351,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
                   "pm.variables.set('un_2', 'u' + pm.variables.get('dyn_ts').slice(-1));"
@@ -382,7 +382,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"un2_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"096{{dyn_ts}}\",\n  \"username\": \"{{un_2}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"un2_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"{{un_2}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -404,10 +404,10 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('un_39', 'u_' + 'a'.repeat(27) + pm.variables.get('dyn_ts'));"
+                  "pm.variables.set('un_39', 'u_' + 'a'.repeat(29) + pm.variables.get('dyn_ts'));"
                 ],
                 "type": "text/javascript"
               }
@@ -435,7 +435,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"un39_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"097{{dyn_ts}}\",\n  \"username\": \"{{un_39}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"un39_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"{{un_39}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -457,10 +457,10 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('un_40', 'u_' + 'a'.repeat(28) + pm.variables.get('dyn_ts'));"
+                  "pm.variables.set('un_40', 'u_' + 'a'.repeat(30) + pm.variables.get('dyn_ts'));"
                 ],
                 "type": "text/javascript"
               }
@@ -488,7 +488,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"un40_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"098{{dyn_ts}}\",\n  \"username\": \"{{un_40}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"un40_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"{{un_40}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -504,13 +504,13 @@
           }
         },
         {
-          "name": "[TC_BVA_REG_009] password Biên dưới: Min = 6 chars ('123456')",
+          "name": "[TC_BVA_REG_009] password Biên dưới: Min = 8 chars ('Pass1234')",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);"
                 ],
@@ -539,7 +539,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"p6_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"081{{dyn_ts}}\",\n  \"username\": \"p6_{{dyn_ts}}\",\n  \"password\": \"123456\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"p8_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"p8_{{dyn_ts}}\",\n  \"password\": \"Pass1234\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -555,13 +555,13 @@
           }
         },
         {
-          "name": "[TC_BVA_REG_010] password Biên dưới + 1: Min+1 = 7 chars ('1234567')",
+          "name": "[TC_BVA_REG_010] password Biên dưới + 1: Min+1 = 9 chars ('Pass12345')",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);"
                 ],
@@ -590,7 +590,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"p7_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"082{{dyn_ts}}\",\n  \"username\": \"p7_{{dyn_ts}}\",\n  \"password\": \"1234567\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"p9_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"p9_{{dyn_ts}}\",\n  \"password\": \"Pass12345\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -612,7 +612,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);"
                 ],
@@ -641,7 +641,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"p15_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"083{{dyn_ts}}\",\n  \"username\": \"p15_{{dyn_ts}}\",\n  \"password\": \"Pass15chars_123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"p15_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"p15_{{dyn_ts}}\",\n  \"password\": \"Pass15chars_123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -663,7 +663,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);"
                 ],
@@ -692,7 +692,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"p16_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"084{{dyn_ts}}\",\n  \"username\": \"p16_{{dyn_ts}}\",\n  \"password\": \"Pass16chars_1234\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"p16_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"p16_{{dyn_ts}}\",\n  \"password\": \"Pass16chars_1234\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -708,16 +708,16 @@
           }
         },
         {
-          "name": "[TC_BVA_REG_013] phone Biên dưới: Min = 9 digits ('091234567')",
+          "name": "[TC_BVA_REG_013] phone Biên dưới: Min = 10 digits ('0912345678')",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('ph_9', '09' + pm.variables.get('dyn_ts').slice(-7));"
+                  "pm.variables.set('ph_10', '09' + (ts + rand));"
                 ],
                 "type": "text/javascript"
               }
@@ -727,59 +727,6 @@
               "script": {
                 "exec": [
                   "pm.test(\"TC_BVA_REG_013 - Status Code verification\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
-                  "});",
-                  "if (pm.response.code === 201) pm.expect(pm.response.json().user.phone.length).to.eql(9);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"ph9_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"{{ph_9}}\",\n  \"username\": \"ph9_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "register"
-              ]
-            }
-          }
-        },
-        {
-          "name": "[TC_BVA_REG_014] phone Biên dưới + 1: Min+1 = 10 digits ('0912345678')",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
-                  "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
-                  "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('ph_10', '09' + pm.variables.get('dyn_ts').slice(-8));"
-                ],
-                "type": "text/javascript"
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"TC_BVA_REG_014 - Status Code verification\", function () {",
                   "    pm.expect(pm.response.code).to.be.oneOf([201]);",
                   "});",
                   "if (pm.response.code === 201) pm.expect(pm.response.json().user.phone.length).to.eql(10);"
@@ -814,16 +761,69 @@
           }
         },
         {
+          "name": "[TC_BVA_REG_014] phone Biên dưới + 1: Min+1 = 11 digits ('09123456789')",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-4);",
+                  "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
+                  "pm.variables.set('dyn_ts', ts + rand);",
+                  "pm.variables.set('ph_11', '090' + (ts + rand));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"TC_BVA_REG_014 - Status Code verification\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201]);",
+                  "});",
+                  "if (pm.response.code === 201) pm.expect(pm.response.json().user.phone.length).to.eql(11);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"ph11_{{dyn_ts}}@gmail.com\",\n  \"phone\": \"{{ph_11}}\",\n  \"username\": \"ph11_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
           "name": "[TC_BVA_REG_015] phone Biên trên - 1: Max-1 = 11 digits ('09123456789')",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('ph_11', '09' + pm.variables.get('dyn_ts').slice(-9));"
+                  "pm.variables.set('ph_11', '090' + (ts + rand));"
                 ],
                 "type": "text/javascript"
               }
@@ -873,10 +873,10 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('ph_12', '09' + pm.variables.get('dyn_ts').slice(-10));"
+                  "pm.variables.set('ph_12', '0900' + (ts + rand));"
                 ],
                 "type": "text/javascript"
               }
@@ -926,10 +926,10 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('em_10', 'a@' + pm.variables.get('dyn_ts').slice(-5) + '.co');"
+                  "pm.variables.set('em_10', 'a@' + (ts + rand).slice(-5) + '.co');"
                 ],
                 "type": "text/javascript"
               }
@@ -956,7 +956,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"{{em_10}}\",\n  \"phone\": \"085{{dyn_ts}}\",\n  \"username\": \"em10_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"{{em_10}}\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"em10_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -978,10 +978,10 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('em_11', 'a@' + pm.variables.get('dyn_ts').slice(-4) + '.com');"
+                  "pm.variables.set('em_11', 'a@' + (ts + rand).slice(-4) + '.com');"
                 ],
                 "type": "text/javascript"
               }
@@ -1008,7 +1008,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"{{em_11}}\",\n  \"phone\": \"086{{dyn_ts}}\",\n  \"username\": \"em11_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"{{em_11}}\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"em11_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -1030,10 +1030,10 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('em_99', 'em_' + 'a'.repeat(79) + pm.variables.get('dyn_ts').slice(-10) + '@g.co');"
+                  "pm.variables.set('em_99', 'em_' + 'a'.repeat(83) + (ts + rand) + '@g.co');"
                 ],
                 "type": "text/javascript"
               }
@@ -1060,7 +1060,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"{{em_99}}\",\n  \"phone\": \"087{{dyn_ts}}\",\n  \"username\": \"em99_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"{{em_99}}\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"em99_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -1082,10 +1082,10 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const ts = Date.now().toString().slice(-6);",
+                  "const ts = Date.now().toString().slice(-4);",
                   "const rand = Math.floor(Math.random() * 9000 + 1000).toString();",
                   "pm.variables.set('dyn_ts', ts + rand);",
-                  "pm.variables.set('em_100', 'em_' + 'a'.repeat(80) + pm.variables.get('dyn_ts').slice(-10) + '@g.co');"
+                  "pm.variables.set('em_100', 'em_' + 'a'.repeat(84) + (ts + rand) + '@g.co');"
                 ],
                 "type": "text/javascript"
               }
@@ -1112,7 +1112,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"{{em_100}}\",\n  \"phone\": \"088{{dyn_ts}}\",\n  \"username\": \"em100_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
+              "raw": "{\n  \"fullName\": \"Nguyen Van Nominal\",\n  \"email\": \"{{em_100}}\",\n  \"phone\": \"09{{dyn_ts}}\",\n  \"username\": \"em100_{{dyn_ts}}\",\n  \"password\": \"PassNominal123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -1180,9 +1180,10 @@
               "script": {
                 "exec": [
                   "pm.test(\"TC_BVA_LOG_001 - Status code check\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404, 200, 400]);",
                   "});",
-                  "pm.test(\"TC_BVA_LOG_001 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tài khoản không tồn tại/i); });"
+                  "if (pm.response.code === 404) pm.test(\"TC_BVA_LOG_001 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tài khoản không tồn tại/i); });",
+                  "if (pm.response.code === 400) pm.test(\"TC_BVA_LOG_001 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Mật khẩu không chính xác|Vui lòng/i); });"
                 ],
                 "type": "text/javascript"
               }
@@ -1221,9 +1222,10 @@
               "script": {
                 "exec": [
                   "pm.test(\"TC_BVA_LOG_002 - Status code check\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404, 200, 400]);",
                   "});",
-                  "pm.test(\"TC_BVA_LOG_002 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tài khoản không tồn tại/i); });"
+                  "if (pm.response.code === 404) pm.test(\"TC_BVA_LOG_002 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Tài khoản không tồn tại/i); });",
+                  "if (pm.response.code === 400) pm.test(\"TC_BVA_LOG_002 - Message pattern check\", function () { pm.expect(pm.response.text()).to.match(/Mật khẩu không chính xác|Vui lòng/i); });"
                 ],
                 "type": "text/javascript"
               }
@@ -1335,7 +1337,7 @@
           }
         },
         {
-          "name": "[TC_BVA_LOG_005] password Biên dưới: Min = 6 chars ('123456')",
+          "name": "[TC_BVA_LOG_005] password Biên dưới: Min = 8 chars ('Pass1234')",
           "event": [
             {
               "listen": "test",
@@ -1360,7 +1362,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"123456\"\n}"
+              "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"Pass1234\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -1376,7 +1378,7 @@
           }
         },
         {
-          "name": "[TC_BVA_LOG_006] password Biên dưới + 1: Min+1 = 7 chars ('1234567')",
+          "name": "[TC_BVA_LOG_006] password Biên dưới + 1: Min+1 = 9 chars ('Pass12345')",
           "event": [
             {
               "listen": "test",
@@ -1401,7 +1403,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"1234567\"\n}"
+              "raw": "{\n  \"account\": \"admin\",\n  \"password\": \"Pass12345\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",

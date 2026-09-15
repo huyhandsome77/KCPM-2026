@@ -12,19 +12,37 @@
                 "type": "text/javascript",
                 "exec": [
                     "// Khởi tạo các chuỗi độ dài biên tự động",
-                    "pm.collectionVariables.set('cat_name_99', 'A'.repeat(99));",
-                    "pm.collectionVariables.set('cat_name_100', 'A'.repeat(100));",
-                    "pm.collectionVariables.set('cat_name_101', 'A'.repeat(101));",
+                    "const cat99 = 'A'.repeat(99);",
+                    "const cat100 = 'A'.repeat(100);",
+                    "const cat101 = 'A'.repeat(101);",
+                    "pm.collectionVariables.set('cat_name_99', cat99);",
+                    "pm.collectionVariables.set('cat_name_100', cat100);",
+                    "pm.collectionVariables.set('cat_name_101', cat101);",
+                    "pm.environment.set('cat_name_99', cat99);",
+                    "pm.environment.set('cat_name_100', cat100);",
+                    "pm.environment.set('cat_name_101', cat101);",
                     "",
-                    "pm.collectionVariables.set('prd_name_149', 'S'.repeat(149));",
-                    "pm.collectionVariables.set('prd_name_150', 'S'.repeat(150));",
-                    "pm.collectionVariables.set('prd_name_151', 'S'.repeat(151));",
+                    "const prd149 = 'S'.repeat(149);",
+                    "const prd150 = 'S'.repeat(150);",
+                    "const prd151 = 'S'.repeat(151);",
+                    "pm.collectionVariables.set('prd_name_149', prd149);",
+                    "pm.collectionVariables.set('prd_name_150', prd150);",
+                    "pm.collectionVariables.set('prd_name_151', prd151);",
+                    "pm.environment.set('prd_name_149', prd149);",
+                    "pm.environment.set('prd_name_150', prd150);",
+                    "pm.environment.set('prd_name_151', prd151);",
                     "",
                     "if (!pm.collectionVariables.get('temp_cat_id')) {",
                     "    pm.collectionVariables.set('temp_cat_id', '1');",
                     "}",
+                    "if (!pm.environment.get('temp_cat_id')) {",
+                    "    pm.environment.set('temp_cat_id', '1');",
+                    "}",
                     "if (!pm.collectionVariables.get('temp_prd_id')) {",
                     "    pm.collectionVariables.set('temp_prd_id', '1');",
+                    "}",
+                    "if (!pm.environment.get('temp_prd_id')) {",
+                    "    pm.environment.set('temp_prd_id', '1');",
                     "}"
                 ]
             }
@@ -135,9 +153,12 @@
                                     "const json = pm.response.json();",
                                     "pm.test('Category created with name = A', function () {",
                                     "    pm.expect(json.name).to.eql('A');",
-                                    "    pm.expect(json.id).to.be.a('number');",
+                                    "    pm.expect(Number(json.id)).to.be.a('number').and.not.NaN;",
                                     "});",
-                                    "if (json.id) { pm.collectionVariables.set('temp_cat_id', json.id); }"
+                                    "if (json.id) {",
+                                    "    pm.collectionVariables.set('temp_cat_id', String(json.id));",
+                                    "    pm.environment.set('temp_cat_id', String(json.id));",
+                                    "}"
                                 ]
                             }
                         }
@@ -569,7 +590,10 @@
                                     "pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });",
                                     "const json = pm.response.json();",
                                     "pm.test('Product name is S', function () { pm.expect(json.name).to.eql('S'); });",
-                                    "if (json.id) { pm.collectionVariables.set('temp_prd_id', json.id); }"
+                                    "if (json.id) {",
+                                    "    pm.collectionVariables.set('temp_prd_id', String(json.id));",
+                                    "    pm.environment.set('temp_prd_id', String(json.id));",
+                                    "}"
                                 ]
                             }
                         }
@@ -827,7 +851,11 @@
                                 "exec": [
                                     "pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });",
                                     "const json = pm.response.json();",
-                                    "pm.test('Error message mentions required / empty', function () { pm.expect(json.message).to.include('empty'); });"
+                                    "pm.test('Error message mentions required / empty', function () {",
+                                    "    pm.expect(json.message.toLowerCase()).to.satisfy(function(m) {",
+                                    "        return m.includes('empty') || m.includes('trống') || m.includes('required');",
+                                    "    });",
+                                    "});"
                                 ]
                             }
                         }

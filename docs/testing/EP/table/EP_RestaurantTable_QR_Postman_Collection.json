@@ -2,24 +2,141 @@
   "info": {
     "_postman_id": "futuresushi-ep-table-srs-aligned-2026",
     "name": "FutureSuShi - EP Restaurant Table & QR - SRS Aligned",
-    "description": "15 representative Equivalence Partitioning test cases aligned to the supplied SRS. No execution result is embedded. SRS names qr_token; current implementation uses qrCode, so the collection explicitly tests the mapping and the SRS-vs-implementation mismatch for status values.",
+    "description": "15 representative Equivalence Partitioning test cases aligned to the supplied SRS. Built-in fixture setup ensures standalone, reproducible execution across environments without pre-existing data requirements.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000"
+      "value": "http://localhost:3000",
+      "type": "string"
     },
     {
       "key": "existingTableId",
-      "value": "1"
+      "value": "1",
+      "type": "string"
     },
     {
       "key": "existingQrCode",
-      "value": "QR-EP-0001"
+      "value": "QR-EP-0001",
+      "type": "string"
     }
   ],
   "item": [
+    {
+      "name": "00. Setup Fixtures",
+      "item": [
+        {
+          "name": "0.1 Setup - Fetch & Clean Test Tables Fixture",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "(function() {",
+                  "    pm.test('0.1 Get all tables status is 200', () => pm.response.to.have.status(200));",
+                  "    const data = pm.response.json();",
+                  "    const tables = Array.isArray(data) ? data : (data.tables || data.data || []);",
+                  "    const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "    ",
+                  "    // Clean up any leftover EP test table numbers [250..257]",
+                  "    const testNumbers = [250, 251, 252, 253, 254, 255, 256, 257];",
+                  "    tables.forEach(t => {",
+                  "        if (t && t.id && testNumbers.includes(Number(t.tableNumber))) {",
+                  "            pm.sendRequest({ url: baseUrl + '/api/tables/' + t.id, method: 'DELETE' }, () => {});",
+                  "        }",
+                  "    });",
+                  "    ",
+                  "    // Find an existing base table or use the first available table",
+                  "    const baseTable = tables.find(t => t && t.id && Number(t.tableNumber) === 1) || tables.find(t => t && t.id);",
+                  "    if (baseTable) {",
+                  "        pm.collectionVariables.set('existingTableId', String(baseTable.id));",
+                  "        pm.collectionVariables.set('existingQrCode', String(baseTable.qrCode || 'QR-EP-0001'));",
+                  "        if (pm.environment) {",
+                  "            pm.environment.set('existingTableId', String(baseTable.id));",
+                  "            pm.environment.set('existingQrCode', String(baseTable.qrCode || 'QR-EP-0001'));",
+                  "        }",
+                  "    }",
+                  "})();"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "0.2 Setup - Ensure Base Fixture Table Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableNumber\": 1,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-0001\",\n  \"status\": \"AVAILABLE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "(function() {",
+                  "    pm.test('0.2 Fixture table check (201 Created or 400 Already Exists)', () => {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+                  "    });",
+                  "    if (pm.response.code === 201) {",
+                  "        const d = pm.response.json();",
+                  "        if (d.table && d.table.id) {",
+                  "            pm.collectionVariables.set('existingTableId', String(d.table.id));",
+                  "            pm.collectionVariables.set('existingQrCode', String(d.table.qrCode || 'QR-EP-0001'));",
+                  "            if (pm.environment) {",
+                  "                pm.environment.set('existingTableId', String(d.table.id));",
+                  "                pm.environment.set('existingQrCode', String(d.table.qrCode || 'QR-EP-0001'));",
+                  "            }",
+                  "        }",
+                  "    }",
+                  "})();"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "EP - Restaurant Table & QR (15 SRS-Aligned Cases)",
       "item": [
@@ -38,7 +155,14 @@
               "raw": "{\n  \"tableNumber\": 250,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2500\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -47,15 +171,20 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "const d=pm.response.json();",
-                  "pm.test('Payload has table',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('tableNumber=250',()=>pm.expect(Number(d.table.tableNumber)).to.eql(250));",
-                  "pm.test('capacity=4',()=>pm.expect(Number(d.table.capacity)).to.eql(4));",
-                  "pm.test('qrCode matches',()=>pm.expect(String(d.table.qrCode)).to.eql('QR-EP-2500'));",
-                  "pm.test('status=AVAILABLE',()=>pm.expect(String(d.table.status)).to.eql('AVAILABLE'));",
-                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    const d = pm.response.json();",
+                  "    pm.test('Payload has table', () => pm.expect(d.table).to.be.an('object'));",
+                  "    pm.test('tableNumber=250', () => pm.expect(Number(d.table.tableNumber)).to.eql(250));",
+                  "    pm.test('capacity=4', () => pm.expect(Number(d.table.capacity)).to.eql(4));",
+                  "    pm.test('qrCode matches', () => pm.expect(String(d.table.qrCode)).to.eql('QR-EP-2500'));",
+                  "    pm.test('status=AVAILABLE', () => pm.expect(String(d.table.status)).to.eql('AVAILABLE'));",
+                  "    if (d.table && d.table.id) {",
+                  "        const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "        pm.sendRequest({ url: baseUrl + '/api/tables/' + d.table.id, method: 'DELETE' }, () => {});",
+                  "    }",
+                  "})();"
                 ]
               }
             }
@@ -76,7 +205,14 @@
               "raw": "{\n  \"tableNumber\": 1,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2501\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -85,11 +221,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 400',()=>pm.response.to.have.status(400));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "const d=pm.response.json();",
-                  "pm.test('Error message exists',()=>pm.expect(d.message).to.be.a('string'));",
-                  "pm.test('Duplicate table message',()=>pm.expect(String(d.message).toLowerCase()).to.include('đã tồn tại')); "
+                  "(function() {",
+                  "    pm.test('Status code is 400', () => pm.response.to.have.status(400));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    const d = pm.response.json();",
+                  "    pm.test('Error message exists', () => pm.expect(d.message).to.be.a('string'));",
+                  "    pm.test('Duplicate table message', () => pm.expect(String(d.message).toLowerCase()).to.include('đã tồn tại'));",
+                  "})();"
                 ]
               }
             }
@@ -110,7 +248,14 @@
               "raw": "{\n  \"tableNumber\": \"ABC\",\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2502\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -119,10 +264,12 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "const d=pm.response.json();",
-                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string')); "
+                  "(function() {",
+                  "    pm.test('Status code is 4xx validation error', () => pm.expect(pm.response.code).to.be.within(400, 499));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    const d = pm.response.json();",
+                  "    pm.test('Error response has message', () => pm.expect(d.message).to.be.a('string'));",
+                  "})();"
                 ]
               }
             }
@@ -143,7 +290,14 @@
               "raw": "{\n  \"tableNumber\": 251,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2510\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -152,10 +306,15 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "const d=pm.response.json();",
-                  "pm.test('capacity=4',()=>pm.expect(Number(d.table.capacity)).to.eql(4));",
-                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    const d = pm.response.json();",
+                  "    pm.test('capacity=4', () => pm.expect(Number(d.table.capacity)).to.eql(4));",
+                  "    if (d.table && d.table.id) {",
+                  "        const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "        pm.sendRequest({ url: baseUrl + '/api/tables/' + d.table.id, method: 'DELETE' }, () => {});",
+                  "    }",
+                  "})();"
                 ]
               }
             }
@@ -176,7 +335,14 @@
               "raw": "{\n  \"tableNumber\": 252,\n  \"capacity\": \"ABC\",\n  \"qrCode\": \"QR-EP-2520\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -185,11 +351,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "const d=pm.response.json();",
-                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string'));",
-                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                  "(function() {",
+                  "    pm.test('Status code is 4xx validation error', () => pm.expect(pm.response.code).to.be.within(400, 499));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    const d = pm.response.json();",
+                  "    pm.test('Error response has message', () => pm.expect(d.message).to.be.a('string'));",
+                  "    if (d.table && d.table.id) {",
+                  "        const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "        pm.sendRequest({ url: baseUrl + '/api/tables/' + d.table.id, method: 'DELETE' }, () => {});",
+                  "    }",
+                  "})();"
                 ]
               }
             }
@@ -210,7 +381,14 @@
               "raw": "{\n  \"tableNumber\": 253,\n  \"capacity\": 0,\n  \"qrCode\": \"QR-EP-2530\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -219,11 +397,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "const d=pm.response.json();",
-                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string'));",
-                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                  "(function() {",
+                  "    pm.test('Status code is 4xx validation error', () => pm.expect(pm.response.code).to.be.within(400, 499));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    const d = pm.response.json();",
+                  "    pm.test('Error response has message', () => pm.expect(d.message).to.be.a('string'));",
+                  "    if (d.table && d.table.id) {",
+                  "        const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "        pm.sendRequest({ url: baseUrl + '/api/tables/' + d.table.id, method: 'DELETE' }, () => {});",
+                  "    }",
+                  "})();"
                 ]
               }
             }
@@ -244,7 +427,14 @@
               "raw": "{\n  \"tableNumber\": 254,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-0007\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -253,11 +443,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "const d=pm.response.json();",
-                  "pm.test('qrCode length >=10',()=>pm.expect(String(d.table.qrCode).length).to.be.at.least(10));",
-                  "pm.test('qrCode matches',()=>pm.expect(String(d.table.qrCode)).to.eql('QR-EP-0007'));",
-                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    const d = pm.response.json();",
+                  "    pm.test('qrCode length >=10', () => pm.expect(String(d.table.qrCode).length).to.be.at.least(10));",
+                  "    pm.test('qrCode matches', () => pm.expect(String(d.table.qrCode)).to.eql('QR-EP-0007'));",
+                  "    if (d.table && d.table.id) {",
+                  "        const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "        pm.sendRequest({ url: baseUrl + '/api/tables/' + d.table.id, method: 'DELETE' }, () => {});",
+                  "    }",
+                  "})();"
                 ]
               }
             }
@@ -278,7 +473,14 @@
               "raw": "{\n  \"tableNumber\": 255,\n  \"capacity\": 4,\n  \"qrCode\": \"{{existingQrCode}}\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -287,11 +489,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "const d=pm.response.json();",
-                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string')); ",
-                  "if(pm.response.code===201){const d=pm.response.json();if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});}"
+                  "(function() {",
+                  "    pm.test('Status code is 4xx validation error', () => pm.expect(pm.response.code).to.be.within(400, 499));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    const d = pm.response.json();",
+                  "    pm.test('Error response has message', () => pm.expect(d.message).to.be.a('string'));",
+                  "    if (pm.response.code === 201 && d.table && d.table.id) {",
+                  "        const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "        pm.sendRequest({ url: baseUrl + '/api/tables/' + d.table.id, method: 'DELETE' }, () => {});",
+                  "    }",
+                  "})();"
                 ]
               }
             }
@@ -312,7 +519,14 @@
               "raw": "{\n  \"tableNumber\": 256,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2560\",\n  \"status\": \"AVAILABLE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -321,10 +535,15 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201',()=>pm.response.to.have.status(201));",
-                  "const d=pm.response.json();",
-                  "pm.test('status=AVAILABLE',()=>pm.expect(String(d.table.status)).to.eql('AVAILABLE'));",
-                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                  "(function() {",
+                  "    pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "    const d = pm.response.json();",
+                  "    pm.test('status=AVAILABLE', () => pm.expect(String(d.table.status)).to.eql('AVAILABLE'));",
+                  "    if (d.table && d.table.id) {",
+                  "        const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "        pm.sendRequest({ url: baseUrl + '/api/tables/' + d.table.id, method: 'DELETE' }, () => {});",
+                  "    }",
+                  "})();"
                 ]
               }
             }
@@ -345,7 +564,14 @@
               "raw": "{\n  \"tableNumber\": 257,\n  \"capacity\": 4,\n  \"qrCode\": \"QR-EP-2570\",\n  \"status\": \"BOOKED\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables"
+              "raw": "{{baseUrl}}/api/tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables"
+              ]
             }
           },
           "event": [
@@ -354,11 +580,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 4xx validation error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "const d=pm.response.json();",
-                  "pm.test('Error response has message',()=>pm.expect(d.message).to.be.a('string'));",
-                  "if(d.table&&d.table.id)pm.sendRequest({url:pm.environment.get('baseUrl')+'/api/tables/'+d.table.id,method:'DELETE'},()=>{});"
+                  "(function() {",
+                  "    pm.test('Status code is 4xx validation error', () => pm.expect(pm.response.code).to.be.within(400, 499));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    const d = pm.response.json();",
+                  "    pm.test('Error response has message', () => pm.expect(d.message).to.be.a('string'));",
+                  "    if (pm.response.code === 201 && d.table && d.table.id) {",
+                  "        const baseUrl = pm.collectionVariables.get('baseUrl') || pm.environment.get('baseUrl') || 'http://localhost:3000';",
+                  "        pm.sendRequest({ url: baseUrl + '/api/tables/' + d.table.id, method: 'DELETE' }, () => {});",
+                  "    }",
+                  "})();"
                 ]
               }
             }
@@ -376,10 +607,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"status\":\"OCCUPIED\"}"
+              "raw": "{\n  \"status\": \"OCCUPIED\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables/{{existingTableId}}/status"
+              "raw": "{{baseUrl}}/api/tables/{{existingTableId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables",
+                "{{existingTableId}}",
+                "status"
+              ]
             }
           },
           "event": [
@@ -388,9 +628,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 200',()=>pm.response.to.have.status(200));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Payload has message',()=>pm.expect(pm.response.json().message).to.be.a('string')); "
+                  "(function() {",
+                  "    pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Payload has message', () => pm.expect(pm.response.json().message).to.be.a('string'));",
+                  "})();"
                 ]
               }
             }
@@ -408,10 +650,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"status\":\"OCCUPIED\"}"
+              "raw": "{\n  \"status\": \"OCCUPIED\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables/999999/status"
+              "raw": "{{baseUrl}}/api/tables/999999/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables",
+                "999999",
+                "status"
+              ]
             }
           },
           "event": [
@@ -420,9 +671,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 404',()=>pm.response.to.have.status(404));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Payload has message',()=>pm.expect(pm.response.json().message).to.be.a('string')); "
+                  "(function() {",
+                  "    pm.test('Status code is 404', () => pm.response.to.have.status(404));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Payload has message', () => pm.expect(pm.response.json().message).to.be.a('string'));",
+                  "})();"
                 ]
               }
             }
@@ -440,10 +693,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"status\":\"OCCUPIED\"}"
+              "raw": "{\n  \"status\": \"OCCUPIED\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/tables/ABC/status"
+              "raw": "{{baseUrl}}/api/tables/ABC/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables",
+                "ABC",
+                "status"
+              ]
             }
           },
           "event": [
@@ -452,9 +714,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Payload has message',()=>pm.expect(pm.response.json().message).to.be.a('string')); "
+                  "(function() {",
+                  "    pm.test('Status code is 4xx', () => pm.expect(pm.response.code).to.be.within(400, 499));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Payload has message', () => pm.expect(pm.response.json().message).to.be.a('string'));",
+                  "})();"
                 ]
               }
             }
@@ -465,7 +729,16 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/tables/qr/{{existingQrCode}}"
+              "raw": "{{baseUrl}}/api/tables/qr/{{existingQrCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables",
+                "qr",
+                "{{existingQrCode}}"
+              ]
             }
           },
           "event": [
@@ -474,11 +747,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 200',()=>pm.response.to.have.status(200));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "const d=pm.response.json();",
-                  "pm.test('Payload contains table',()=>pm.expect(d.table).to.be.an('object'));",
-                  "pm.test('QR length >=10',()=>pm.expect(String(d.table.qrCode).length).to.be.at.least(10));"
+                  "(function() {",
+                  "    pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    const d = pm.response.json();",
+                  "    const table = d.table || d;",
+                  "    pm.test('Payload contains table', () => pm.expect(table).to.be.an('object'));",
+                  "    pm.test('QR length >=10', () => pm.expect(String(table.qrCode).length).to.be.at.least(10));",
+                  "})();"
                 ]
               }
             }
@@ -489,7 +765,16 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/tables/qr/QR-NOT-EXIST-SRS"
+              "raw": "{{baseUrl}}/api/tables/qr/QR-NOT-EXIST-SRS",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tables",
+                "qr",
+                "QR-NOT-EXIST-SRS"
+              ]
             }
           },
           "event": [
@@ -498,9 +783,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 404',()=>pm.response.to.have.status(404));",
-                  "pm.test('Response is JSON',()=>pm.response.to.be.json);",
-                  "pm.test('Payload has message',()=>pm.expect(pm.response.json().message).to.be.a('string')); "
+                  "(function() {",
+                  "    pm.test('Status code is 404', () => pm.response.to.have.status(404));",
+                  "    pm.test('Response is JSON', () => pm.response.to.be.json);",
+                  "    pm.test('Payload has message', () => pm.expect(pm.response.json().message).to.be.a('string'));",
+                  "})();"
                 ]
               }
             }

@@ -8,15 +8,15 @@ module.exports = (sequelize) => {
             primaryKey: true,
         },
         totalPrice: {
-            type: DataTypes.DECIMAL(10, 2),
+            type: DataTypes.DECIMAL(15, 2),
             allowNull: false,
         },
         discountAmount: {
-            type: DataTypes.DECIMAL(10, 2),
+            type: DataTypes.DECIMAL(15, 2),
             defaultValue: 0,
         },
         finalPrice: {
-            type: DataTypes.DECIMAL(10, 2),
+            type: DataTypes.DECIMAL(15, 2),
             allowNull: false,
         },
         note: {
